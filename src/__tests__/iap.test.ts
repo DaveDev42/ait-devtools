@@ -1,10 +1,15 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { aitState } from '../mock/state.js';
 import { IAP } from '../mock/iap/index.js';
 
 describe('IAP mock', () => {
   beforeEach(() => {
     aitState.reset();
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('getProductItemList: 상태에 설정된 상품 목록을 반환한다', async () => {
@@ -25,8 +30,7 @@ describe('IAP mock', () => {
         onError,
       });
 
-      // 비동기 처리 대기 (handlePurchase 내부 300ms setTimeout)
-      await vi.waitFor(() => expect(onEvent).toHaveBeenCalled(), { timeout: 1000 });
+      await vi.advanceTimersByTimeAsync(300);
 
       expect(onEvent).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -50,7 +54,7 @@ describe('IAP mock', () => {
         onError,
       });
 
-      await vi.waitFor(() => expect(onError).toHaveBeenCalled(), { timeout: 1000 });
+      await vi.advanceTimersByTimeAsync(300);
 
       expect(onError).toHaveBeenCalledWith({ code: 'USER_CANCELED' });
       expect(onEvent).not.toHaveBeenCalled();
@@ -68,17 +72,15 @@ describe('IAP mock', () => {
         onError,
       });
 
-      await vi.waitFor(() => expect(onError).toHaveBeenCalled(), { timeout: 1000 });
+      await vi.advanceTimersByTimeAsync(300);
 
       expect(onError).toHaveBeenCalledWith({ code: 'PRODUCT_NOT_GRANTED_BY_PARTNER' });
     });
   });
 
   it('completeProductGrant: pending 주문을 completed로 이동한다', async () => {
-    aitState.state.iap.pendingOrders.push({
-      orderId: 'order-1',
-      sku: 'mock-gem-100',
-      paymentCompletedDate: new Date().toISOString(),
+    aitState.patch('iap', {
+      pendingOrders: [{ orderId: 'order-1', sku: 'mock-gem-100', paymentCompletedDate: new Date().toISOString() }],
     });
 
     const result = await IAP.completeProductGrant({ params: { orderId: 'order-1' } });

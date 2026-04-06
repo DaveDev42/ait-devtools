@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { createMockProxy } from '../mock/proxy.js';
 
+// NOTE: WARNED set in proxy.ts is module-level global — use unique module names per test to avoid interference
 describe('createMockProxy', () => {
   it('구현된 프로퍼티는 정상적으로 접근 가능하다', () => {
     const mock = createMockProxy('TestModule', {
@@ -19,8 +20,6 @@ describe('createMockProxy', () => {
 
     const result = await fn();
     expect(result).toBeUndefined();
-
-    warnSpy.mockRestore();
   });
 
   it('같은 미구현 프로퍼티에 대해 경고는 한 번만 출력된다', () => {
@@ -34,7 +33,5 @@ describe('createMockProxy', () => {
       (c[0] as string).includes('WarnOnce.foo'),
     );
     expect(fooWarnings).toHaveLength(1);
-
-    warnSpy.mockRestore();
   });
 });

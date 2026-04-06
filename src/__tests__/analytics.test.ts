@@ -5,8 +5,6 @@ import { Analytics, eventLog } from '../mock/analytics/index.js';
 describe('Analytics mock', () => {
   beforeEach(() => {
     aitState.reset();
-    // reset()은 shallow copy이므로 analyticsLog 배열을 직접 비워준다
-    aitState.state.analyticsLog.length = 0;
   });
 
   it('Analytics.screen: analyticsLog에 screen 타입으로 기록된다', async () => {

@@ -4,8 +4,6 @@ import { aitState } from '../mock/state.js';
 describe('AitStateManager', () => {
   beforeEach(() => {
     aitState.reset();
-    // reset()은 shallow copy이므로 analyticsLog 배열을 직접 비워준다
-    aitState.state.analyticsLog.length = 0;
   });
 
   it('update: 상태를 부분 업데이트한다', () => {
@@ -59,10 +57,12 @@ describe('AitStateManager', () => {
   it('reset: 상태를 초기값으로 되돌린다 (deviceId는 유지)', () => {
     const deviceId = aitState.state.deviceId;
     aitState.update({ platform: 'android', locale: 'en-US' });
+    aitState.logAnalytics({ type: 'click', params: {} });
 
     aitState.reset();
     expect(aitState.state.platform).toBe('ios');
     expect(aitState.state.locale).toBe('ko-KR');
+    expect(aitState.state.analyticsLog).toHaveLength(0);
     expect(aitState.state.deviceId).toBe(deviceId);
   });
 });

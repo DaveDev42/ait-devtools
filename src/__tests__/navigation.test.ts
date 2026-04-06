@@ -7,6 +7,20 @@ import {
   getNetworkStatus,
   getServerTime,
   graniteEvent,
+  getTossAppVersion,
+  getSchemeUri,
+  getLocale,
+  getDeviceId,
+  getGroupId,
+  SafeAreaInsets,
+  env,
+  getAppsInTossGlobals,
+  closeView,
+  openURL,
+  getTossShareLink,
+  setScreenAwakeMode,
+  requestReview,
+  tdsEvent,
 } from '../mock/navigation/index.js';
 
 describe('Navigation mock', () => {
@@ -28,7 +42,6 @@ describe('Navigation mock', () => {
 
   describe('isMinVersionSupported', () => {
     it('현재 버전이 최소 버전 이상이면 true', () => {
-      // appVersion: '5.240.0'
       expect(isMinVersionSupported({ ios: '5.240.0', android: '5.240.0' })).toBe(true);
       expect(isMinVersionSupported({ ios: '5.200.0', android: '5.200.0' })).toBe(true);
     });
@@ -62,6 +75,82 @@ describe('Navigation mock', () => {
     expect(time).toBeLessThanOrEqual(after);
   });
 
+  it('getTossAppVersion: 상태의 appVersion을 반환한다', () => {
+    expect(getTossAppVersion()).toBe('5.240.0');
+  });
+
+  it('getSchemeUri: 상태의 schemeUri를 반환한다', () => {
+    expect(getSchemeUri()).toBe('/');
+    aitState.update({ schemeUri: '/test' });
+    expect(getSchemeUri()).toBe('/test');
+  });
+
+  it('getLocale: 상태의 locale을 반환한다', () => {
+    expect(getLocale()).toBe('ko-KR');
+  });
+
+  it('getDeviceId: 상태의 deviceId를 반환한다', () => {
+    expect(getDeviceId()).toBe(aitState.state.deviceId);
+  });
+
+  it('getGroupId: 상태의 groupId를 반환한다', () => {
+    expect(getGroupId()).toBe('mock-group-id');
+  });
+
+  it('env.getDeploymentId: 상태의 deploymentId를 반환한다', () => {
+    expect(env.getDeploymentId()).toBe('mock-deployment-id');
+  });
+
+  it('getAppsInTossGlobals: brand 정보를 포함한 globals를 반환한다', () => {
+    const globals = getAppsInTossGlobals();
+    expect(globals.deploymentId).toBe('mock-deployment-id');
+    expect(globals.brandDisplayName).toBe('Mock App');
+    expect(globals.brandPrimaryColor).toBe('#3182F6');
+  });
+
+  it('closeView: history.back()을 호출한다', async () => {
+    const backSpy = vi.spyOn(window.history, 'back').mockImplementation(() => {});
+    await closeView();
+    expect(backSpy).toHaveBeenCalled();
+  });
+
+  it('openURL: window.open()을 호출한다', async () => {
+    const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
+    await openURL('https://example.com');
+    expect(openSpy).toHaveBeenCalledWith('https://example.com', '_blank');
+  });
+
+  it('getTossShareLink: mock share link를 반환한다', async () => {
+    const link = await getTossShareLink('/path');
+    expect(link).toBe('https://toss.im/share/mock/path');
+  });
+
+  it('setScreenAwakeMode: 설정한 값을 반환한다', async () => {
+    const result = await setScreenAwakeMode({ enabled: true });
+    expect(result).toEqual({ enabled: true });
+  });
+
+  it('requestReview: isSupported()가 true를 반환한다', () => {
+    expect((requestReview as unknown as { isSupported: () => boolean }).isSupported()).toBe(true);
+  });
+
+  describe('SafeAreaInsets', () => {
+    it('get: 현재 safe area insets를 반환한다', () => {
+      const insets = SafeAreaInsets.get();
+      expect(insets).toEqual({ top: 47, bottom: 34, left: 0, right: 0 });
+    });
+
+    it('subscribe: 상태 변경 시 콜백이 호출된다', () => {
+      const handler = vi.fn();
+      const unsub = SafeAreaInsets.subscribe({ onEvent: handler });
+
+      aitState.patch('safeAreaInsets', { top: 50 });
+      expect(handler).toHaveBeenCalledWith(expect.objectContaining({ top: 50 }));
+
+      unsub();
+    });
+  });
+
   describe('graniteEvent', () => {
     it('backEvent 리스너를 등록하고 trigger로 호출할 수 있다', () => {
       const handler = vi.fn();
@@ -72,7 +161,7 @@ describe('Navigation mock', () => {
 
       unsub();
       aitState.trigger('backEvent');
-      expect(handler).toHaveBeenCalledTimes(1); // 구독 해제 후 호출 안 됨
+      expect(handler).toHaveBeenCalledTimes(1);
     });
 
     it('homeEvent 리스너를 등록하고 trigger로 호출할 수 있다', () => {
@@ -81,6 +170,18 @@ describe('Navigation mock', () => {
 
       aitState.trigger('homeEvent');
       expect(handler).toHaveBeenCalledTimes(1);
+
+      unsub();
+    });
+  });
+
+  describe('tdsEvent', () => {
+    it('navigationAccessoryEvent를 수신할 수 있다', () => {
+      const handler = vi.fn();
+      const unsub = tdsEvent.addEventListener('navigationAccessoryEvent', { onEvent: handler });
+
+      window.dispatchEvent(new CustomEvent('__ait:navigationAccessoryEvent', { detail: { id: 'btn1' } }));
+      expect(handler).toHaveBeenCalledWith({ id: 'btn1' });
 
       unsub();
     });

@@ -56,8 +56,6 @@ describe('Device mock', () => {
         mimeType: 'text/plain',
       });
       expect(clickSpy).toHaveBeenCalled();
-
-      vi.restoreAllMocks();
     });
   });
 });

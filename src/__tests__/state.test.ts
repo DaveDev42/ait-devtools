@@ -65,4 +65,15 @@ describe('AitStateManager', () => {
     expect(aitState.state.analyticsLog).toHaveLength(0);
     expect(aitState.state.deviceId).toBe(deviceId);
   });
+
+  it('reset: 중첩 객체가 deep-clone되어 이전 상태와 독립적이다', () => {
+    aitState.state.iap.completedOrders.push({
+      orderId: 'x', sku: 'x', status: 'COMPLETED', date: '',
+    });
+    aitState.patch('auth', { isLoggedIn: false });
+
+    aitState.reset();
+    expect(aitState.state.iap.completedOrders).toHaveLength(0);
+    expect(aitState.state.auth.isLoggedIn).toBe(true);
+  });
 });

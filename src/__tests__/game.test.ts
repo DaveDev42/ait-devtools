@@ -15,8 +15,7 @@ describe('Game mock', () => {
     const result = await grantPromotionReward({
       params: { promotionCode: 'PROMO1', amount: 100 },
     });
-    expect(result).toHaveProperty('key');
-    expect((result as { key: string }).key).toMatch(/^mock-reward-/);
+    expect(result).toHaveProperty('key', expect.stringMatching(/^mock-reward-/));
   });
 
   describe('getGameCenterGameProfile', () => {

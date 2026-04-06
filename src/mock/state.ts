@@ -227,7 +227,7 @@ class AitStateManager {
   private _listeners = new Set<Listener>();
 
   constructor() {
-    this._state = { ...DEFAULT_STATE };
+    this._state = structuredClone(DEFAULT_STATE);
     try {
       this._state.deviceId = generateDeviceId();
     } catch {

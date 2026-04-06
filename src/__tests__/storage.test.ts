@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { Storage } from '../mock/device/index.js';
 
 describe('Storage mock', () => {
+  // Storage는 aitState가 아닌 localStorage를 직접 사용하므로 clearItems()로 초기화
   beforeEach(async () => {
     await Storage.clearItems();
   });

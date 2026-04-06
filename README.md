@@ -32,9 +32,12 @@ export default {
 ### 2. Webpack
 
 ```js
-// webpack.config.js
+// webpack.config.js (ESM)
 import aitDevtools from 'ait-devtools/unplugin';
+config.plugins.push(aitDevtools.webpack());
 
+// webpack.config.js (CommonJS)
+const aitDevtools = require('ait-devtools/unplugin');
 config.plugins.push(aitDevtools.webpack());
 ```
 
@@ -106,7 +109,7 @@ module.exports = {
 __ait.update({ networkStatus: 'OFFLINE' });
 
 // 여러 상태 한번에 업데이트
-__ait.update({ platform: 'android', locale: 'en_US' });
+__ait.update({ platform: 'android', locale: 'en-US' });
 
 // 이벤트 트리거
 __ait.trigger('backEvent');
@@ -261,7 +264,7 @@ type _AppLogin = Assert<typeof Mock.appLogin, typeof Original.appLogin>;
 
 1. `@apps-in-toss/web-framework`의 새 버전 확인
 2. 최신 버전으로 업데이트 후 타입 체크 실행
-3. 타입 에러 발견 시 자동으로 GitHub Issue 생성
+3. 새 버전 감지 시 자동으로 GitHub Issue 생성 (타입 에러 여부 포함)
 
 ## 라이센스
 

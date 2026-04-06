@@ -2,9 +2,9 @@
 
 `@apps-in-toss/web-framework` SDK의 mock 라이브러리입니다.
 
-앱인토스(Apps in Toss) 미니앱을 **일반 크롬 브라우저**에서 개발하고 테스트할 수 있게 해줍니다. 토스 앱 없이도 SDK의 모든 기능을 시뮬레이션하여 빠른 개발 사이클을 지원합니다.
+앱인토스(Apps in Toss) 미니앱을 **일반 브라우저**에서 개발하고 테스트할 수 있게 해줍니다. 토스 앱 없이도 SDK의 모든 기능을 시뮬레이션하여 빠른 개발 사이클을 지원합니다.
 
-- **50+ SDK API mock** — 인증, 결제, IAP, 위치, 카메라, 스토리지 등
+- **60+ SDK API mock** — 인증, 결제, IAP, 위치, 카메라, 스토리지 등
 - **Floating DevTools Panel** — 브라우저에서 SDK 상태를 실시간으로 제어
 - **모든 번들러 지원** — [unplugin](https://github.com/unjs/unplugin) 기반 Vite, Webpack, Rspack, esbuild, Rollup 통합
 
@@ -80,7 +80,7 @@ module.exports = {
 
 | 탭 | 설명 |
 |---|---|
-| **Environment** | 플랫폼 OS (ios/android), 앱 버전, 환경 (toss/sandbox), 로케일, 네트워크 상태, Safe Area Insets 설정 |
+| **Environment** | 플랫폼 OS (ios/android), 앱 버전, 환경 (toss/sandbox), 로케일, 네트워크 상태, Safe Area Insets (top/bottom) 설정 |
 | **Permissions** | camera, photos, geolocation, clipboard, contacts, microphone 권한 상태 제어 (allowed/denied/notDetermined) |
 | **Location** | 위도, 경도, 정확도 등 GPS 좌표 설정 |
 | **IAP** | 인앱 구매 시뮬레이션 — 다음 구매 결과(success/취소/에러 등), TossPay 결제 결과, 완료된 주문 내역 |
@@ -94,13 +94,16 @@ module.exports = {
 
 ```js
 // 플랫폼 변경
-__ait.state.platform = 'android';
+__ait.update({ platform: 'android' });
 
 // 여러 상태 한번에 업데이트
 __ait.update({ networkStatus: 'OFFLINE' });
 
 // 이벤트 트리거
 __ait.trigger('backEvent');
+
+// 현재 상태 조회
+console.log(__ait.state.platform);
 ```
 
 ## Mock API 목록
@@ -232,7 +235,7 @@ ait-devtools는 세 가지 메커니즘으로 SDK 변경에 대응합니다:
 
 ### 1. peerDependencies + typeof 타입 강제
 
-`src/__typecheck.ts`에서 mock의 모든 export가 원본 SDK와 타입 호환되는지 컴파일 타임에 검증합니다. SDK 시그니처가 변경되면 `tsc --noEmit`에서 즉시 에러가 발생합니다.
+`src/__typecheck.ts`에서 mock의 주요 export가 원본 SDK와 타입 호환되는지 컴파일 타임에 검증합니다. SDK 시그니처가 변경되면 `tsc --noEmit`에서 즉시 에러가 발생합니다.
 
 ```ts
 type Assert<TMock, TOriginal> = TMock extends TOriginal ? true : never;

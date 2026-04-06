@@ -67,6 +67,7 @@ describe('Navigation mock', () => {
     expect(await getNetworkStatus()).toBe('OFFLINE');
   });
 
+  // Note: requires real timers (no vi.useFakeTimers)
   it('getServerTime: 현재 시간을 반환한다', async () => {
     const before = Date.now();
     const time = await getServerTime();

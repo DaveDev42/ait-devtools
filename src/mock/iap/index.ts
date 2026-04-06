@@ -85,11 +85,13 @@ async function handlePurchase(
   }
 
   // 주문 완료 기록
-  aitState.state.iap.completedOrders.push({
-    orderId: result.orderId,
-    sku,
-    status: 'COMPLETED',
-    date: new Date().toISOString(),
+  aitState.patch('iap', {
+    completedOrders: [...aitState.state.iap.completedOrders, {
+      orderId: result.orderId,
+      sku,
+      status: 'COMPLETED' as const,
+      date: new Date().toISOString(),
+    }],
   });
 
   await onEvent({ type: 'success', data: result });
@@ -137,13 +139,15 @@ export const IAP = createMockProxy('IAP', {
     // pending → completed 전이
     const idx = aitState.state.iap.pendingOrders.findIndex(o => o.orderId === args.params.orderId);
     if (idx !== -1) {
-      const [order] = aitState.state.iap.pendingOrders.splice(idx, 1);
-      aitState.state.iap.completedOrders.push({
+      const order = aitState.state.iap.pendingOrders[idx];
+      const pendingOrders = aitState.state.iap.pendingOrders.filter((_, i) => i !== idx);
+      const completedOrders = [...aitState.state.iap.completedOrders, {
         orderId: order.orderId,
         sku: order.sku,
-        status: 'COMPLETED',
+        status: 'COMPLETED' as const,
         date: new Date().toISOString(),
-      });
+      }];
+      aitState.patch('iap', { pendingOrders, completedOrders });
     }
     return true;
   },

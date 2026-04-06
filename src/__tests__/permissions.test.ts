@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { aitState } from '../mock/state.js';
-import { getPermission, openPermissionDialog, checkPermission } from '../mock/permissions.js';
+import { getPermission, openPermissionDialog, checkPermission, withPermission, requestPermission } from '../mock/permissions.js';
 
 describe('Permissions mock', () => {
   beforeEach(() => {
@@ -28,5 +28,27 @@ describe('Permissions mock', () => {
 
   it('checkPermission: allowed일 때 에러 없이 통과한다', () => {
     expect(() => checkPermission('camera', 'openCamera')).not.toThrow();
+  });
+
+  it('openPermissionDialog: denied를 allowed로 전환한다', async () => {
+    aitState.patch('permissions', { camera: 'denied' });
+    expect(await openPermissionDialog('camera')).toBe('allowed');
+    expect(aitState.state.permissions.camera).toBe('allowed');
+  });
+
+  it('withPermission: 함수에 getPermission/openPermissionDialog를 부착한다', async () => {
+    const fn = async () => 'result';
+    const enhanced = withPermission(fn, 'camera');
+
+    expect(typeof enhanced.getPermission).toBe('function');
+    expect(typeof enhanced.openPermissionDialog).toBe('function');
+    expect(await enhanced.getPermission()).toBe('allowed');
+    expect(await enhanced.openPermissionDialog()).toBe('allowed');
+  });
+
+  it('requestPermission: openPermissionDialog에 위임한다', async () => {
+    aitState.patch('permissions', { microphone: 'notDetermined' });
+    expect(await requestPermission({ name: 'microphone', access: 'record' })).toBe('allowed');
+    expect(aitState.state.permissions.microphone).toBe('allowed');
   });
 });

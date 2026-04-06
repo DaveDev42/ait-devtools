@@ -52,12 +52,10 @@
 
 ## 6. CI (GitHub Actions) 변경 사항
 
-`pnpm/action-setup`을 사용하여 pnpm 설치 step 추가:
+`pnpm/action-setup`을 사용하여 pnpm 설치 step 추가. `package.json`의 `packageManager` 필드에서 버전을 자동으로 읽으므로 별도 `version` 지정 불필요:
 
 ```yaml
 - uses: pnpm/action-setup@v4
-  with:
-    version: 10
 ```
 
 `actions/setup-node@v4`에 pnpm 캐시 설정 가능:

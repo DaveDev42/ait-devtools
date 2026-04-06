@@ -32,6 +32,7 @@ describe('Ads mock', () => {
       expect(onError).toHaveBeenCalledWith(expect.any(Error));
     });
 
+    // setTimeout 지연 값은 ads/index.ts의 showAppsInTossAdMob 구현과 일치해야 한다
     it('showAppsInTossAdMob: 로드 후 이벤트 시퀀스가 발생한다', async () => {
       // load first
       const loadEvent = vi.fn();

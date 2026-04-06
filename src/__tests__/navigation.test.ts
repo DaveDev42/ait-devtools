@@ -146,7 +146,7 @@ describe('Navigation mock', () => {
       const unsub = SafeAreaInsets.subscribe({ onEvent: handler });
 
       aitState.patch('safeAreaInsets', { top: 50 });
-      expect(handler).toHaveBeenCalledWith(expect.objectContaining({ top: 50 }));
+      expect(handler).toHaveBeenCalledWith({ top: 50, bottom: 34, left: 0, right: 0 });
       expect(handler).toHaveBeenCalledTimes(1);
 
       unsub();

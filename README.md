@@ -43,7 +43,16 @@ config.plugins.push(aitDevtools.webpack());
 Turbopack은 플러그인 시스템을 지원하지 않으므로 `resolveAlias`를 사용합니다:
 
 ```js
-// next.config.js
+// next.config.js (Next.js 15+)
+module.exports = {
+  turbo: {
+    resolveAlias: {
+      '@apps-in-toss/web-framework': 'ait-devtools/mock',
+    },
+  },
+};
+
+// Next.js 14 이하
 module.exports = {
   experimental: {
     turbo: {
@@ -93,11 +102,11 @@ module.exports = {
 `window.__ait`를 통해 mock 상태를 직접 제어할 수 있습니다:
 
 ```js
-// 플랫폼 변경
-__ait.update({ platform: 'android' });
+// 네트워크 상태 변경
+__ait.update({ networkStatus: 'OFFLINE' });
 
 // 여러 상태 한번에 업데이트
-__ait.update({ networkStatus: 'OFFLINE' });
+__ait.update({ platform: 'android', locale: 'en_US' });
 
 // 이벤트 트리거
 __ait.trigger('backEvent');

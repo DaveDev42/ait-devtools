@@ -30,6 +30,8 @@ export default defineConfig({
       },
     },
     react(),
+    // panel: false since main.tsx imports 'ait-devtools/panel' directly;
+    // the custom resolve plugin above already handles its resolution.
     aitDevtools.vite({ panel: false }),
   ],
 });

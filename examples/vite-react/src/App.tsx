@@ -10,6 +10,7 @@ import {
   IAP,
   Analytics,
   graniteEvent,
+  type NetworkStatus,
 } from '@apps-in-toss/web-framework';
 
 // --- Styles ---
@@ -128,7 +129,7 @@ function StorageSection() {
 function EnvironmentSection() {
   const [platform, setPlatform] = useState(getPlatformOS());
   const [env, setEnv] = useState(getOperationalEnvironment());
-  const [network, setNetwork] = useState<string>('');
+  const [network, setNetwork] = useState<NetworkStatus | ''>('');
 
   useEffect(() => {
     const refresh = () => {

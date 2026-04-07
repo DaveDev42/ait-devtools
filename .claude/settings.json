@@ -1,0 +1,6 @@
+{
+  "enabledPlugins": {
+    "superpowers@claude-plugins-official": true,
+    "playwright@claude-plugins-official": true
+  }
+}

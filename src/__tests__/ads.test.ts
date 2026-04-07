@@ -1,6 +1,10 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi, type Mock } from 'vitest';
 import { aitState } from '../mock/state.js';
 import { GoogleAdMob, TossAds, loadFullScreenAd, showFullScreenAd } from '../mock/ads/index.js';
+
+function extractEventTypes(spy: Mock) {
+  return spy.mock.calls.map(c => (c[0] as { type: string }).type);
+}
 
 describe('Ads mock', () => {
   beforeEach(() => {
@@ -46,7 +50,7 @@ describe('Ads mock', () => {
       GoogleAdMob.showAppsInTossAdMob({ onEvent: showEvent, onError: vi.fn() });
       await vi.advanceTimersByTimeAsync(1500);
 
-      const eventTypes = showEvent.mock.calls.map((c: unknown[]) => (c[0] as { type: string }).type);
+      const eventTypes = extractEventTypes(showEvent);
       expect(eventTypes).toEqual(['requested', 'show', 'impression', 'userEarnedReward', 'dismissed']);
       expect(aitState.state.ads.isLoaded).toBe(false);
     });
@@ -87,7 +91,7 @@ describe('Ads mock', () => {
       showFullScreenAd({ onEvent: showEvent, onError: vi.fn() });
       await vi.advanceTimersByTimeAsync(1500);
 
-      const eventTypes = showEvent.mock.calls.map((c: unknown[]) => (c[0] as { type: string }).type);
+      const eventTypes = extractEventTypes(showEvent);
       expect(eventTypes).toEqual(['show', 'dismissed']);
     });
 

@@ -103,12 +103,12 @@ async function handlePurchase(
 export const IAP = createMockProxy('IAP', {
   createOneTimePurchaseOrder(params: IapCreateOneTimePurchaseOrderOptions): () => void {
     const sku = params.options.sku ?? params.options.productId ?? '';
-    handlePurchase(sku, params.options.processProductGrant, params.onEvent, params.onError).catch(() => {});
+    handlePurchase(sku, params.options.processProductGrant, params.onEvent, params.onError).catch(e => console.error('[ait-devtools] IAP unexpected error:', e));
     return () => {};
   },
 
   createSubscriptionPurchaseOrder(params: CreateSubscriptionPurchaseOrderOptions): () => void {
-    handlePurchase(params.options.sku, params.options.processProductGrant, params.onEvent, params.onError).catch(() => {});
+    handlePurchase(params.options.sku, params.options.processProductGrant, params.onEvent, params.onError).catch(e => console.error('[ait-devtools] IAP unexpected error:', e));
     return () => {};
   },
 

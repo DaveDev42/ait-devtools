@@ -62,7 +62,7 @@ async function handlePurchase(
   processProductGrant: (params: { orderId: string; subscriptionId?: string }) => boolean | Promise<boolean>,
   onEvent: (event: { type: 'success'; data: IapOrderResult }) => void | Promise<void>,
   onError: (error: unknown) => void | Promise<void>,
-): Promise<() => void> {
+): Promise<void> {
   const nextResult = aitState.state.iap.nextResult;
 
   // 비동기 시뮬레이션 (실제로는 결제 UI가 뜨는 시간)
@@ -70,7 +70,7 @@ async function handlePurchase(
 
   if (nextResult !== 'success') {
     onError({ code: nextResult });
-    return () => {};
+    return;
   }
 
   const result = buildOrderResult(sku);
@@ -79,11 +79,11 @@ async function handlePurchase(
     const granted = await processProductGrant({ orderId: result.orderId });
     if (!granted) {
       onError({ code: 'PRODUCT_NOT_GRANTED_BY_PARTNER' });
-      return () => {};
+      return;
     }
   } catch (e) {
     onError(e);
-    return () => {};
+    return;
   }
 
   // 주문 완료 기록
@@ -97,10 +97,10 @@ async function handlePurchase(
   });
 
   await onEvent({ type: 'success', data: result });
-  return () => {};
 }
 
 export const IAP = createMockProxy('IAP', {
+  // 반환되는 cancel 함수는 mock에서는 no-op이다 (실제 SDK는 결제 UI를 닫음)
   createOneTimePurchaseOrder(params: IapCreateOneTimePurchaseOrderOptions): () => void {
     const sku = params.options.sku ?? params.options.productId ?? '';
     handlePurchase(sku, params.options.processProductGrant, params.onEvent, params.onError).catch(e => console.error('[ait-devtools] IAP unexpected error:', e));

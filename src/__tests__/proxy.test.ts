@@ -41,12 +41,11 @@ describe('createMockProxy', () => {
     expect(fooWarnings).toHaveLength(1);
   });
 
-  it('미구현 프로퍼티는 접근할 때마다 새 no-op 함수 인스턴스를 반환한다', () => {
+  it('미구현 프로퍼티는 호출 가능한 no-op 함수를 반환한다', async () => {
     vi.spyOn(console, 'warn').mockImplementation(() => {});
     const ref = createMockProxy('TestModuleInstance', {}) as Record<string, unknown>;
-    const fn1 = ref['bar'];
-    const fn2 = ref['bar'];
-    expect(fn1).not.toBe(fn2);
-    expect(typeof fn1).toBe('function');
+    const fn = ref['bar'];
+    expect(typeof fn).toBe('function');
+    expect(await (fn as () => Promise<undefined>)()).toBeUndefined();
   });
 });

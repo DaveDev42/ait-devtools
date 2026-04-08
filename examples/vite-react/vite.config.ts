@@ -14,7 +14,7 @@ export default defineConfig({
     // all relevant IDs (including the @apps-in-toss/* aliases that the
     // unplugin would normally handle) to absolute paths instead.
     {
-      name: '@ait-co/devtools-resolve',
+      name: 'ait-co-devtools-resolve',
       enforce: 'pre',
       resolveId(id) {
         if (

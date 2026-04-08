@@ -28,7 +28,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup",
+    "build": "rm -rf dist && tsup",
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
@@ -69,5 +69,9 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/apps-in-toss-community/devtools"
+  },
+  "homepage": "https://www.npmjs.com/package/@ait-co/devtools",
+  "bugs": {
+    "url": "https://github.com/apps-in-toss-community/devtools/issues"
   }
 }

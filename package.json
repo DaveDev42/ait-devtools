@@ -64,7 +64,7 @@
   "license": "BSD-3-Clause",
   "repository": {
     "type": "git",
-    "url": "https://github.com/DaveDev42/ait-devtools"
+    "url": "git+https://github.com/DaveDev42/ait-devtools.git"
   },
   "homepage": "https://github.com/DaveDev42/ait-devtools#readme",
   "bugs": {

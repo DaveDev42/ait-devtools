@@ -1,4 +1,4 @@
-import 'ait-devtools/panel';
+import '@ait-co/devtools/panel';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';

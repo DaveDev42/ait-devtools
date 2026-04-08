@@ -22,7 +22,7 @@ export function createMockProxy<T extends Record<string, unknown>>(
       if (!WARNED.has(`${moduleName}.${prop}`)) {
         console.warn(
           `[ait-devtools] ${moduleName}.${prop} is not mocked yet. Returning no-op. ` +
-          `Please update ait-devtools or file an issue.`,
+          `Please update @ait-co/devtools or file an issue.`,
         );
         WARNED.add(`${moduleName}.${prop}`);
       }

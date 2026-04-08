@@ -299,7 +299,7 @@ export default function App() {
         앱인토스 미니앱 데모
       </h1>
       <p style={{ fontSize: 14, color: colors.subtext, margin: '0 0 24px' }}>
-        ait-devtools Mock SDK 기능을 테스트합니다.
+        @ait-co/devtools Mock SDK 기능을 테스트합니다.
       </p>
 
       <LoginSection />

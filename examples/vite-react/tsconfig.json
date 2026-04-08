@@ -17,7 +17,7 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
     "paths": {
-      "@apps-in-toss/web-framework": ["./node_modules/ait-devtools/dist/mock/index.d.ts"]
+      "@apps-in-toss/web-framework": ["./node_modules/@ait-co/devtools/dist/mock/index.d.ts"]
     }
   },
   "include": ["src"]

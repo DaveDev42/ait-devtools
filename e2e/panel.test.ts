@@ -25,6 +25,23 @@ test.beforeEach(async ({ page }) => {
 });
 
 // ====================================================================
+// SMOKE TEST
+// ====================================================================
+
+test.describe('Smoke', () => {
+  test('page should load without console errors', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', e => errors.push(e.message));
+
+    // Wait for all sections to be rendered
+    await expect(page.getByTestId('events-section')).toBeVisible();
+    await page.waitForTimeout(500);
+
+    expect(errors).toHaveLength(0);
+  });
+});
+
+// ====================================================================
 // PANEL TOGGLE
 // ====================================================================
 
@@ -103,6 +120,7 @@ test.describe('Navigation', () => {
     await page.getByTestId('nav-swipe-btn').click();
     await page.getByTestId('nav-orientation-btn').click();
     await page.getByTestId('nav-share-btn').click();
+    await page.waitForTimeout(100);
 
     expect(errors).toHaveLength(0);
   });
@@ -310,7 +328,7 @@ test.describe('Contacts', () => {
 
 test.describe('Clipboard', () => {
   test('set and get clipboard text in mock mode', async ({ page }) => {
-    // Ensure clipboard is in mock mode
+    // Default clipboard mode is 'web'; switch to 'mock' for deterministic testing
     await openPanel(page);
     await switchTab(page, 'device');
     const clipboardSelect = page.locator('.ait-panel .ait-row').filter({ hasText: 'Clipboard' }).locator('select');
@@ -340,6 +358,7 @@ test.describe('Haptic & File', () => {
     await page.getByTestId('haptic-success').click();
     await page.getByTestId('haptic-error').click();
     await page.getByTestId('haptic-confetti').click();
+    await page.waitForTimeout(100);
 
     expect(errors).toHaveLength(0);
   });
@@ -477,6 +496,7 @@ test.describe('Ads', () => {
     page.on('pageerror', e => errors.push(e.message));
 
     await page.getByTestId('ads-tossads-destroy-btn').click();
+    await page.waitForTimeout(100);
     expect(errors).toHaveLength(0);
   });
 });

@@ -230,13 +230,23 @@ async function openCameraWeb(): Promise<{ id: string; dataUri: string }> {
     input.type = 'file';
     input.accept = 'image/*';
     input.capture = 'environment';
+    let settled = false;
     input.onchange = () => {
+      settled = true;
       const file = input.files?.[0];
       if (!file) { reject(new Error('No file selected')); return; }
       const reader = new FileReader();
       reader.onload = () => resolve({ id: crypto.randomUUID(), dataUri: reader.result as string });
       reader.readAsDataURL(file);
     };
+    // Detect file picker cancel: window regains focus but no file was selected
+    const onFocus = () => {
+      setTimeout(() => {
+        if (!settled) reject(new Error('File picker cancelled'));
+        window.removeEventListener('focus', onFocus);
+      }, 300);
+    };
+    window.addEventListener('focus', onFocus);
     input.click();
   });
 }
@@ -268,7 +278,9 @@ async function fetchAlbumPhotosWeb(maxCount: number): Promise<Array<{ id: string
     input.type = 'file';
     input.accept = 'image/*';
     input.multiple = true;
+    let settled = false;
     input.onchange = async () => {
+      settled = true;
       const files = Array.from(input.files ?? []).slice(0, maxCount);
       if (files.length === 0) { reject(new Error('No files selected')); return; }
       const results = await Promise.all(
@@ -280,6 +292,13 @@ async function fetchAlbumPhotosWeb(maxCount: number): Promise<Array<{ id: string
       );
       resolve(results);
     };
+    const onFocus = () => {
+      setTimeout(() => {
+        if (!settled) reject(new Error('File picker cancelled'));
+        window.removeEventListener('focus', onFocus);
+      }, 300);
+    };
+    window.addEventListener('focus', onFocus);
     input.click();
   });
 }
@@ -347,6 +366,11 @@ export const setClipboardText = withPermission(_setClipboardText, 'clipboard');
 
 // --- Network Status (mode-aware helper for navigation/index.ts) ---
 
+/**
+ * Web mode: uses navigator.connection.effectiveType (4g/3g/2g) and navigator.onLine.
+ * Limitations: WIFI, 5G, WWAN cannot be detected via the Network Information API.
+ * Falls back to state-based value when effectiveType is unavailable.
+ */
 export function getNetworkStatusByMode(): NetworkStatus | null {
   const mode = aitState.state.deviceModes.network;
   if (mode === 'mock') return null; // use default state-based logic

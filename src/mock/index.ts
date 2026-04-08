@@ -74,7 +74,6 @@ export {
   setClipboardText,
   generateHapticFeedback,
   saveBase64Data,
-  generatePlaceholderImage,
   getDefaultPlaceholderImages,
 } from './device/index.js';
 

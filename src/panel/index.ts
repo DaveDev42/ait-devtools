@@ -345,7 +345,20 @@ function renderPromptBanner(): HTMLElement | null {
         sendBtn,
       ),
     );
+  } else {
+    // Fallback for unknown prompt types
+    banner.append(
+      h('div', { className: 'ait-prompt-title' }, `Prompt: ${pendingPrompt.type}`),
+    );
   }
+
+  // Cancel button for all prompt types
+  const cancelBtn = h('button', { className: 'ait-btn ait-btn-sm ait-btn-danger', style: 'margin-top:8px' }, 'Cancel');
+  cancelBtn.addEventListener('click', () => {
+    pendingPrompt = null;
+    refreshPanel();
+  });
+  banner.appendChild(cancelBtn);
 
   return banner;
 }

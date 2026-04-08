@@ -1,5 +1,5 @@
 /**
- * ait-devtools 중앙 상태 관리
+ * @ait-co/devtools 중앙 상태 관리
  * DevTools Panel과 mock 구현체가 이 상태를 공유한다.
  */
 

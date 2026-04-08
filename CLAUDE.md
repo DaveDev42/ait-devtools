@@ -2,7 +2,7 @@
 
 ## 프로젝트 개요
 
-**ait-devtools** — `@apps-in-toss/web-framework` SDK의 mock 라이브러리.
+**@ait-co/devtools** — `@apps-in-toss/web-framework` SDK의 mock 라이브러리.
 앱인토스 미니앱을 토스 앱 없이 일반 크롬 브라우저에서 개발/테스트할 수 있게 해준다.
 
 ## 기술 스택
@@ -76,9 +76,9 @@ src/
 
 | Import path | 용도 |
 |---|---|
-| `ait-devtools` 또는 `ait-devtools/mock` | 번들러 alias 대상, 모든 mock export |
-| `ait-devtools/panel` | Floating DevTools Panel (import 시 자동 마운트) |
-| `ait-devtools/unplugin` | 번들러 플러그인 (.vite, .webpack, .rspack, .esbuild, .rollup) |
+| `@ait-co/devtools` 또는 `@ait-co/devtools/mock` | 번들러 alias 대상, 모든 mock export |
+| `@ait-co/devtools/panel` | Floating DevTools Panel (import 시 자동 마운트) |
+| `@ait-co/devtools/unplugin` | 번들러 플러그인 (.vite, .webpack, .rspack, .esbuild, .rollup) |
 
 ## Playwright MCP를 활용한 QA
 

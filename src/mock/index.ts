@@ -1,5 +1,5 @@
 /**
- * ait-devtools/mock
+ * @ait-co/devtools/mock
  *
  * @apps-in-toss/web-framework의 모든 export를 mock으로 대체한다.
  * 번들러 alias로 원본 대신 이 모듈이 resolve된다.

@@ -1,11 +1,11 @@
 /**
- * ait-devtools unplugin
+ * @ait-co/devtools unplugin
  *
  * 모든 주요 번들러를 지원하는 단일 플러그인.
- * @apps-in-toss/web-framework → ait-devtools/mock 으로 alias 설정.
+ * @apps-in-toss/web-framework → @ait-co/devtools/mock 으로 alias 설정.
  *
  * Usage:
- *   import aitDevtools from 'ait-devtools/unplugin';
+ *   import aitDevtools from '@ait-co/devtools/unplugin';
  *
  *   // Vite
  *   export default { plugins: [aitDevtools.vite()] };
@@ -41,13 +41,13 @@ const aitDevtoolsPlugin = createUnplugin((options?: AitDevtoolsOptions) => {
   const _panel = options?.panel ?? true;
 
   return {
-    name: 'ait-devtools',
+    name: 'ait-co-devtools',
     enforce: 'pre' as const,
 
     resolveId(id: string) {
-      // @apps-in-toss/web-framework → ait-devtools/mock
+      // @apps-in-toss/web-framework → @ait-co/devtools/mock
       if (id === FRAMEWORK_ID || id === BRIDGE_ID || id === ANALYTICS_ID) {
-        return 'ait-devtools/mock';
+        return '@ait-co/devtools/mock';
       }
       return null;
     },
@@ -61,10 +61,10 @@ const aitDevtoolsPlugin = createUnplugin((options?: AitDevtoolsOptions) => {
     transform(code: string, id: string) {
       if (!_panel) return null;
       // 이미 패널이 import 되어있으면 스킵
-      if (code.includes('ait-devtools/panel')) return null;
+      if (code.includes('@ait-co/devtools/panel')) return null;
       // 진입점에서 가장 처음으로 실행되도록 prepend
       if (/main|index|entry/i.test(id) && !id.includes('node_modules')) {
-        return `import 'ait-devtools/panel';\n${code}`;
+        return `import '@ait-co/devtools/panel';\n${code}`;
       }
       return null;
     },

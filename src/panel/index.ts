@@ -1,5 +1,5 @@
 /**
- * ait-devtools Floating Panel
+ * @ait-co/devtools Floating Panel
  *
  * import 하면 자동으로 페이지에 DevTools 패널을 마운트한다.
  * 외부 의존성 없이 vanilla DOM으로 구현.

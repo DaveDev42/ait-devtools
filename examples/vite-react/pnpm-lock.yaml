@@ -8,7 +8,7 @@ importers:
 
   .:
     dependencies:
-      ait-devtools:
+      '@ait-co/devtools':
         specifier: file:../../
         version: file:../..
       react:
@@ -35,6 +35,14 @@ importers:
         version: 6.4.2
 
 packages:
+
+  '@ait-co/devtools@file:../..':
+    resolution: {directory: ../.., type: directory}
+    peerDependencies:
+      '@apps-in-toss/web-framework': ^2.0.0
+    peerDependenciesMeta:
+      '@apps-in-toss/web-framework':
+        optional: true
 
   '@babel/code-frame@7.29.0':
     resolution: {integrity: sha512-9NhCeYjq9+3uxgdtp20LSiJXJvN0FeCtNGpJxuMFZ1Kv3cWUNb6DOhJwUvcVCzKGR66cw4njwM6hrJLqgOwbcw==}
@@ -466,14 +474,6 @@ packages:
     engines: {node: '>=0.4.0'}
     hasBin: true
 
-  ait-devtools@file:../..:
-    resolution: {directory: ../.., type: directory}
-    peerDependencies:
-      '@apps-in-toss/web-framework': ^2.0.0
-    peerDependenciesMeta:
-      '@apps-in-toss/web-framework':
-        optional: true
-
   baseline-browser-mapping@2.10.16:
     resolution: {integrity: sha512-Lyf3aK28zpsD1yQMiiHD4RvVb6UdMoo8xzG2XzFIfR9luPzOpcBlAsT/qfB1XWS1bxWT+UtE4WmQgsp297FYOA==}
     engines: {node: '>=6.0.0'}
@@ -665,6 +665,10 @@ packages:
     resolution: {integrity: sha512-a4UGQaWPH59mOXUYnAG2ewncQS4i4F43Tv3JoAM+s2VDAmS9NsK8GpDMLrCHPksFT7h3K6TOoUNn2pb7RoXx4g==}
 
 snapshots:
+
+  '@ait-co/devtools@file:../..':
+    dependencies:
+      unplugin: 2.3.11
 
   '@babel/code-frame@7.29.0':
     dependencies:
@@ -996,10 +1000,6 @@ snapshots:
       - supports-color
 
   acorn@8.16.0: {}
-
-  ait-devtools@file:../..:
-    dependencies:
-      unplugin: 2.3.11
 
   baseline-browser-mapping@2.10.16: {}
 

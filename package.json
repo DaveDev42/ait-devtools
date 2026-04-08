@@ -1,6 +1,6 @@
 {
-  "name": "ait-devtools",
-  "version": "0.1.0",
+  "name": "@ait-co/devtools",
+  "version": "0.0.1",
   "description": "Development tools for Apps in Toss mini-apps — mock SDK, floating devtools panel, and universal bundler plugin",
   "type": "module",
   "main": "./dist/mock/index.js",
@@ -62,8 +62,11 @@
   ],
   "packageManager": "pnpm@10.8.1",
   "license": "BSD-3-Clause",
+  "publishConfig": {
+    "access": "public"
+  },
   "repository": {
     "type": "git",
-    "url": "https://github.com/user/ait-devtools"
+    "url": "https://github.com/apps-in-toss-community/devtools"
   }
 }

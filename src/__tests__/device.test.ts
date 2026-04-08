@@ -1,6 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { aitState } from '../mock/state.js';
-import { getCurrentLocation, generateHapticFeedback, saveBase64Data, Accuracy } from '../mock/device/index.js';
+import {
+  getCurrentLocation, generateHapticFeedback, saveBase64Data, Accuracy,
+  getClipboardText, setClipboardText, getNetworkStatusByMode, getDefaultPlaceholderImages,
+  openCamera,
+} from '../mock/device/index.js';
 
 describe('Device mock', () => {
   beforeEach(() => {
@@ -62,6 +66,82 @@ describe('Device mock', () => {
         mimeType: 'text/plain',
       });
       expect(clickSpy).toHaveBeenCalled();
+    });
+  });
+
+  describe('Device API Modes', () => {
+    describe('clipboard mock mode', () => {
+      beforeEach(() => {
+        aitState.patch('deviceModes', { clipboard: 'mock' });
+      });
+
+      it('mock 모드에서 setClipboardText/getClipboardText는 state를 사용한다', async () => {
+        await setClipboardText('hello');
+        expect(aitState.state.mockData.clipboardText).toBe('hello');
+        const text = await getClipboardText();
+        expect(text).toBe('hello');
+      });
+
+      it('reset 후 clipboardText가 초기화된다', async () => {
+        await setClipboardText('test');
+        aitState.reset();
+        aitState.patch('deviceModes', { clipboard: 'mock' });
+        const text = await getClipboardText();
+        expect(text).toBe('');
+      });
+    });
+
+    describe('getNetworkStatusByMode', () => {
+      it('mock 모드에서 null을 반환한다', () => {
+        aitState.patch('deviceModes', { network: 'mock' });
+        expect(getNetworkStatusByMode()).toBeNull();
+      });
+
+      it('web 모드에서 navigator.onLine이 false이면 OFFLINE을 반환한다', () => {
+        aitState.patch('deviceModes', { network: 'web' });
+        vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
+        expect(getNetworkStatusByMode()).toBe('OFFLINE');
+      });
+
+      it('web 모드에서 navigator.onLine이 true이면 state 기반 값을 반환한다', () => {
+        aitState.patch('deviceModes', { network: 'web' });
+        vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(true);
+        // navigator.connection이 없으면 state 기반 값
+        const result = getNetworkStatusByMode();
+        expect(result).toBe(aitState.state.networkStatus);
+      });
+    });
+
+    describe('getDefaultPlaceholderImages', () => {
+      it('3개의 data URI를 반환한다', () => {
+        const images = getDefaultPlaceholderImages();
+        expect(images).toHaveLength(3);
+        images.forEach(img => {
+          expect(img).toMatch(/^data:image\/(png|svg\+xml);base64,/);
+        });
+      });
+
+      it('동일한 내용의 새 배열을 반환한다 (캐시된 데이터의 방어적 복사)', () => {
+        const a = getDefaultPlaceholderImages();
+        const b = getDefaultPlaceholderImages();
+        expect(a).not.toBe(b); // 서로 다른 참조
+        expect(a).toEqual(b); // 동일한 내용
+      });
+    });
+
+    describe('prompt mode timeout', () => {
+      it('waitForPromptResponse는 30초 후 reject된다', async () => {
+        vi.useFakeTimers();
+        aitState.patch('deviceModes', { camera: 'prompt' });
+        aitState.patch('permissions', { camera: 'allowed' });
+
+        const promise = openCamera();
+
+        vi.advanceTimersByTime(30_000);
+        await expect(promise).rejects.toThrow('Prompt timeout');
+
+        vi.useRealTimers();
+      });
     });
   });
 });

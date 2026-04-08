@@ -22,6 +22,9 @@ export type {
   IapNextResult,
   AnalyticsLogEntry,
   SafeAreaInsets as SafeAreaInsetsType,
+  DeviceApiMode,
+  DeviceModes,
+  MockData,
 } from './state.js';
 
 // --- 인증/로그인 ---
@@ -71,6 +74,7 @@ export {
   setClipboardText,
   generateHapticFeedback,
   saveBase64Data,
+  getDefaultPlaceholderImages,
 } from './device/index.js';
 
 // --- IAP / 결제 ---

@@ -11,7 +11,7 @@ import { withPermission, checkPermission } from '../permissions.js';
 
 // --- Placeholder Image Generator ---
 
-export function generatePlaceholderImage(width: number, height: number, text: string, color: string): string {
+function generatePlaceholderImage(width: number, height: number, text: string, color: string): string {
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
@@ -44,7 +44,7 @@ export function getDefaultPlaceholderImages(): string[] {
 function getMockImages(): string[] {
   const images = aitState.state.mockData.images;
   if (images.length > 0) return images;
-  return getDefaultPlaceholderImages();
+  return [...getDefaultPlaceholderImages()];
 }
 
 // --- Prompt Mode Helper ---
@@ -253,7 +253,8 @@ async function openCameraWeb(): Promise<{ id: string; dataUri: string }> {
       reader.onload = () => resolve({ id: crypto.randomUUID(), dataUri: reader.result as string });
       reader.readAsDataURL(file);
     };
-    // Detect file picker cancel: window regains focus but no file was selected
+    // Detect file picker cancel via focus heuristic.
+    // Note: unreliable on some mobile browsers and Safari where focus events differ.
     const onFocus = () => {
       setTimeout(() => {
         if (!settled) reject(new Error('File picker cancelled'));
@@ -378,7 +379,7 @@ const _setClipboardText = async (text: string): Promise<void> => {
 };
 export const setClipboardText = withPermission(_setClipboardText, 'clipboard');
 
-// --- Network Status (mode-aware helper for navigation/index.ts) ---
+// --- Network Status (mode-aware helper, lives in device to avoid circular dep with navigation) ---
 
 /**
  * Web mode: uses navigator.connection.effectiveType (4g/3g/2g) and navigator.onLine.

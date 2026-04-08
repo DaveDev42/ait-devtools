@@ -2,7 +2,7 @@
  * 화면/네비게이션/이벤트 mock
  */
 
-import { aitState } from '../state.js';
+import { aitState, type NetworkStatus } from '../state.js';
 import { getNetworkStatusByMode } from '../device/index.js';
 
 export function closeView(): Promise<void> {
@@ -108,8 +108,6 @@ export function getNetworkStatus(): Promise<NetworkStatus> {
   if (modeResult) return Promise.resolve(modeResult);
   return Promise.resolve(aitState.state.networkStatus);
 }
-
-type NetworkStatus = 'OFFLINE' | 'WIFI' | '2G' | '3G' | '4G' | '5G' | 'WWAN' | 'UNKNOWN';
 
 export function getServerTime(): Promise<number | undefined> {
   return Promise.resolve(Date.now());

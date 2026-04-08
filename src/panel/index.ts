@@ -431,7 +431,7 @@ function renderDeviceTab(): HTMLElement {
 
   const defaultsBtn = h('button', { className: 'ait-btn-secondary' }, 'Use defaults');
   defaultsBtn.addEventListener('click', () => {
-    aitState.patch('mockData', { images: getDefaultPlaceholderImages() });
+    aitState.patch('mockData', { images: [...getDefaultPlaceholderImages()] });
     refreshPanel();
   });
 

@@ -41,7 +41,7 @@ const aitDevtoolsPlugin = createUnplugin((options?: AitDevtoolsOptions) => {
   const _panel = options?.panel ?? true;
 
   return {
-    name: 'ait-devtools',
+    name: 'ait-co-devtools',
     enforce: 'pre' as const,
 
     resolveId(id: string) {

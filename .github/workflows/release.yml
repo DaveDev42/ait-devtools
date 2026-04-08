@@ -77,7 +77,7 @@ jobs:
           git tag "$RELEASE_TAG"
           git push origin main --tags
 
-      - run: pnpm publish --no-git-checks --provenance
+      - run: pnpm publish --no-git-checks --provenance --access public
 
       - name: Create GitHub Release
         env:

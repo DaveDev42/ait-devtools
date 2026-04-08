@@ -15,7 +15,12 @@ function generatePlaceholderImage(width: number, height: number, text: string, c
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
-  const ctx = canvas.getContext('2d')!;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    // jsdom 등 Canvas API 미지원 환경에서는 간단한 SVG data URI 반환
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}"><rect fill="${color}" width="${width}" height="${height}"/><text x="50%" y="50%" fill="white" font-size="16" text-anchor="middle" dominant-baseline="middle">${text}</text></svg>`;
+    return 'data:image/svg+xml;base64,' + btoa(svg);
+  }
   ctx.fillStyle = color;
   ctx.fillRect(0, 0, width, height);
   ctx.fillStyle = 'white';

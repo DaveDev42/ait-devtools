@@ -117,7 +117,7 @@ describe('Device mock', () => {
         const images = getDefaultPlaceholderImages();
         expect(images).toHaveLength(3);
         images.forEach(img => {
-          expect(img).toMatch(/^data:image\/png;base64,/);
+          expect(img).toMatch(/^data:image\/(png|svg\+xml);base64,/);
         });
       });
 

@@ -38,7 +38,6 @@ packages:
 
   '@ait-co/devtools@file:../..':
     resolution: {directory: ../.., type: directory}
-    engines: {node: '>=20'}
     peerDependencies:
       '@apps-in-toss/web-framework': ^2.0.0
     peerDependenciesMeta:

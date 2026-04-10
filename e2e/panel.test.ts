@@ -688,11 +688,6 @@ test.describe('Device Tab', () => {
 // ====================================================================
 
 test.describe('Draggable Toggle Button', () => {
-  test('toggle button should be visible on page', async ({ page }) => {
-    const toggle = page.locator('button.ait-panel-toggle');
-    await expect(toggle).toBeVisible();
-  });
-
   test('dragging should change button position', async ({ page }) => {
     const toggle = page.locator('button.ait-panel-toggle');
     const box = await toggle.boundingBox();
@@ -709,8 +704,8 @@ test.describe('Draggable Toggle Button', () => {
 
     const newBox = await toggle.boundingBox();
     expect(newBox).not.toBeNull();
-    // Position should have changed (snapped to edge, but Y should differ)
-    expect(newBox!.y).not.toBeCloseTo(box!.y, -1);
+    // Y position should have changed after 80px vertical drag
+    expect(Math.abs(newBox!.y - box!.y)).toBeGreaterThan(10);
   });
 
   test('short click (< 3px movement) should toggle panel instead of dragging', async ({ page }) => {
@@ -814,6 +809,10 @@ test.describe('Panel Position Persistence', () => {
     await page.mouse.move(80, 300, { steps: 10 });
     await page.mouse.up();
 
+    // Capture post-drag position for Y comparison after reload
+    const draggedBox = await toggle.boundingBox();
+    expect(draggedBox).not.toBeNull();
+
     // Verify position was saved to localStorage
     const saved = await page.evaluate(() => localStorage.getItem('__ait_btn_pos'));
     expect(saved).not.toBeNull();
@@ -829,7 +828,8 @@ test.describe('Panel Position Persistence', () => {
     await expect(restored).toBeVisible();
     const restoredBox = await restored.boundingBox();
     expect(restoredBox).not.toBeNull();
-    // Should be on the left side (x = 16)
+    // Should be on the left side (x = 16) and Y approximately preserved
     expect(restoredBox!.x).toBe(16);
+    expect(Math.abs(restoredBox!.y - draggedBox!.y)).toBeLessThan(5);
   });
 });

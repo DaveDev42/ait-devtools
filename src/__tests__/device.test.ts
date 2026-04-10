@@ -144,17 +144,40 @@ describe('Device mock', () => {
     });
 
     describe('prompt mode timeout', () => {
-      it('waitForPromptResponse는 30초 후 reject된다', async () => {
+      it('패널이 없으면 import 안내 메시지를 표시한다', async () => {
         vi.useFakeTimers();
         aitState.patch('deviceModes', { camera: 'prompt' });
         aitState.patch('permissions', { camera: 'allowed' });
 
-        const promise = openCamera();
+        try {
+          const promise = openCamera();
 
-        vi.advanceTimersByTime(30_000);
-        await expect(promise).rejects.toThrow('Prompt timeout');
+          vi.advanceTimersByTime(30_000);
+          await expect(promise).rejects.toThrow('Is @ait-co/devtools/panel imported?');
+        } finally {
+          vi.useRealTimers();
+        }
+      });
 
-        vi.useRealTimers();
+      it('패널이 있으면 사용자 액션 안내 메시지를 표시한다', async () => {
+        vi.useFakeTimers();
+        aitState.patch('deviceModes', { camera: 'prompt' });
+        aitState.patch('permissions', { camera: 'allowed' });
+
+        // .ait-panel 요소를 DOM에 추가
+        const panel = document.createElement('div');
+        panel.className = 'ait-panel';
+        document.body.appendChild(panel);
+
+        try {
+          const promise = openCamera();
+
+          vi.advanceTimersByTime(30_000);
+          await expect(promise).rejects.toThrow('Please provide input via the DevTools panel.');
+        } finally {
+          panel.remove();
+          vi.useRealTimers();
+        }
       });
     });
   });

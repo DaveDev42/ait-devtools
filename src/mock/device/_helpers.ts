@@ -66,7 +66,11 @@ export function waitForPromptResponse<T>(type: string): Promise<T> {
 
     const timer = setTimeout(() => {
       cleanup();
-      reject(new Error(`[@ait-co/devtools] Prompt timeout for "${type}" after ${PROMPT_TIMEOUT_MS / 1000}s. Is @ait-co/devtools/panel imported?`));
+      const panelMounted = !!document.querySelector('.ait-panel');
+      const hint = panelMounted
+        ? 'Please provide input via the DevTools panel.'
+        : 'Is @ait-co/devtools/panel imported?';
+      reject(new Error(`[@ait-co/devtools] Prompt timeout for "${type}" after ${PROMPT_TIMEOUT_MS / 1000}s. ${hint}`));
     }, PROMPT_TIMEOUT_MS);
 
     const handler = (e: Event) => {

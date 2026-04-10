@@ -463,6 +463,119 @@ const TAB_RENDERERS: Record<TabId, () => HTMLElement> = {
   storage: renderStorageTab,
 };
 
+// --- Draggable toggle button ---
+
+function makeDraggable(el: HTMLElement, onClickOnly: () => void) {
+  let isDragging = false;
+  let startX = 0, startY = 0;
+  let startLeft = 0, startTop = 0;
+  let hasMoved = false;
+
+  el.addEventListener('pointerdown', (e) => {
+    isDragging = true;
+    hasMoved = false;
+    startX = e.clientX;
+    startY = e.clientY;
+    const rect = el.getBoundingClientRect();
+    startLeft = rect.left;
+    startTop = rect.top;
+    el.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  });
+
+  el.addEventListener('pointermove', (e) => {
+    if (!isDragging) return;
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) hasMoved = true;
+    if (!hasMoved) return;
+
+    el.style.left = (startLeft + dx) + 'px';
+    el.style.top = (startTop + dy) + 'px';
+    el.style.right = 'auto';
+    el.style.bottom = 'auto';
+  });
+
+  el.addEventListener('pointerup', (e) => {
+    if (!isDragging) return;
+    isDragging = false;
+    el.releasePointerCapture(e.pointerId);
+
+    if (hasMoved) {
+      snapToEdge(el);
+      updatePanelPosition(el);
+      saveButtonPosition(el);
+    } else {
+      onClickOnly();
+    }
+  });
+}
+
+function snapToEdge(el: HTMLElement) {
+  const rect = el.getBoundingClientRect();
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const cx = rect.left + rect.width / 2;
+  const margin = 16;
+
+  if (cx < vw / 2) {
+    el.style.left = margin + 'px';
+    el.style.right = 'auto';
+  } else {
+    el.style.left = 'auto';
+    el.style.right = margin + 'px';
+  }
+
+  const top = Math.max(margin, Math.min(vh - rect.height - margin, rect.top));
+  el.style.top = top + 'px';
+  el.style.bottom = 'auto';
+}
+
+function updatePanelPosition(toggleEl: HTMLElement) {
+  if (!panelEl) return;
+  const rect = toggleEl.getBoundingClientRect();
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+
+  if (rect.left < vw / 2) {
+    panelEl.style.left = '16px';
+    panelEl.style.right = 'auto';
+  } else {
+    panelEl.style.left = 'auto';
+    panelEl.style.right = '16px';
+  }
+
+  if (rect.top < vh / 2) {
+    panelEl.style.top = (rect.bottom + 8) + 'px';
+    panelEl.style.bottom = 'auto';
+  } else {
+    panelEl.style.top = 'auto';
+    panelEl.style.bottom = (vh - rect.top + 8) + 'px';
+  }
+}
+
+function saveButtonPosition(el: HTMLElement) {
+  localStorage.setItem('__ait_btn_pos', JSON.stringify({
+    left: el.style.left,
+    top: el.style.top,
+    right: el.style.right,
+    bottom: el.style.bottom,
+  }));
+}
+
+function restoreButtonPosition(el: HTMLElement) {
+  const saved = localStorage.getItem('__ait_btn_pos');
+  if (saved) {
+    try {
+      const pos = JSON.parse(saved);
+      Object.assign(el.style, pos);
+    } catch { /* ignore */ }
+  } else {
+    el.style.bottom = '16px';
+    el.style.right = '16px';
+  }
+}
+
 // --- Mount ---
 
 let currentTab: TabId = 'env';
@@ -492,6 +605,7 @@ function mount() {
   // Toggle button
   const toggle = h('button', { className: 'ait-panel-toggle', title: 'AIT DevTools' }, 'AIT');
   let isOpen = false;
+  restoreButtonPosition(toggle);
 
   // Panel
   panelEl = h('div', { className: 'ait-panel' });
@@ -516,10 +630,13 @@ function mount() {
   panelEl.append(header, tabsEl, bodyEl);
   document.body.append(panelEl, toggle);
 
-  toggle.addEventListener('click', () => {
+  makeDraggable(toggle, () => {
     isOpen = !isOpen;
     panelEl!.classList.toggle('open', isOpen);
-    if (isOpen) refreshPanel();
+    if (isOpen) {
+      updatePanelPosition(toggle);
+      refreshPanel();
+    }
   });
 
   // 상태 변경 시 자동 갱신 (analytics, storage 탭)

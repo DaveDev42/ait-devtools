@@ -565,15 +565,13 @@ function updatePanelPosition(toggleEl: HTMLElement) {
   const panelHeight = PANEL_HEIGHT;
   const margin = 16;
 
-  // Horizontal: prefer aligning with button side, but clamp to viewport
+  // Horizontal: place panel on the same side as the toggle button
   if (rect.left < vw / 2) {
-    const left = Math.min(margin, vw - panelWidth - margin);
-    panelEl.style.left = Math.max(margin, left) + 'px';
+    panelEl.style.left = margin + 'px';
     panelEl.style.right = 'auto';
   } else {
-    const right = Math.min(margin, vw - panelWidth - margin);
     panelEl.style.left = 'auto';
-    panelEl.style.right = Math.max(margin, right) + 'px';
+    panelEl.style.right = margin + 'px';
   }
 
   // Vertical: place below button if it's in top half, above if bottom half

@@ -1,7 +1,7 @@
 import { aitState } from '../../mock/state.js';
 import { h, monitoringNotice } from '../helpers.js';
 
-export function renderAnalyticsTab(refreshPanel: () => void): HTMLElement {
+export function renderAnalyticsTab(): HTMLElement {
   const disabled = !aitState.state.panelEditable;
   const container = h('div');
   if (disabled) container.appendChild(monitoringNotice());

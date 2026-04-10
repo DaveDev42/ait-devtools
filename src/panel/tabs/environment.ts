@@ -2,7 +2,7 @@ import { aitState } from '../../mock/state.js';
 import type { PlatformOS, OperationalEnvironment, NetworkStatus } from '../../mock/state.js';
 import { h, selectRow, inputRow, monitoringNotice } from '../helpers.js';
 
-export function renderEnvTab(): HTMLElement {
+export function renderEnvironmentTab(): HTMLElement {
   const s = aitState.state;
   const disabled = !s.panelEditable;
   const container = h('div');

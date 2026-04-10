@@ -168,6 +168,7 @@ function restoreButtonPosition(el: HTMLElement) {
 // --- Mount ---
 
 let currentTab: TabId = 'env';
+let isOpen = false;
 let panelEl: HTMLElement | null = null;
 let bodyEl: HTMLElement | null = null;
 let tabsEl: HTMLElement | null = null;
@@ -192,6 +193,7 @@ if (typeof window !== 'undefined') {
     const detail = (e as CustomEvent).detail as { tab: TabId };
     currentTab = detail.tab;
     if (panelEl && !panelEl.classList.contains('open')) {
+      isOpen = true;
       panelEl.classList.add('open');
     }
     refreshPanel();
@@ -212,7 +214,6 @@ function mount() {
 
   // Toggle button
   const toggle = h('button', { className: 'ait-panel-toggle', title: 'AIT DevTools' }, 'AIT');
-  let isOpen = false;
   restoreButtonPosition(toggle);
 
   // Panel

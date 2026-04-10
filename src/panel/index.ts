@@ -548,9 +548,19 @@ function snapToEdge(el: HTMLElement) {
 
 function updatePanelPosition(toggleEl: HTMLElement) {
   if (!panelEl) return;
-  const rect = toggleEl.getBoundingClientRect();
   const vw = window.innerWidth;
   const vh = window.innerHeight;
+
+  // On mobile viewports, CSS media query handles fullscreen — clear any inline positioning
+  if (vw <= 480) {
+    panelEl.style.top = '';
+    panelEl.style.left = '';
+    panelEl.style.right = '';
+    panelEl.style.bottom = '';
+    return;
+  }
+
+  const rect = toggleEl.getBoundingClientRect();
   const panelWidth = PANEL_WIDTH;
   const panelHeight = PANEL_HEIGHT;
   const margin = 16;
@@ -596,8 +606,9 @@ function restoreButtonPosition(el: HTMLElement) {
       const pos = JSON.parse(saved);
       if (typeof pos !== 'object' || pos === null) return;
       const allowedKeys = ['left', 'top', 'right', 'bottom'] as const;
+      const validCssValue = /^(\d+px|auto)$/;
       for (const key of allowedKeys) {
-        if (key in pos && typeof pos[key] === 'string') {
+        if (key in pos && typeof pos[key] === 'string' && validCssValue.test(pos[key])) {
           el.style[key] = pos[key];
         }
       }
@@ -672,6 +683,10 @@ function mount() {
   panelEl.append(header, tabsEl, bodyEl);
   document.body.append(panelEl, toggle);
 
+  // Re-clamp restored position to current viewport (e.g., saved on wider screen)
+  snapToEdge(toggle);
+  saveButtonPosition(toggle);
+
   makeDraggable(toggle, () => {
     isOpen = !isOpen;
     panelEl!.classList.toggle('open', isOpen);
@@ -681,11 +696,16 @@ function mount() {
     }
   });
 
-  // Re-clamp button and panel position on window resize
+  // Re-clamp button and panel position on window resize (rAF-throttled)
+  let resizeRaf = 0;
   window.addEventListener('resize', () => {
-    snapToEdge(toggle);
-    saveButtonPosition(toggle);
-    if (isOpen) updatePanelPosition(toggle);
+    if (resizeRaf) return;
+    resizeRaf = requestAnimationFrame(() => {
+      resizeRaf = 0;
+      snapToEdge(toggle);
+      saveButtonPosition(toggle);
+      if (isOpen) updatePanelPosition(toggle);
+    });
   });
 
   // 상태 변경 시 자동 갱신 (analytics, storage 탭)

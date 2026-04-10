@@ -41,6 +41,7 @@ export function getDefaultPlaceholderImages(): string[] {
   return [...cachedPlaceholders];
 }
 
+/** @internal device 모듈 내부 전용 */
 export function getMockImages(): string[] {
   const images = aitState.state.mockData.images;
   if (images.length > 0) return images;
@@ -51,6 +52,7 @@ export function getMockImages(): string[] {
 
 const PROMPT_TIMEOUT_MS = 30_000;
 
+/** @internal device 모듈 내부 전용 */
 export function waitForPromptResponse<T>(type: string): Promise<T> {
   return new Promise((resolve, reject) => {
     const eventName = '__ait:prompt-response:' + type;

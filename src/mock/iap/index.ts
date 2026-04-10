@@ -103,12 +103,12 @@ export const IAP = createMockProxy('IAP', {
   // 반환되는 cancel 함수는 mock에서는 no-op이다 (실제 SDK는 결제 UI를 닫음)
   createOneTimePurchaseOrder(params: IapCreateOneTimePurchaseOrderOptions): () => void {
     const sku = params.options.sku ?? params.options.productId ?? '';
-    handlePurchase(sku, params.options.processProductGrant, params.onEvent, params.onError).catch(e => console.error('[ait-devtools] IAP unexpected error:', e));
+    handlePurchase(sku, params.options.processProductGrant, params.onEvent, params.onError).catch(e => console.error('[@ait-co/devtools] IAP unexpected error:', e));
     return () => {};
   },
 
   createSubscriptionPurchaseOrder(params: CreateSubscriptionPurchaseOrderOptions): () => void {
-    handlePurchase(params.options.sku, params.options.processProductGrant, params.onEvent, params.onError).catch(e => console.error('[ait-devtools] IAP unexpected error:', e));
+    handlePurchase(params.options.sku, params.options.processProductGrant, params.onEvent, params.onError).catch(e => console.error('[@ait-co/devtools] IAP unexpected error:', e));
     return () => {};
   },
 
@@ -172,7 +172,7 @@ export const IAP = createMockProxy('IAP', {
 
 export function checkoutPayment(options: { params: { payToken: string } }): Promise<{ success: boolean; reason?: string }> {
   const { nextResult, failReason } = aitState.state.payment;
-  console.log('[ait-devtools] checkoutPayment:', options.params.payToken);
+  console.log('[@ait-co/devtools] checkoutPayment:', options.params.payToken);
 
   return new Promise(resolve => {
     setTimeout(() => {

@@ -40,6 +40,6 @@ export function withPermission<T extends (...args: never[]) => unknown>(
 export function checkPermission(name: PermissionName, fnName: string): void {
   const status = aitState.state.permissions[name];
   if (status === 'denied') {
-    throw new Error(`[ait-devtools] ${fnName}: Permission "${name}" is denied. Change it in the DevTools panel.`);
+    throw new Error(`[@ait-co/devtools] ${fnName}: Permission "${name}" is denied. Change it in the DevTools panel.`);
   }
 }

@@ -1,11 +1,9 @@
-import { describe, it, expect, vi, afterEach, type Mock } from 'vitest';
+import { describe, it, expect, vi, beforeAll, afterEach, type Mock } from 'vitest';
 import { aitState } from '../mock/state.js';
 import type { TabId } from '../panel/tabs/index.js';
 
 // We mock createTabRenderers to control which tabs throw.
 // This lets us test the real production error boundary code in panel/index.ts.
-// Note: mount() appends DOM elements and is guarded by `.ait-panel-toggle` existence check.
-// The module is cached across tests, so mount runs once and DOM is shared — this is intentional.
 
 const tabSpies: Record<TabId, Mock<() => HTMLElement>> = {
   env: vi.fn(() => document.createElement('div')),
@@ -27,25 +25,28 @@ vi.mock('../panel/tabs/index.js', async (importOriginal) => {
 });
 
 describe('Panel error boundary', () => {
+  // Ensure panel is mounted before any test runs.
+  // The module caches across tests, so mount() runs once and DOM is shared.
+  beforeAll(async () => {
+    const { mount } = await import('../panel/index.js');
+    if (!document.querySelector('.ait-panel-toggle')) {
+      mount();
+    }
+  });
+
   afterEach(() => {
-    // vi.restoreAllMocks() is handled globally by restoreMocks: true in vitest.config.ts.
     // Tab spies are module-scoped (not covered by restoreMocks), so reset manually.
     for (const spy of Object.values(tabSpies)) {
       spy.mockImplementation(() => document.createElement('div'));
     }
   });
 
-  it('탭 렌더링 에러 시 에러 메시지를 표시하고 다른 탭에 영향을 주지 않는다', async () => {
+  it('탭 렌더링 에러 시 에러 메시지를 표시하고 다른 탭에 영향을 주지 않는다', () => {
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    // Make env tab (default tab) throw
+    // Make env tab (default tab) throw and trigger re-render
     tabSpies.env.mockImplementation(() => { throw new Error('env tab exploded'); });
-
-    // Import triggers auto-mount (jsdom readyState is 'complete' → safeMount runs immediately)
-    const { mount } = await import('../panel/index.js');
-    if (!document.querySelector('.ait-panel-toggle')) {
-      mount();
-    }
+    window.dispatchEvent(new CustomEvent('__ait:panel-switch-tab', { detail: { tab: 'env' } }));
 
     const panelBody = document.querySelector('.ait-panel-body');
     expect(panelBody).not.toBeNull();
@@ -65,10 +66,10 @@ describe('Panel error boundary', () => {
     expect(panelBody!.children.length).toBeGreaterThan(0);
   });
 
-  it('subscribe 콜백에서 탭 렌더링 에러가 전파되지 않는다', async () => {
+  it('subscribe 콜백에서 탭 렌더링 에러가 전파되지 않는다', () => {
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    // Panel is already mounted (module cached). Switch to storage tab and open panel.
+    // Switch to storage tab and open panel (storage refreshes on state change).
     window.dispatchEvent(new CustomEvent('__ait:panel-switch-tab', { detail: { tab: 'storage' } }));
 
     // Now make the storage renderer throw

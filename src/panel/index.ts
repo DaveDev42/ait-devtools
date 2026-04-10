@@ -293,9 +293,7 @@ function mount() {
   });
 
   // 상태 변경 시 자동 갱신 (analytics, storage 탭)
-  // Defense-in-depth: refreshPanel has its own try/catch for tab rendering,
-  // but this outer catch guards against errors in the surrounding logic
-  // (e.g., DOM queries in refreshPanel outside the tab renderer call).
+  // Defense-in-depth: outer catch complements refreshPanel's inner tab-rendering catch.
   aitState.subscribe(() => {
     try {
       if (isOpen && (currentTab === 'analytics' || currentTab === 'storage' || currentTab === 'device')) {

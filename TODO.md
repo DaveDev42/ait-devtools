@@ -43,10 +43,10 @@
 
 ## 코드 개선 (중간 우선순위)
 
-- [ ] **`transformInclude`와 `transform`의 패턴 불일치 수정** — `src/unplugin/index.ts`에서 `app` 포함 여부 통일
-- [ ] **console.log prefix 통일 결정** — `[ait-devtools]` 유지 또는 `[@ait-co/devtools]`로 변경
-- [ ] **Promise 반환 패턴 통일** — `partner/index.ts`의 `async` vs `navigation/index.ts`의 `Promise.resolve()` 등
-- [ ] **`window.__ait` TypeScript 타입 선언 제공** — `global.d.ts` 또는 문서에 `declare global` 예시
+- [x] **`transformInclude`와 `transform`의 패턴 불일치 수정** — `src/unplugin/index.ts`에서 `app` 포함 여부 통일
+- [x] **console.log prefix 통일** — `[@ait-co/devtools]`로 변경 완료
+- [x] **Promise 반환 패턴 통일** — 모든 단순 함수를 `async`로 변경 완료
+- [x] **`window.__ait` TypeScript 타입 선언 제공** — `src/env.d.ts`에 `Window.__ait` 선언 추가
 
 ## 문서 보완 (낮은 우선순위)
 

@@ -104,7 +104,7 @@ module.exports = {
 
 번들러의 `resolve.alias` 설정으로 직접 지정할 수도 있습니다:
 
-```
+```js
 // vite.config.ts 또는 webpack.config.js
 {
   resolve: {
@@ -149,12 +149,14 @@ export default defineConfig(({ mode }) => ({
 ```
 
 ```js
-// webpack.config.js
+// webpack.config.js (Rspack도 동일)
 const plugins = [];
 if (process.env.NODE_ENV !== 'production') {
   plugins.push(aitDevtools.webpack());
 }
 ```
+
+> Next.js 설정은 위의 [Next.js (Webpack 모드)](#nextjs-webpack-모드) 및 [Next.js (Turbopack)](#nextjs-turbopack) 섹션을 참고하세요.
 
 ## Device API 모드 시스템
 
@@ -512,7 +514,7 @@ pnpm test        # 전체 테스트 실행
   ```ts
   import '@ait-co/devtools/panel';
   ```
-- 플러그인은 `/main|index|entry|app/` 패턴의 진입점 파일만 자동 주입합니다. 파일명이 이 패턴에 맞지 않으면 수동으로 `import '@ait-co/devtools/panel'`을 추가하세요
+- 플러그인은 `/main|index|entry/` 패턴의 진입점 파일만 자동 주입합니다. 파일명이 이 패턴에 맞지 않으면 수동으로 `import '@ait-co/devtools/panel'`을 추가하세요
 
 ### 서브패스 import는 mock되지 않음
 

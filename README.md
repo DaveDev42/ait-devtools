@@ -174,6 +174,7 @@ export default defineConfig(({ command }) => ({
 
 ```js
 // webpack.config.js (Rspack도 동일)
+const aitDevtools = require('@ait-co/devtools/unplugin');
 const plugins = [];
 if (process.env.NODE_ENV !== 'production') {
   plugins.push(aitDevtools.webpack());

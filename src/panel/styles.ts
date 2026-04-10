@@ -2,6 +2,9 @@
  * Floating Panel CSS (inline, 외부 의존성 없음)
  */
 
+export const PANEL_WIDTH = 360;
+export const PANEL_HEIGHT = 480;
+
 export const PANEL_STYLES = /* css */ `
   .ait-panel-toggle {
     position: fixed;
@@ -30,8 +33,8 @@ export const PANEL_STYLES = /* css */ `
   .ait-panel {
     position: fixed;
     z-index: 99998;
-    width: 360px;
-    height: 480px;
+    width: ${PANEL_WIDTH}px;
+    height: ${PANEL_HEIGHT}px;
     background: #1a1a2e;
     border-radius: 12px;
     box-shadow: 0 8px 32px rgba(0,0,0,0.4);
@@ -56,7 +59,7 @@ export const PANEL_STYLES = /* css */ `
     align-items: center;
     border-bottom: 1px solid #2a2a4a;
   }
-  .ait-panel-header span {
+  .ait-panel-header > span:first-child {
     color: #3182F6;
   }
 

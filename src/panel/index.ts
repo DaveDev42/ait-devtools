@@ -8,7 +8,7 @@
 import { aitState } from '../mock/state.js';
 import type { PermissionName, PermissionStatus, NetworkStatus, PlatformOS, OperationalEnvironment, IapNextResult, DeviceApiMode } from '../mock/state.js';
 import { getDefaultPlaceholderImages } from '../mock/device/index.js';
-import { PANEL_STYLES } from './styles.js';
+import { PANEL_STYLES, PANEL_WIDTH, PANEL_HEIGHT } from './styles.js';
 
 type TabId = 'env' | 'permissions' | 'location' | 'iap' | 'events' | 'analytics' | 'storage' | 'device';
 
@@ -520,6 +520,7 @@ function makeDraggable(el: HTMLElement, onClickOnly: () => void) {
     el.releasePointerCapture(e.pointerId);
     if (hasMoved) {
       snapToEdge(el);
+      updatePanelPosition(el);
       saveButtonPosition(el);
     }
   });
@@ -550,8 +551,8 @@ function updatePanelPosition(toggleEl: HTMLElement) {
   const rect = toggleEl.getBoundingClientRect();
   const vw = window.innerWidth;
   const vh = window.innerHeight;
-  const panelWidth = 360;
-  const panelHeight = 480;
+  const panelWidth = PANEL_WIDTH;
+  const panelHeight = PANEL_HEIGHT;
   const margin = 16;
 
   // Horizontal: prefer aligning with button side, but clamp to viewport
@@ -593,10 +594,13 @@ function restoreButtonPosition(el: HTMLElement) {
   if (saved) {
     try {
       const pos = JSON.parse(saved);
-      if (pos.left) el.style.left = pos.left;
-      if (pos.top) el.style.top = pos.top;
-      if (pos.right) el.style.right = pos.right;
-      if (pos.bottom) el.style.bottom = pos.bottom;
+      if (typeof pos !== 'object' || pos === null) return;
+      const allowedKeys = ['left', 'top', 'right', 'bottom'] as const;
+      for (const key of allowedKeys) {
+        if (key in pos && typeof pos[key] === 'string') {
+          el.style[key] = pos[key];
+        }
+      }
     } catch { /* ignore */ }
   } else {
     el.style.bottom = '16px';
@@ -675,6 +679,13 @@ function mount() {
       updatePanelPosition(toggle);
       refreshPanel();
     }
+  });
+
+  // Re-clamp button and panel position on window resize
+  window.addEventListener('resize', () => {
+    snapToEdge(toggle);
+    saveButtonPosition(toggle);
+    if (isOpen) updatePanelPosition(toggle);
   });
 
   // 상태 변경 시 자동 갱신 (analytics, storage 탭)

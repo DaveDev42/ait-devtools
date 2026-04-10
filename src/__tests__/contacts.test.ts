@@ -84,5 +84,24 @@ describe('Contacts mock', () => {
       expect(result.result).toHaveLength(0);
       expect(result.done).toBe(true);
     });
+
+    it('query.contains와 페이지네이션이 함께 동작한다', async () => {
+      aitState.update({
+        contacts: [
+          { name: '이토스', phoneNumber: '010-1111-1111' },
+          { name: '박토스', phoneNumber: '010-2222-2222' },
+          { name: '홍길동', phoneNumber: '010-3333-3333' },
+        ],
+      });
+      const page1 = await fetchContacts({ size: 1, offset: 0, query: { contains: '토스' } });
+      expect(page1.result).toHaveLength(1);
+      expect(page1.result[0].name).toBe('이토스');
+      expect(page1.done).toBe(false);
+
+      const page2 = await fetchContacts({ size: 1, offset: page1.nextOffset!, query: { contains: '토스' } });
+      expect(page2.result).toHaveLength(1);
+      expect(page2.result[0].name).toBe('박토스');
+      expect(page2.done).toBe(true);
+    });
   });
 });

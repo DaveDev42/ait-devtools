@@ -24,7 +24,7 @@ describe('Camera & Album Photos mock', () => {
 
     it('mockData.images가 설정되면 해당 이미지를 사용한다', async () => {
       const customImage = 'data:image/png;base64,customImageData';
-      aitState.update({ mockData: { images: [customImage], clipboardText: '' } });
+      aitState.update({ mockData: { ...aitState.state.mockData, images: [customImage] } });
       const result = await openCamera();
       expect(result.dataUri).toBe(customImage);
     });
@@ -110,6 +110,15 @@ describe('Camera & Album Photos mock', () => {
       const result = await fetchAlbumPhotos({ maxCount: 3 });
       const ids = result.map(r => r.id);
       expect(new Set(ids).size).toBe(ids.length);
+    });
+
+    it('mockData.images가 설정되면 해당 이미지를 사용한다', async () => {
+      const customImages = ['data:image/png;base64,img1', 'data:image/png;base64,img2'];
+      aitState.update({ mockData: { ...aitState.state.mockData, images: customImages } });
+      const result = await fetchAlbumPhotos({ maxCount: 5 });
+      expect(result).toHaveLength(2);
+      expect(result[0].dataUri).toBe(customImages[0]);
+      expect(result[1].dataUri).toBe(customImages[1]);
     });
   });
 });

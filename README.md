@@ -48,7 +48,10 @@ config.plugins.push(aitDevtools.webpack());
 
 ### Next.js (Turbopack)
 
-Turbopack은 플러그인 시스템을 지원하지 않으므로 `resolveAlias`를 사용합니다. `@apps-in-toss/web-bridge`, `@apps-in-toss/web-analytics`도 함께 alias해야 합니다. Turbopack은 일반적으로 `next dev`에서만 사용되므로 별도의 production 가드가 필요하지 않습니다:
+Turbopack은 플러그인 시스템을 지원하지 않으므로 `resolveAlias`를 사용합니다.
+
+- `@apps-in-toss/web-bridge`, `@apps-in-toss/web-analytics`도 함께 alias해야 합니다.
+- Turbopack은 일반적으로 `next dev`에서만 사용되므로 별도의 production 가드가 필요하지 않습니다.
 
 ```js
 // next.config.js (Next.js 15+)
@@ -88,7 +91,7 @@ Next.js에서 Turbopack 대신 Webpack 모드를 사용하는 경우:
 
 ```js
 // next.config.js (Webpack 모드)
-const aitDevtools = require('@ait-co/devtools/unplugin');
+const aitDevtools = require('@ait-co/devtools/unplugin'); // CJS entrypoint 제공
 
 module.exports = {
   webpack: (config, { dev }) => {
@@ -104,9 +107,9 @@ module.exports = {
 
 번들러의 `resolve.alias` 설정으로 직접 지정할 수도 있습니다:
 
-```js
-// vite.config.ts 또는 webpack.config.js
-{
+```ts
+// vite.config.ts
+export default defineConfig({
   resolve: {
     alias: {
       '@apps-in-toss/web-framework': '@ait-co/devtools/mock',
@@ -114,7 +117,20 @@ module.exports = {
       '@apps-in-toss/web-analytics': '@ait-co/devtools/mock',
     },
   },
-}
+});
+```
+
+```js
+// webpack.config.js
+module.exports = {
+  resolve: {
+    alias: {
+      '@apps-in-toss/web-framework': require.resolve('@ait-co/devtools/mock'),
+      '@apps-in-toss/web-bridge': require.resolve('@ait-co/devtools/mock'),
+      '@apps-in-toss/web-analytics': require.resolve('@ait-co/devtools/mock'),
+    },
+  },
+};
 ```
 
 > **주의**: 수동 alias만 사용하면 DevTools Panel이 자동 주입되지 않습니다. 진입점 파일에 직접 import를 추가하세요:
@@ -143,8 +159,8 @@ import aitDevtools from '@ait-co/devtools/unplugin';
 
 export default defineConfig(({ command }) => ({
   plugins: [
-    command === 'serve' && aitDevtools.vite(),
-  ].filter(Boolean),
+    ...(command === 'serve' ? [aitDevtools.vite()] : []),
+  ],
 }));
 ```
 

@@ -356,7 +356,7 @@ export const PANEL_STYLES = /* css */ `
 
   .ait-panel-tab-error {
     padding: 12px;
-    color: #e53e3e;
+    color: #e53e3e; /* readable on both light (#fff) and dark (#1a1a2e) panel backgrounds */
   }
 
   @media (max-width: 480px) {

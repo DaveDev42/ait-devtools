@@ -39,7 +39,7 @@ describe('Panel error boundary', () => {
     // Make env tab (default tab) throw
     tabSpies.env.mockImplementation(() => { throw new Error('env tab exploded'); });
 
-    // Import triggers auto-mount → refreshPanel() → env renderer → throws → caught
+    // Import triggers auto-mount (jsdom readyState is 'complete' → safeMount runs immediately)
     const { mount } = await import('../panel/index.js');
     if (!document.querySelector('.ait-panel-toggle')) {
       mount();

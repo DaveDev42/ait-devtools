@@ -688,7 +688,7 @@ test.describe('Device Tab', () => {
 // ====================================================================
 
 test.describe('Draggable Toggle Button', () => {
-  test('dragging should change button position', async ({ page }) => {
+  test('dragging should change button Y position', async ({ page }) => {
     const toggle = page.locator('button.ait-panel-toggle');
     const box = await toggle.boundingBox();
     expect(box).not.toBeNull();
@@ -705,6 +705,7 @@ test.describe('Draggable Toggle Button', () => {
     const newBox = await toggle.boundingBox();
     expect(newBox).not.toBeNull();
     // Y position should have changed after 80px vertical drag
+    // (X snaps to left/right edge via snapToEdge, tested separately)
     expect(Math.abs(newBox!.y - box!.y)).toBeGreaterThan(10);
   });
 
@@ -732,6 +733,7 @@ test.describe('Draggable Toggle Button', () => {
 
     // Drag to the left side of the screen
     const box = await toggle.boundingBox();
+    expect(box).not.toBeNull();
     const startX = box!.x + box!.width / 2;
     const startY = box!.y + box!.height / 2;
 
@@ -741,7 +743,8 @@ test.describe('Draggable Toggle Button', () => {
     await page.mouse.up();
 
     const leftBox = await toggle.boundingBox();
-    // Should snap to left edge (margin 16px)
+    expect(leftBox).not.toBeNull();
+    // Should snap to left edge (margin = 16px, see snapToEdge in panel/index.ts)
     expect(leftBox!.x).toBe(16);
 
     // Now drag to the right side
@@ -754,8 +757,9 @@ test.describe('Draggable Toggle Button', () => {
     await page.mouse.up();
 
     const rightBox = await toggle.boundingBox();
+    expect(rightBox).not.toBeNull();
     // Should snap to right edge (right: 16px → left = vw - 16 - width)
-    expect(rightBox!.x).toBeCloseTo(vw - 16 - rightBox!.width, 0);
+    expect(Math.abs(rightBox!.x - (vw - 16 - rightBox!.width))).toBeLessThan(1);
   });
 });
 
@@ -764,6 +768,7 @@ test.describe('Draggable Toggle Button', () => {
 // ====================================================================
 
 test.describe('Mobile Fullscreen', () => {
+  // Viewport ≤ 480px triggers fullscreen via @media query in panel/styles.ts
   test.use({ viewport: { width: 375, height: 667 } });
 
   test('panel should open in fullscreen on small viewport', async ({ page }) => {

@@ -48,7 +48,7 @@ config.plugins.push(aitDevtools.webpack());
 
 ### Next.js (Turbopack)
 
-Turbopack은 플러그인 시스템을 지원하지 않으므로 `resolveAlias`를 사용합니다:
+Turbopack은 플러그인 시스템을 지원하지 않으므로 `resolveAlias`를 사용합니다. `@apps-in-toss/web-bridge`, `@apps-in-toss/web-analytics`도 함께 alias해야 합니다:
 
 ```js
 // next.config.js (Next.js 15+)
@@ -56,6 +56,8 @@ module.exports = {
   turbo: {
     resolveAlias: {
       '@apps-in-toss/web-framework': '@ait-co/devtools/mock',
+      '@apps-in-toss/web-bridge': '@ait-co/devtools/mock',
+      '@apps-in-toss/web-analytics': '@ait-co/devtools/mock',
     },
   },
 };
@@ -66,8 +68,32 @@ module.exports = {
     turbo: {
       resolveAlias: {
         '@apps-in-toss/web-framework': '@ait-co/devtools/mock',
+        '@apps-in-toss/web-bridge': '@ait-co/devtools/mock',
+        '@apps-in-toss/web-analytics': '@ait-co/devtools/mock',
       },
     },
+  },
+};
+```
+
+> **Panel 주입**: Turbopack은 unplugin을 지원하지 않으므로 Panel이 자동 주입되지 않습니다. 진입점에서 직접 import하세요:
+> ```ts
+> // app/layout.tsx 또는 pages/_app.tsx
+> import '@ait-co/devtools/panel';
+> ```
+
+### Next.js (Webpack 모드)
+
+Next.js에서 Turbopack 대신 Webpack 모드를 사용하는 경우:
+
+```js
+// next.config.js (Webpack 모드)
+const aitDevtools = require('@ait-co/devtools/unplugin');
+
+module.exports = {
+  webpack: (config) => {
+    config.plugins.push(aitDevtools.webpack());
+    return config;
   },
 };
 ```
@@ -89,6 +115,11 @@ module.exports = {
 }
 ```
 
+> **주의**: 수동 alias만 사용하면 DevTools Panel이 자동 주입되지 않습니다. 진입점 파일에 직접 import를 추가하세요:
+> ```ts
+> import '@ait-co/devtools/panel'; // 진입점에 추가
+> ```
+
 ### 플러그인 옵션
 
 | 옵션 | 타입 | 기본값 | 설명 |
@@ -98,6 +129,23 @@ module.exports = {
 ```ts
 aitDevtools.vite({ panel: false }); // Panel 없이 mock만 사용
 ```
+
+## Production 빌드
+
+기본적으로 devtools 플러그인은 **production 빌드에서 자동 비활성화**됩니다. `NODE_ENV`가 `'production'`이면 alias 변환과 Panel 주입이 모두 스킵됩니다.
+
+개발 환경에서만 플러그인을 조건부로 적용하려면:
+
+```ts
+// vite.config.ts
+export default {
+  plugins: [
+    process.env.NODE_ENV !== 'production' && aitDevtools.vite(),
+  ].filter(Boolean),
+};
+```
+
+> **참고**: 향후 `forceEnable` 옵션이 추가되면, production 빌드에서도 devtools를 강제로 활성화할 수 있습니다. 스테이징 환경 등에서 유용합니다.
 
 ## Device API 모드 시스템
 
@@ -455,7 +503,7 @@ pnpm test        # 전체 테스트 실행
   ```ts
   import '@ait-co/devtools/panel';
   ```
-- 플러그인은 `/main|index|entry/` 패턴의 진입점 파일만 자동 주입합니다
+- 플러그인은 `/main|index|entry|app/` 패턴의 진입점 파일만 자동 주입합니다
 
 ### 서브패스 import는 mock되지 않음
 

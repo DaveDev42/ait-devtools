@@ -305,6 +305,9 @@ export const PANEL_STYLES = /* css */ `
     opacity: 0.5;
     cursor: not-allowed;
   }
+  .ait-btn-danger:disabled {
+    background: #5a5a5a;
+  }
 
   /* Mock status badge */
   .ait-mock-badge {

@@ -68,7 +68,7 @@ function inputRow(label: string, value: string, onChange: (v: string) => void, d
 
 function renderEnvTab(): HTMLElement {
   const s = aitState.state;
-  const disabled = !s.mockEnabled;
+  const disabled = !s.panelEditable;
   const container = h('div');
 
   if (disabled) container.appendChild(monitoringNotice());
@@ -96,7 +96,7 @@ function renderEnvTab(): HTMLElement {
 
 function renderPermissionsTab(): HTMLElement {
   const s = aitState.state;
-  const disabled = !s.mockEnabled;
+  const disabled = !s.panelEditable;
   const container = h('div');
   const names: PermissionName[] = ['camera', 'photos', 'geolocation', 'clipboard', 'contacts', 'microphone'];
   const statuses: PermissionStatus[] = ['allowed', 'denied', 'notDetermined'];
@@ -118,7 +118,7 @@ function renderPermissionsTab(): HTMLElement {
 
 function renderLocationTab(): HTMLElement {
   const s = aitState.state;
-  const disabled = !s.mockEnabled;
+  const disabled = !s.panelEditable;
   const container = h('div');
 
   if (disabled) container.appendChild(monitoringNotice());
@@ -145,7 +145,7 @@ function renderLocationTab(): HTMLElement {
 
 function renderIapTab(): HTMLElement {
   const s = aitState.state;
-  const disabled = !s.mockEnabled;
+  const disabled = !s.panelEditable;
   const container = h('div');
   const results: IapNextResult[] = ['success', 'USER_CANCELED', 'INVALID_PRODUCT_ID', 'PAYMENT_PENDING', 'NETWORK_ERROR', 'ITEM_ALREADY_OWNED', 'INTERNAL_ERROR'];
 
@@ -178,7 +178,7 @@ function renderIapTab(): HTMLElement {
 }
 
 function renderEventsTab(): HTMLElement {
-  const disabled = !aitState.state.mockEnabled;
+  const disabled = !aitState.state.panelEditable;
   const container = h('div');
 
   if (disabled) container.appendChild(monitoringNotice());
@@ -210,7 +210,7 @@ function renderEventsTab(): HTMLElement {
 }
 
 function renderAnalyticsTab(): HTMLElement {
-  const disabled = !aitState.state.mockEnabled;
+  const disabled = !aitState.state.panelEditable;
   const container = h('div');
   if (disabled) container.appendChild(monitoringNotice());
   const logs = aitState.state.analyticsLog;
@@ -242,7 +242,7 @@ function renderAnalyticsTab(): HTMLElement {
 }
 
 function renderStorageTab(): HTMLElement {
-  const disabled = !aitState.state.mockEnabled;
+  const disabled = !aitState.state.panelEditable;
   const container = h('div');
   if (disabled) container.appendChild(monitoringNotice());
   const prefix = '__ait_storage:';
@@ -392,13 +392,13 @@ function renderPromptBanner(): HTMLElement | null {
 
 function renderDeviceTab(): HTMLElement {
   const s = aitState.state;
-  const disabled = !s.mockEnabled;
+  const disabled = !s.panelEditable;
   const container = h('div');
 
   if (disabled) container.appendChild(monitoringNotice());
 
-  // Prompt banner (if active, only when mockEnabled)
-  if (s.mockEnabled) {
+  // Prompt banner (if active, only when panelEditable)
+  if (s.panelEditable) {
     const promptBanner = renderPromptBanner();
     if (promptBanner) container.appendChild(promptBanner);
   }
@@ -539,14 +539,14 @@ function mount() {
   panelEl = h('div', { className: 'ait-panel' });
 
   const mockBadge = h('span', {
-    className: `ait-mock-badge ${aitState.state.mockEnabled ? 'ait-mock-badge-on' : 'ait-mock-badge-off'}`,
+    className: `ait-mock-badge ${aitState.state.panelEditable ? 'ait-mock-badge-on' : 'ait-mock-badge-off'}`,
     title: 'Toggle panel edit mode',
-  }, aitState.state.mockEnabled ? 'EDIT' : 'READ-ONLY');
+  }, aitState.state.panelEditable ? 'EDIT' : 'READ-ONLY');
 
   mockBadge.addEventListener('click', () => {
-    aitState.update({ mockEnabled: !aitState.state.mockEnabled });
-    mockBadge.className = `ait-mock-badge ${aitState.state.mockEnabled ? 'ait-mock-badge-on' : 'ait-mock-badge-off'}`;
-    mockBadge.textContent = aitState.state.mockEnabled ? 'EDIT' : 'READ-ONLY';
+    aitState.update({ panelEditable: !aitState.state.panelEditable });
+    mockBadge.className = `ait-mock-badge ${aitState.state.panelEditable ? 'ait-mock-badge-on' : 'ait-mock-badge-off'}`;
+    mockBadge.textContent = aitState.state.panelEditable ? 'EDIT' : 'READ-ONLY';
     refreshPanel();
   });
 

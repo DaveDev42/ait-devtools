@@ -28,8 +28,8 @@ vi.mock('../panel/tabs/index.js', async (importOriginal) => {
 
 describe('Panel error boundary', () => {
   afterEach(() => {
-    vi.restoreAllMocks();
-    // Reset tab spies to working state
+    // vi.restoreAllMocks() is handled globally by restoreMocks: true in vitest.config.ts.
+    // Tab spies are module-scoped (not covered by restoreMocks), so reset manually.
     for (const spy of Object.values(tabSpies)) {
       spy.mockImplementation(() => document.createElement('div'));
     }

@@ -539,7 +539,7 @@ pnpm test        # 전체 테스트 실행
   ```ts
   import '@ait-co/devtools/panel';
   ```
-- 플러그인은 파일 경로가 `/main|index|entry/` 패턴에 매칭되는 진입점에만 자동 주입합니다. 파일명이 이 패턴에 맞지 않으면 수동으로 `import '@ait-co/devtools/panel'`을 추가하세요.
+- 플러그인은 파일명이 `main`, `index`, `entry`, `app` 중 하나인 진입점에만 자동 주입합니다 (대소문자 무시). 파일명이 이 패턴에 맞지 않으면 수동으로 `import '@ait-co/devtools/panel'`을 추가하세요.
 
 ### 서브패스 import는 mock되지 않음
 

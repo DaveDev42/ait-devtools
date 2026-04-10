@@ -55,7 +55,7 @@ const aitDevtoolsPlugin = createUnplugin((options?: AitDevtoolsOptions) => {
     transformInclude(id: string) {
       if (!_panel) return false;
       // 진입점 파일에만 패널 import를 주입
-      return /\.(tsx?|jsx?)$/.test(id) && /main|index|entry|app/i.test(id) && !id.includes('node_modules');
+      return /\.(tsx?|jsx?)$/.test(id) && /\/(main|index|entry|app)\.[tj]sx?$/.test(id) && !id.includes('node_modules');
     },
 
     transform(code: string) {

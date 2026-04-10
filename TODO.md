@@ -41,13 +41,6 @@
 - [ ] **README의 transformInclude 패턴 설명 수정** — `/main|index|entry/` → 실제 코드와 일치시키기
 - [ ] **예제 프로젝트 로컬 링크 workaround 안내** — `examples/vite-react`의 `file:` 링크 관련 주석
 
-## 코드 개선 (중간 우선순위)
-
-- [x] **`transformInclude`와 `transform`의 패턴 불일치 수정** — `src/unplugin/index.ts`에서 `app` 포함 여부 통일
-- [x] **console.log prefix 통일** — `[@ait-co/devtools]`로 변경 완료
-- [x] **Promise 반환 패턴 통일** — 모든 단순 함수를 `async`로 변경 완료
-- [x] **`window.__ait` TypeScript 타입 선언 제공** — `src/env.d.ts`에 `Window.__ait` 선언 추가
-
 ## 문서 보완 (낮은 우선순위)
 
 - [ ] **CLAUDE.md 구조 트리에 `__tests__/` 디렉토리 추가**

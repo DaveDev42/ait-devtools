@@ -210,10 +210,12 @@ function renderEventsTab(): HTMLElement {
 }
 
 function renderAnalyticsTab(): HTMLElement {
+  const disabled = !aitState.state.mockEnabled;
   const container = h('div');
   const logs = aitState.state.analyticsLog;
 
   const clearBtn = h('button', { className: 'ait-btn ait-btn-sm ait-btn-danger' }, 'Clear');
+  if (disabled) clearBtn.disabled = true;
   clearBtn.addEventListener('click', () => {
     aitState.state.analyticsLog.length = 0;
     refreshPanel();
@@ -239,6 +241,7 @@ function renderAnalyticsTab(): HTMLElement {
 }
 
 function renderStorageTab(): HTMLElement {
+  const disabled = !aitState.state.mockEnabled;
   const container = h('div');
   const prefix = '__ait_storage:';
   const entries: Array<[string, string]> = [];
@@ -250,6 +253,7 @@ function renderStorageTab(): HTMLElement {
   }
 
   const clearBtn = h('button', { className: 'ait-btn ait-btn-sm ait-btn-danger' }, 'Clear All');
+  if (disabled) clearBtn.disabled = true;
   clearBtn.addEventListener('click', () => {
     entries.forEach(([key]) => localStorage.removeItem(prefix + key));
     refreshPanel();
@@ -484,7 +488,7 @@ function renderDeviceTab(): HTMLElement {
 
 function monitoringNotice(): HTMLElement {
   return h('div', { className: 'ait-monitoring-notice' },
-    'Monitoring only — mock is disabled. Settings are read-only.',
+    'Read-only — mock responses are controlled at build time.',
   );
 }
 

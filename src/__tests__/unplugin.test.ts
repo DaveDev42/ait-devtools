@@ -47,6 +47,14 @@ describe('unplugin: dev mode + mock:false', () => {
   });
 });
 
+describe('unplugin: dev mode + forceEnable:true', () => {
+  it('mock alias가 여전히 활성화되어야 한다', () => {
+    vi.stubEnv('NODE_ENV', 'development');
+    const hooks = getRawHooks({ forceEnable: true });
+    expect(hooks.resolveId(FRAMEWORK_ID)).toBe(MOCK_ID);
+  });
+});
+
 describe('unplugin: dev mode + panel:false', () => {
   it('mock alias는 활성화되어야 한다', () => {
     vi.stubEnv('NODE_ENV', 'development');

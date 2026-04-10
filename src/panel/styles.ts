@@ -58,7 +58,7 @@ export const PANEL_STYLES = /* css */ `
     align-items: center;
     border-bottom: 1px solid #2a2a4a;
   }
-  .ait-panel-header span {
+  .ait-panel-header > span:first-child {
     color: #3182F6;
   }
 
@@ -304,6 +304,7 @@ export const PANEL_STYLES = /* css */ `
   .ait-btn-secondary:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+    pointer-events: none;
   }
 
   /* Mock status badge */

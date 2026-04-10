@@ -34,6 +34,8 @@ export default {
 };
 ```
 
+> 개발 전용 설정입니다. Production 빌드에서 제외하려면 아래 [Production 빌드](#production-빌드) 섹션을 참고하세요.
+
 ### Webpack / Rspack
 
 ```js
@@ -64,8 +66,12 @@ module.exports = {
     },
   },
 };
+```
 
-// Next.js 14 이하 (15+에서는 위의 최상위 turbo 사용)
+Next.js 14 이하에서는 `experimental.turbo`를 사용합니다:
+
+```js
+// next.config.js (Next.js 14 이하)
 module.exports = {
   experimental: {
     turbo: {
@@ -87,7 +93,7 @@ module.exports = {
 
 ### Next.js (Webpack)
 
-Next.js에서 Turbopack 대신 Webpack 모드를 사용하는 경우:
+Next.js에서 Webpack 모드(`next dev` without `--turbo`, 또는 `next build`)를 사용하는 경우:
 
 ```js
 // next.config.js (Webpack 모드)
@@ -123,7 +129,7 @@ export default defineConfig({
 ```
 
 ```js
-// webpack.config.js
+// webpack.config.js (Webpack은 절대 경로 필요)
 module.exports = {
   resolve: {
     alias: {

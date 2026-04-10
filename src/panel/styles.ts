@@ -2,11 +2,12 @@
  * Floating Panel CSS (inline, 외부 의존성 없음)
  */
 
+export const PANEL_WIDTH = 360;
+export const PANEL_HEIGHT = 480;
+
 export const PANEL_STYLES = /* css */ `
   .ait-panel-toggle {
     position: fixed;
-    bottom: 16px;
-    right: 16px;
     z-index: 99999;
     width: 48px;
     height: 48px;
@@ -22,18 +23,18 @@ export const PANEL_STYLES = /* css */ `
     color: white;
     transition: transform 0.15s;
     font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    touch-action: none;
+    user-select: none;
   }
-  .ait-panel-toggle:hover {
+  .ait-panel-toggle:hover:not(.dragging) {
     transform: scale(1.1);
   }
 
   .ait-panel {
     position: fixed;
-    bottom: 72px;
-    right: 16px;
     z-index: 99998;
-    width: 360px;
-    max-height: 520px;
+    width: ${PANEL_WIDTH}px;
+    height: ${PANEL_HEIGHT}px;
     background: #1a1a2e;
     border-radius: 12px;
     box-shadow: 0 8px 32px rgba(0,0,0,0.4);
@@ -95,8 +96,8 @@ export const PANEL_STYLES = /* css */ `
   .ait-panel-body {
     padding: 12px 16px;
     overflow-y: auto;
-    max-height: 400px;
     flex: 1;
+    min-height: 0;
   }
 
   .ait-section {
@@ -294,6 +295,20 @@ export const PANEL_STYLES = /* css */ `
     min-width: 30px;
   }
 
+  .ait-panel-close {
+    display: none;
+    background: none;
+    border: none;
+    color: #888;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 0 4px;
+    font-family: inherit;
+  }
+  .ait-panel-close:hover {
+    color: #e0e0e0;
+  }
+
   /* Disabled state for monitoring-only mode */
   .ait-select:disabled,
   .ait-input:disabled {
@@ -337,5 +352,25 @@ export const PANEL_STYLES = /* css */ `
     margin-bottom: 12px;
     font-size: 11px;
     color: #fbbf24;
+  }
+
+  @media (max-width: 480px) {
+    .ait-panel.open {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      height: 100%;
+      max-height: 100%;
+      border-radius: 0;
+    }
+    .ait-panel-toggle {
+      z-index: 100000;
+    }
+    .ait-panel-close {
+      display: block;
+    }
   }
 `;

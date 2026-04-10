@@ -170,17 +170,14 @@ export const IAP = createMockProxy('IAP', {
 
 // --- TossPay ---
 
-export function checkoutPayment(options: { params: { payToken: string } }): Promise<{ success: boolean; reason?: string }> {
+export async function checkoutPayment(options: { params: { payToken: string } }): Promise<{ success: boolean; reason?: string }> {
   const { nextResult, failReason } = aitState.state.payment;
   console.log('[@ait-co/devtools] checkoutPayment:', options.params.payToken);
 
-  return new Promise(resolve => {
-    setTimeout(() => {
-      if (nextResult === 'success') {
-        resolve({ success: true });
-      } else {
-        resolve({ success: false, reason: failReason || 'Mock payment failed' });
-      }
-    }, 300);
-  });
+  await new Promise(r => setTimeout(r, 300));
+
+  if (nextResult === 'success') {
+    return { success: true };
+  }
+  return { success: false, reason: failReason || 'Mock payment failed' };
 }

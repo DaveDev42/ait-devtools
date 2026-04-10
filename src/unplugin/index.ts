@@ -58,15 +58,12 @@ const aitDevtoolsPlugin = createUnplugin((options?: AitDevtoolsOptions) => {
       return /\.(tsx?|jsx?)$/.test(id) && /main|index|entry|app/i.test(id) && !id.includes('node_modules');
     },
 
-    transform(code: string, id: string) {
+    transform(code: string) {
       if (!_panel) return null;
       // 이미 패널이 import 되어있으면 스킵
       if (code.includes('@ait-co/devtools/panel')) return null;
-      // 진입점에서 가장 처음으로 실행되도록 prepend
-      if (/main|index|entry|app/i.test(id) && !id.includes('node_modules')) {
-        return `import '@ait-co/devtools/panel';\n${code}`;
-      }
-      return null;
+      // transformInclude가 진입점 파일만 통과시키므로 바로 prepend
+      return `import '@ait-co/devtools/panel';\n${code}`;
     },
   };
 });

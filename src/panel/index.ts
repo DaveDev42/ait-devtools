@@ -212,6 +212,7 @@ function renderEventsTab(): HTMLElement {
 function renderAnalyticsTab(): HTMLElement {
   const disabled = !aitState.state.mockEnabled;
   const container = h('div');
+  if (disabled) container.appendChild(monitoringNotice());
   const logs = aitState.state.analyticsLog;
 
   const clearBtn = h('button', { className: 'ait-btn ait-btn-sm ait-btn-danger' }, 'Clear');
@@ -243,6 +244,7 @@ function renderAnalyticsTab(): HTMLElement {
 function renderStorageTab(): HTMLElement {
   const disabled = !aitState.state.mockEnabled;
   const container = h('div');
+  if (disabled) container.appendChild(monitoringNotice());
   const prefix = '__ait_storage:';
   const entries: Array<[string, string]> = [];
   for (let i = 0; i < localStorage.length; i++) {

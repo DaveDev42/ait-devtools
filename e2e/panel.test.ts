@@ -682,3 +682,167 @@ test.describe('Device Tab', () => {
     }
   });
 });
+
+// ====================================================================
+// DRAGGABLE TOGGLE BUTTON
+// ====================================================================
+// Source inline values referenced in these tests:
+//   margin = 16          (panel/index.ts snapToEdge, local const)
+//   drag threshold = 3   (panel/index.ts makeDraggable, inline literal, per axis)
+//   breakpoint = 480px   (panel/styles.ts @media query)
+
+test.describe('Draggable Toggle Button', () => {
+  test('dragging should change button Y position', async ({ page }) => {
+    const toggle = page.locator('button.ait-panel-toggle');
+    const box = await toggle.boundingBox();
+    expect(box).not.toBeNull();
+
+    const startX = box!.x + box!.width / 2;
+    const startY = box!.y + box!.height / 2;
+
+    // Drag the button 100px to the left and 80px up
+    await page.mouse.move(startX, startY);
+    await page.mouse.down();
+    await page.mouse.move(startX - 100, startY - 80, { steps: 10 });
+    await page.mouse.up();
+
+    const newBox = await toggle.boundingBox();
+    expect(newBox).not.toBeNull();
+    // Y position should have changed after 80px vertical drag
+    // (X snaps to left/right edge via snapToEdge, tested separately)
+    expect(Math.abs(newBox!.y - box!.y)).toBeGreaterThan(10);
+  });
+
+  test('short click (<= 3px per axis) should toggle panel instead of dragging', async ({ page }) => {
+    const toggle = page.locator('button.ait-panel-toggle');
+    const box = await toggle.boundingBox();
+    expect(box).not.toBeNull();
+
+    const cx = box!.x + box!.width / 2;
+    const cy = box!.y + box!.height / 2;
+
+    // Move only 2px — should be treated as a click, not a drag
+    await page.mouse.move(cx, cy);
+    await page.mouse.down();
+    await page.mouse.move(cx + 2, cy + 1, { steps: 2 });
+    await page.mouse.up();
+
+    // Panel should open (toggle behavior)
+    await expect(page.locator('.ait-panel.open')).toBeVisible();
+  });
+
+  test('dragging should snap to nearest left/right edge', async ({ page }) => {
+    const toggle = page.locator('button.ait-panel-toggle');
+    const vw = await page.evaluate(() => window.innerWidth);
+
+    // Default position is right: 16px (Playwright contexts are isolated per test)
+    const box = await toggle.boundingBox();
+    expect(box).not.toBeNull();
+    const startX = box!.x + box!.width / 2;
+    const startY = box!.y + box!.height / 2;
+
+    // Drag to the left side of the screen
+    await page.mouse.move(startX, startY);
+    await page.mouse.down();
+    await page.mouse.move(100, startY, { steps: 10 });
+    await page.mouse.up();
+
+    const leftBox = await toggle.boundingBox();
+    expect(leftBox).not.toBeNull();
+    // Should snap to left edge (margin = 16px, see snapToEdge in panel/index.ts)
+    expect(leftBox!.x).toBe(16);
+
+    // Now drag to the right side
+    const lx = leftBox!.x + leftBox!.width / 2;
+    const ly = leftBox!.y + leftBox!.height / 2;
+
+    await page.mouse.move(lx, ly);
+    await page.mouse.down();
+    await page.mouse.move(vw - 50, ly, { steps: 10 });
+    await page.mouse.up();
+
+    const rightBox = await toggle.boundingBox();
+    expect(rightBox).not.toBeNull();
+    // Should snap to right edge (right: 16px → left = vw - 16 - width).
+    // Uses tolerance < 1px because right-edge position is computed from style.right,
+    // which can produce sub-pixel rounding vs the left-edge's direct style.left = '16px'.
+    expect(Math.abs(rightBox!.x - (vw - 16 - rightBox!.width))).toBeLessThan(1);
+  });
+});
+
+// ====================================================================
+// MOBILE FULLSCREEN
+// ====================================================================
+
+test.describe('Mobile Fullscreen', () => {
+  // Viewport ≤ 480px triggers fullscreen via @media query in panel/styles.ts
+  test.use({ viewport: { width: 375, height: 667 } });
+
+  test('panel should open in fullscreen on small viewport', async ({ page }) => {
+    await openPanel(page);
+
+    const panel = page.locator('.ait-panel.open');
+    const box = await panel.boundingBox();
+    expect(box).not.toBeNull();
+    const viewport = page.viewportSize()!;
+    expect(box!.x).toBe(0);
+    expect(box!.y).toBe(0);
+    expect(box!.width).toBe(viewport.width);
+    expect(box!.height).toBe(viewport.height);
+  });
+
+  test('close button should be visible in fullscreen mode', async ({ page }) => {
+    await openPanel(page);
+
+    const closeBtn = page.locator('.ait-panel-close');
+    await expect(closeBtn).toBeVisible();
+
+    // Clicking close should hide the panel
+    await closeBtn.click();
+    await expect(page.locator('.ait-panel.open')).not.toBeVisible();
+  });
+});
+
+// ====================================================================
+// PANEL POSITION PERSISTENCE
+// ====================================================================
+
+test.describe('Panel Position Persistence', () => {
+  test('toggle button position should persist after page reload', async ({ page }) => {
+    const toggle = page.locator('button.ait-panel-toggle');
+    const box = await toggle.boundingBox();
+    expect(box).not.toBeNull();
+
+    const startX = box!.x + box!.width / 2;
+    const startY = box!.y + box!.height / 2;
+
+    // Drag the button to the left side, somewhere in the middle vertically
+    await page.mouse.move(startX, startY);
+    await page.mouse.down();
+    await page.mouse.move(80, 300, { steps: 10 });
+    await page.mouse.up();
+
+    // Capture post-drag position for Y comparison after reload
+    const draggedBox = await toggle.boundingBox();
+    expect(draggedBox).not.toBeNull();
+
+    // Verify position was saved to localStorage
+    const saved = await page.evaluate(() => localStorage.getItem('__ait_btn_pos'));
+    expect(saved).not.toBeNull();
+    const pos = JSON.parse(saved!) as Record<string, string>;
+    expect(pos).toHaveProperty('left', '16px'); // snapped to left edge
+
+    // Reload the page
+    await page.reload();
+    await expect(page.getByTestId('auth-section')).toBeVisible();
+
+    // Toggle button should be restored near the saved position
+    const restored = page.locator('button.ait-panel-toggle');
+    await expect(restored).toBeVisible();
+    const restoredBox = await restored.boundingBox();
+    expect(restoredBox).not.toBeNull();
+    // Should be on the left side (x = 16) and Y approximately preserved
+    expect(restoredBox!.x).toBe(16);
+    expect(Math.abs(restoredBox!.y - draggedBox!.y)).toBeLessThan(5);
+  });
+});

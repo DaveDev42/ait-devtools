@@ -148,7 +148,7 @@ export interface AitDevtoolsState {
   mockData: MockData;
 
   // mock 활성화 상태
-  mockEnabled: boolean;
+  panelEditable: boolean;
 }
 
 const DEFAULT_STATE: AitDevtoolsState = {
@@ -250,7 +250,7 @@ const DEFAULT_STATE: AitDevtoolsState = {
     clipboardText: '',
   },
 
-  mockEnabled: true,
+  panelEditable: true,
 };
 
 function generateDeviceId(): string {

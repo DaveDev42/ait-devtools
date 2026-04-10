@@ -26,7 +26,7 @@ pnpm add -D @ait-co/devtools
 ### Vite
 
 ```ts
-// vite.config.ts
+// vite.config.ts (개발 전용)
 import aitDevtools from '@ait-co/devtools/unplugin';
 
 export default {
@@ -39,7 +39,7 @@ export default {
 ### Webpack / Rspack
 
 ```js
-// webpack.config.js (ESM)
+// webpack.config.js (ESM, 개발 환경에서만 사용 권장)
 import aitDevtools from '@ait-co/devtools/unplugin';
 config.plugins.push(aitDevtools.webpack());
 

@@ -3,6 +3,9 @@
   "version": "0.0.2",
   "description": "Development tools for Apps in Toss mini-apps — mock SDK, floating devtools panel, and universal bundler plugin",
   "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
   "main": "./dist/mock/index.js",
   "types": "./dist/mock/index.d.ts",
   "exports": {

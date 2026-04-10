@@ -354,6 +354,11 @@ export const PANEL_STYLES = /* css */ `
     color: #fbbf24;
   }
 
+  .ait-panel-tab-error {
+    padding: 12px;
+    color: #e53e3e;
+  }
+
   @media (max-width: 480px) {
     .ait-panel.open {
       position: fixed;
@@ -372,9 +377,5 @@ export const PANEL_STYLES = /* css */ `
     .ait-panel-close {
       display: block;
     }
-  }
-  .ait-panel-tab-error {
-    padding: 12px;
-    color: #e53e3e;
   }
 `;

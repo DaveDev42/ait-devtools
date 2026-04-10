@@ -1,88 +1,87 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, afterEach, type Mock } from 'vitest';
+import { aitState } from '../mock/state.js';
+import type { TabId } from '../panel/tabs/index.js';
+
+// We mock createTabRenderers to control which tabs throw.
+// This lets us test the real production error boundary code in panel/index.ts.
+
+const tabSpies: Record<TabId, Mock<() => HTMLElement>> = {
+  env: vi.fn(() => document.createElement('div')),
+  permissions: vi.fn(() => document.createElement('div')),
+  location: vi.fn(() => document.createElement('div')),
+  device: vi.fn(() => document.createElement('div')),
+  iap: vi.fn(() => document.createElement('div')),
+  events: vi.fn(() => document.createElement('div')),
+  analytics: vi.fn(() => document.createElement('div')),
+  storage: vi.fn(() => document.createElement('div')),
+};
+
+vi.mock('../panel/tabs/index.js', async (importOriginal) => {
+  const original = await importOriginal<typeof import('../panel/tabs/index.js')>();
+  return {
+    ...original,
+    createTabRenderers: () => ({ ...tabSpies }),
+  };
+});
 
 describe('Panel error boundary', () => {
-  beforeEach(() => {
-    document.body.innerHTML = '';
-  });
-
   afterEach(() => {
     vi.restoreAllMocks();
+    // Reset tab spies to working state
+    for (const spy of Object.values(tabSpies)) {
+      spy.mockImplementation(() => document.createElement('div'));
+    }
   });
 
   it('탭 렌더링 에러 시 에러 메시지를 표시하고 다른 탭에 영향을 주지 않는다', async () => {
-    // Mock createTabRenderers to inject a throwing tab
-    const { h } = await import('../panel/helpers.js');
-    const { createTabRenderers } = await import('../panel/tabs/index.js');
-
-    const refreshPanel = vi.fn();
-    const renderers = createTabRenderers(refreshPanel);
-
-    // Replace env tab with a throwing renderer
-    renderers.env = () => { throw new Error('test error'); };
-
-    // Simulate what refreshPanel does
-    const bodyEl = document.createElement('div');
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    try {
-      bodyEl.appendChild(renderers.env());
-    } catch (err) {
-      console.error('[@ait-co/devtools] Error rendering tab "env":', err);
-      bodyEl.appendChild(h('div', { className: 'ait-panel-tab-error' }, 'Error rendering "env" tab.'));
+    // Make env tab (default tab) throw
+    tabSpies.env.mockImplementation(() => { throw new Error('env tab exploded'); });
+
+    // Import triggers auto-mount → refreshPanel() → env renderer → throws → caught
+    const { mount } = await import('../panel/index.js');
+    if (!document.querySelector('.ait-panel-toggle')) {
+      mount();
     }
 
-    expect(bodyEl.querySelector('.ait-panel-tab-error')).not.toBeNull();
-    expect(bodyEl.textContent).toContain('Error rendering "env" tab.');
+    const panelBody = document.querySelector('.ait-panel-body');
+    expect(panelBody).not.toBeNull();
+
+    // Error boundary should have caught it and rendered the error div
+    const errorDiv = panelBody!.querySelector('.ait-panel-tab-error');
+    expect(errorDiv).not.toBeNull();
+    expect(errorDiv!.textContent).toContain('Error rendering "env" tab.');
     expect(consoleError).toHaveBeenCalledWith(
       '[@ait-co/devtools] Error rendering tab "env":',
       expect.any(Error),
     );
 
-    // Other tabs still work
-    bodyEl.innerHTML = '';
-    bodyEl.appendChild(renderers.permissions());
-    expect(bodyEl.querySelector('.ait-panel-tab-error')).toBeNull();
-    expect(bodyEl.children.length).toBeGreaterThan(0);
+    // Switch to a non-broken tab — it should render fine
+    window.dispatchEvent(new CustomEvent('__ait:panel-switch-tab', { detail: { tab: 'permissions' } }));
+    expect(panelBody!.querySelector('.ait-panel-tab-error')).toBeNull();
+    expect(panelBody!.children.length).toBeGreaterThan(0);
   });
 
-  it('subscribe 콜백 에러가 전파되지 않는다', async () => {
-    const { aitState } = await import('../mock/state.js');
+  it('subscribe 콜백에서 refreshPanel 에러가 전파되지 않는다', async () => {
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    // Add a subscriber that wraps errors like panel does
-    aitState.subscribe(() => {
-      try {
-        throw new Error('subscribe error');
-      } catch (err) {
-        console.error('[@ait-co/devtools] Error in subscribe callback:', err);
-      }
-    });
+    // Panel is already mounted (module cached). Switch to storage tab and open panel.
+    window.dispatchEvent(new CustomEvent('__ait:panel-switch-tab', { detail: { tab: 'storage' } }));
 
-    // Should not throw
+    // Now make the storage renderer throw
+    tabSpies.storage.mockImplementation(() => { throw new Error('storage exploded'); });
+
+    // aitState.update triggers subscribe → refreshPanel (storage tab) → throws → caught
     expect(() => aitState.update({ platform: 'android' })).not.toThrow();
+
     expect(consoleError).toHaveBeenCalledWith(
-      '[@ait-co/devtools] Error in subscribe callback:',
+      '[@ait-co/devtools] Error rendering tab "storage":',
       expect.any(Error),
     );
-  });
 
-  it('mount 실패 시 앱이 죽지 않는다', async () => {
-    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
-
-    // Simulate safeMount pattern
-    const mount = () => { throw new Error('mount error'); };
-    const safeMount = () => {
-      try {
-        mount();
-      } catch (err) {
-        console.error('[@ait-co/devtools] Failed to mount panel:', err);
-      }
-    };
-
-    expect(() => safeMount()).not.toThrow();
-    expect(consoleError).toHaveBeenCalledWith(
-      '[@ait-co/devtools] Failed to mount panel:',
-      expect.any(Error),
-    );
+    // Panel should show error message, not crash
+    const panelBody = document.querySelector('.ait-panel-body');
+    expect(panelBody!.querySelector('.ait-panel-tab-error')).not.toBeNull();
   });
 });

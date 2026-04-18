@@ -112,7 +112,9 @@ test.describe('Layer A: Domain smoke', () => {
     const setResult = await apiClick(page, 'storage-set');
     expect(setResult).not.toMatch(/^error:/); // precondition: setItem must succeed
 
-    // key input still holds 'e2e-k' from the fill above; withInputs reads it at click time
+    // key input still holds 'e2e-k' from the fill above; withInputs reads it at click time.
+    // These two apiClick calls target different ids (storage-set-result vs storage-get-result),
+    // so there is no stale-result risk despite calling apiClick twice in one test.
     const r = await apiClick(page, 'storage-get');
     expect(r).toBe('e2e-v');
   });
@@ -206,7 +208,7 @@ test.describe('Layer C: Panel-App bridge', () => {
     // Wait for refreshEnv() to populate env-platform-value before reading it
     const loc = page.getByTestId('env-platform-value');
     await expect(loc).not.toBeEmpty({ timeout: 3000 });
-    const appPlatform = await loc.textContent() as string; // not.toBeEmpty above guarantees non-empty
+    const appPlatform = (await loc.textContent()) ?? ''; // not.toBeEmpty above guarantees non-null
 
     await openPanel(page);
     await switchTab(page, 'env');

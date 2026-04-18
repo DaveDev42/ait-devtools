@@ -145,6 +145,8 @@ export function apiSubscriber(
         entry.textContent = payload === undefined ? '(event)' : JSON.stringify(payload);
         log.appendChild(entry);
       });
+      // { once: true } prevents subscribe() being called again on subsequent clicks.
+      // disabled is a UI hint so the user knows subscription is active.
       button.disabled = true;
     },
     { once: true },

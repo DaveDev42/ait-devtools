@@ -1,13 +1,26 @@
-import { test, expect, type Page } from '@playwright/test';
+import { expect, type Page, test } from '@playwright/test';
 
 // ============================================================================
 // Helpers
 // ============================================================================
 
 const SECTION_IDS = [
-  'auth', 'navigation', 'environment', 'permissions', 'storage',
-  'location', 'camera', 'contacts', 'clipboard', 'haptic',
-  'iap', 'ads', 'game', 'analytics', 'partner', 'events',
+  'auth',
+  'navigation',
+  'environment',
+  'permissions',
+  'storage',
+  'location',
+  'camera',
+  'contacts',
+  'clipboard',
+  'haptic',
+  'iap',
+  'ads',
+  'game',
+  'analytics',
+  'partner',
+  'events',
 ] as const;
 
 async function openPanel(page: Page) {
@@ -44,7 +57,10 @@ async function apiClick(page: Page, id: string): Promise<string> {
   const loc = page.getByTestId(`${id}-result`);
   // Defensive: require result element to be empty before click. Fails fast if
   // apiClick is accidentally called twice for the same id in one test.
-  await expect(loc, `apiClick(${id}): result must be empty before click — did you call apiClick twice for this id?`).toBeEmpty();
+  await expect(
+    loc,
+    `apiClick(${id}): result must be empty before click — did you call apiClick twice for this id?`,
+  ).toBeEmpty();
   await page.getByTestId(`${id}-btn`).click();
   await expect(loc).not.toBeEmpty({ timeout: 5000 });
   return (await loc.textContent()) ?? '';
@@ -269,11 +285,15 @@ test.describe('Layer C: Panel-App bridge', () => {
     // Scope by the row's label text ('OS') rather than .first(), so reordering
     // of sections in environment.ts cannot silently match a different select
     // (e.g. Environment dropdown or Network status).
-    const osSelect = page.locator('.ait-row', { has: page.locator('label', { hasText: /^OS$/ }) }).locator('select.ait-select');
+    const osSelect = page
+      .locator('.ait-row', { has: page.locator('label', { hasText: /^OS$/ }) })
+      .locator('select.ait-select');
     await expect(osSelect).toHaveValue(appPlatform, { timeout: 3000 });
   });
 
-  test('events tab: Trigger Back Event fires and fixture subscriber receives it', async ({ page }) => {
+  test('events tab: Trigger Back Event fires and fixture subscriber receives it', async ({
+    page,
+  }) => {
     // Subscribe to back events in the fixture app first
     await page.getByTestId('events-back-btn').click();
     // Confirm subscription ran: button disables itself after the first click (once: true listener)

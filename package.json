@@ -1,6 +1,6 @@
 {
   "name": "@ait-co/devtools",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Development tools for Apps in Toss mini-apps — mock SDK, floating devtools panel, and universal bundler plugin",
   "type": "module",
   "engines": {
@@ -36,21 +36,26 @@
     "typecheck": "tsc --noEmit && tsc --noEmit -p e2e/fixture/tsconfig.json",
     "test": "vitest run",
     "test:e2e": "playwright test",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
     "check-sdk-update": "tsx scripts/check-sdk-update.ts"
   },
   "peerDependencies": {
-    "@apps-in-toss/web-framework": "^2.0.0"
+    "@apps-in-toss/web-framework": ">=2.4.0 <2.4.8"
   },
   "peerDependenciesMeta": {
     "@apps-in-toss/web-framework": {
-      "optional": true
+      "optional": false
     }
   },
   "dependencies": {
     "unplugin": "^3.0.0"
   },
   "devDependencies": {
-    "@apps-in-toss/web-framework": "^2.4.5",
+    "@apps-in-toss/web-framework": "2.4.7",
+    "@biomejs/biome": "2.4.12",
+    "@changesets/cli": "^2.31.0",
     "@playwright/test": "^1.59.1",
     "jsdom": "^29.0.2",
     "tsdown": "^0.21.7",

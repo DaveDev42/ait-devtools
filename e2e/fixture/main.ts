@@ -10,72 +10,72 @@
 import '@ait-co/devtools/panel';
 
 import {
+  Accuracy,
+  // analytics
+  Analytics,
   // auth
   appLogin,
-  getIsTossLoginIntegratedService,
-  getUserKeyForGame,
   appsInTossSignTossCert,
+  checkoutPayment,
   // navigation
   closeView,
-  openURL,
-  share,
-  getTossShareLink,
-  setIosSwipeGestureEnabled,
-  setDeviceOrientation,
-  setScreenAwakeMode,
-  setSecureScreen,
-  requestReview,
-  // environment
-  getPlatformOS,
-  getOperationalEnvironment,
-  getTossAppVersion,
-  isMinVersionSupported,
-  getSchemeUri,
-  getLocale,
-  getDeviceId,
-  getGroupId,
-  getNetworkStatus,
-  getServerTime,
-  SafeAreaInsets,
-  // events
-  graniteEvent,
-  tdsEvent,
-  onVisibilityChangedByTransparentServiceWeb,
-  // permissions
-  getPermission,
-  openPermissionDialog,
-  requestPermission,
-  // device
-  Storage,
-  Accuracy,
-  getCurrentLocation,
-  openCamera,
+  contactsViral,
+  eventLog,
   fetchAlbumPhotos,
   fetchContacts,
-  getClipboardText,
-  setClipboardText,
-  generateHapticFeedback,
-  saveBase64Data,
-  // iap
-  IAP,
-  checkoutPayment,
   // ads
   GoogleAdMob,
-  TossAds,
-  loadFullScreenAd,
-  showFullScreenAd,
+  generateHapticFeedback,
+  getClipboardText,
+  getCurrentLocation,
+  getDeviceId,
+  getGameCenterGameProfile,
+  getGroupId,
+  getIsTossLoginIntegratedService,
+  getLocale,
+  getNetworkStatus,
+  getOperationalEnvironment,
+  // permissions
+  getPermission,
+  // environment
+  getPlatformOS,
+  getSchemeUri,
+  getServerTime,
+  getTossAppVersion,
+  getTossShareLink,
+  getUserKeyForGame,
+  // events
+  graniteEvent,
   // game
   grantPromotionReward,
   grantPromotionRewardForGame,
-  submitGameCenterLeaderBoardScore,
-  getGameCenterGameProfile,
+  // iap
+  IAP,
+  isMinVersionSupported,
+  loadFullScreenAd,
+  onVisibilityChangedByTransparentServiceWeb,
+  openCamera,
   openGameCenterLeaderboard,
-  contactsViral,
-  // analytics
-  Analytics,
-  eventLog,
+  openPermissionDialog,
+  openURL,
   // partner
   partner,
+  requestPermission,
+  requestReview,
+  SafeAreaInsets,
+  // device
+  Storage,
+  saveBase64Data,
+  setClipboardText,
+  setDeviceOrientation,
+  setIosSwipeGestureEnabled,
+  setScreenAwakeMode,
+  setSecureScreen,
+  share,
+  showFullScreenAd,
+  submitGameCenterLeaderBoardScore,
+  TossAds,
+  tdsEvent,
 } from '@apps-in-toss/web-framework';
 import { apiButton, apiInput, apiSection, apiSubscriber, apiValue } from './helpers.js';
 
@@ -188,11 +188,15 @@ if (!app) throw new Error('#app not found');
 {
   const s = apiSection(app, 'permissions', 'Permissions');
   apiButton(s, 'perm-get', async () => await getPermission({ name: 'camera', access: 'access' }));
-  apiButton(s, 'perm-dialog', async () =>
-    await openPermissionDialog({ name: 'camera', access: 'access' }),
+  apiButton(
+    s,
+    'perm-dialog',
+    async () => await openPermissionDialog({ name: 'camera', access: 'access' }),
   );
-  apiButton(s, 'perm-request', async () =>
-    await requestPermission({ name: 'camera', access: 'access' }),
+  apiButton(
+    s,
+    'perm-request',
+    async () => await requestPermission({ name: 'camera', access: 'access' }),
   );
 }
 
@@ -330,11 +334,15 @@ if (!app) throw new Error('#app not found');
   });
   apiButton(s, 'iap-pending', async () => await IAP.getPendingOrders());
   apiButton(s, 'iap-completed', async () => await IAP.getCompletedOrRefundedOrders());
-  apiButton(s, 'iap-subinfo', async () =>
-    await IAP.getSubscriptionInfo({ params: { orderId: 'mock-sub' } }),
+  apiButton(
+    s,
+    'iap-subinfo',
+    async () => await IAP.getSubscriptionInfo({ params: { orderId: 'mock-sub' } }),
   );
-  apiButton(s, 'iap-checkout', async () =>
-    await checkoutPayment({ params: { payToken: 'mock-token' } }),
+  apiButton(
+    s,
+    'iap-checkout',
+    async () => await checkoutPayment({ params: { payToken: 'mock-token' } }),
   );
 }
 
@@ -417,11 +425,16 @@ if (!app) throw new Error('#app not found');
 // --- Game ---
 {
   const s = apiSection(app, 'game', 'Game');
-  apiButton(s, 'game-promo', async () =>
-    await grantPromotionReward({ params: { promotionCode: 'mock', amount: 100 } }),
+  apiButton(
+    s,
+    'game-promo',
+    async () => await grantPromotionReward({ params: { promotionCode: 'mock', amount: 100 } }),
   );
-  apiButton(s, 'game-promo-game', async () =>
-    await grantPromotionRewardForGame({ params: { promotionCode: 'mock', amount: 100 } }),
+  apiButton(
+    s,
+    'game-promo-game',
+    async () =>
+      await grantPromotionRewardForGame({ params: { promotionCode: 'mock', amount: 100 } }),
   );
   apiButton(s, 'game-score', async () => await submitGameCenterLeaderBoardScore({ score: '100' }));
   apiButton(s, 'game-profile', async () => await getGameCenterGameProfile());

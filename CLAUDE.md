@@ -113,10 +113,24 @@ src/
 
 ## SDK 업데이트 대응
 
-- `@apps-in-toss/web-framework`는 devDependencies + optional peerDependencies
+devtools는 `@apps-in-toss/web-framework`의 좁은 범위(`>=2.4.0 <2.4.8`)만 공식 지원한다.
+이 범위는 CI matrix (`compat-check` job)로 양 끝 버전(min/max)이 typecheck되어야 green.
+
+- `@apps-in-toss/web-framework`는 **required** peerDependency + 고정 devDependency (`2.4.7`)
 - `src/__typecheck.ts`가 컴파일 타임에 시그니처 불일치 감지
-- `src/mock/proxy.ts`의 `createMockProxy`가 런타임에 미구현 API를 graceful 처리 (경고 + no-op)
-- `.github/workflows/check-sdk-update.yml`이 매주 월요일 자동 감지 → 이슈 생성
+- `src/mock/proxy.ts`의 `createMockProxy`는 **미구현 API 접근 시 throw** — "잘 되는 척" 방지
+- `.github/workflows/check-sdk-update.yml`이 매주 월요일 새 버전 감지 → 이슈 생성
+
+### 지원 범위 확장 절차 (새 SDK 버전 나왔을 때)
+
+SDK `2.4.8`이 publish된 경우를 예로:
+
+1. `pnpm add -D @apps-in-toss/web-framework@2.4.8`
+2. `pnpm typecheck` — 시그니처 변경이 있으면 여기서 드러남. mock 수정.
+3. `package.json`의 peer range를 `>=2.4.0 <2.4.9`로 넓힘
+4. `.github/workflows/ci.yml`의 `compat-check` matrix에 `2.4.8` 추가
+5. (선택) 오래된 버전 지원 중단하려면 peer range의 하한도 올림
+6. 단일 PR로 올린다 — peer range + devDep + matrix가 한 번에 일관된 상태여야 함
 
 ## 패키지 export 구조
 

@@ -7,7 +7,7 @@
 ## 짝 repo
 
 - **`polyfill`** — devtools가 SDK mock이라면 polyfill은 표준 Web API shim. devtools unplugin이 polyfill을 주입하는 옵션을 추후 지원 고려.
-- **`sdk-example`** — devtools의 reference consumer. E2E에서 git clone해서 사용.
+- **`sdk-example`** (downstream consumer) — devtools의 reference consumer이자 dog-fooding 타겟. devtools 변경 사항은 sdk-example에서 브라우저 실행으로 검증되어야 안정이라고 본다. E2E에서 git clone해서 사용.
 
 ## 프로젝트 개요
 

@@ -30,8 +30,9 @@ async function enableEditMode(page: Page) {
 
 /**
  * Click a fixture API button and wait for its result to be non-empty.
- * Note: does not clear a previous result first — only call once per button per
- * test, or fill the input fields to differentiate expected outputs.
+ * Safe because each test starts with a fresh page (page.goto('/') in beforeEach).
+ * Do NOT call twice for the same button within one test — the second await may
+ * resolve with the first call's stale result.
  */
 async function apiClick(page: Page, id: string): Promise<string> {
   await page.getByTestId(`${id}-btn`).click();
@@ -197,12 +198,15 @@ test.describe('Layer C: Panel-App bridge', () => {
   });
 
   test('environment tab shows platform value matching the fixture app', async ({ page }) => {
-    // Fixture app shows the platform in env-platform-value
-    const appPlatform = await page.getByTestId('env-platform-value').textContent();
+    // Wait for refreshEnv() to populate env-platform-value before reading it
+    const loc = page.getByTestId('env-platform-value');
+    await expect(loc).not.toBeEmpty({ timeout: 3000 });
+    const appPlatform = (await loc.textContent()) ?? 'ios';
+
     await openPanel(page);
     await switchTab(page, 'env');
     // Panel env tab must display the same platform value (e.g. 'ios')
-    await expect(page.locator('.ait-panel-body')).toContainText(appPlatform ?? 'ios', { timeout: 3000 });
+    await expect(page.locator('.ait-panel-body')).toContainText(appPlatform, { timeout: 3000 });
   });
 
   test('events tab: Trigger Back Event fires and fixture subscriber receives it', async ({ page }) => {
@@ -220,11 +224,11 @@ test.describe('Layer C: Panel-App bridge', () => {
     await expect(page.getByTestId('events-back-empty')).toBeHidden({ timeout: 3000 });
   });
 
-  test('permissions tab renders permission state', async ({ page }) => {
+  test('permissions tab renders camera permission state', async ({ page }) => {
     await openPanel(page);
     await switchTab(page, 'permissions');
-    // Permissions tab should have at least some text content
-    const text = await page.locator('.ait-panel-body').textContent();
-    expect(text!.length).toBeGreaterThan(5);
+    // The fixture app calls getPermission({ name: 'camera', ... }), so the
+    // permissions tab must show the camera permission entry
+    await expect(page.locator('.ait-panel-body')).toContainText('camera', { timeout: 3000 });
   });
 });

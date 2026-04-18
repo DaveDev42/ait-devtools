@@ -185,8 +185,12 @@ if (!app) throw new Error('#app not found');
 {
   const s = apiSection(app, 'permissions', 'Permissions');
   apiButton(s, 'perm-get', async () => await getPermission({ name: 'camera', access: 'access' }));
-  apiButton(s, 'perm-dialog', async () => await openPermissionDialog({ name: 'camera', access: 'access' }));
-  apiButton(s, 'perm-request', async () => await requestPermission({ name: 'camera', access: 'access' }));
+  apiButton(s, 'perm-dialog', async () =>
+    await openPermissionDialog({ name: 'camera', access: 'access' }),
+  );
+  apiButton(s, 'perm-request', async () =>
+    await requestPermission({ name: 'camera', access: 'access' }),
+  );
 }
 
 // --- Storage ---
@@ -323,8 +327,12 @@ if (!app) throw new Error('#app not found');
   });
   apiButton(s, 'iap-pending', async () => await IAP.getPendingOrders());
   apiButton(s, 'iap-completed', async () => await IAP.getCompletedOrRefundedOrders());
-  apiButton(s, 'iap-subinfo', async () => await IAP.getSubscriptionInfo({ params: { orderId: 'mock-sub' } }));
-  apiButton(s, 'iap-checkout', async () => await checkoutPayment({ params: { payToken: 'mock-token' } }));
+  apiButton(s, 'iap-subinfo', async () =>
+    await IAP.getSubscriptionInfo({ params: { orderId: 'mock-sub' } }),
+  );
+  apiButton(s, 'iap-checkout', async () =>
+    await checkoutPayment({ params: { payToken: 'mock-token' } }),
+  );
 }
 
 // --- Ads ---
@@ -358,7 +366,9 @@ if (!app) throw new Error('#app not found');
     );
     return 'dismissed';
   });
-  apiButton(s, 'ads-admob-isloaded', async () => String(await GoogleAdMob.isAppsInTossAdMobLoaded({ adGroupId: 'mock-ad' })));
+  apiButton(s, 'ads-admob-isloaded', async () =>
+    String(await GoogleAdMob.isAppsInTossAdMobLoaded({ adGroupId: 'mock-ad' })),
+  );
   apiButton(s, 'ads-fullscreen-load', async () => {
     await withTimeout(
       new Promise<void>((resolve, reject) => {
@@ -400,8 +410,12 @@ if (!app) throw new Error('#app not found');
 // --- Game ---
 {
   const s = apiSection(app, 'game', 'Game');
-  apiButton(s, 'game-promo', async () => await grantPromotionReward({ params: { promotionCode: 'mock', amount: 100 } }));
-  apiButton(s, 'game-promo-game', async () => await grantPromotionRewardForGame({ params: { promotionCode: 'mock', amount: 100 } }));
+  apiButton(s, 'game-promo', async () =>
+    await grantPromotionReward({ params: { promotionCode: 'mock', amount: 100 } }),
+  );
+  apiButton(s, 'game-promo-game', async () =>
+    await grantPromotionRewardForGame({ params: { promotionCode: 'mock', amount: 100 } }),
+  );
   apiButton(s, 'game-score', async () => await submitGameCenterLeaderBoardScore({ score: '100' }));
   apiButton(s, 'game-profile', async () => await getGameCenterGameProfile());
   apiButton(s, 'game-leaderboard', async () => {
@@ -449,7 +463,11 @@ if (!app) throw new Error('#app not found');
 {
   const s = apiSection(app, 'partner', 'Partner');
   apiButton(s, 'partner-add', async () => {
-    await partner.addAccessoryButton({ id: 'mock', title: 'mock', icon: { name: 'icon-heart-mono' } });
+    await partner.addAccessoryButton({
+      id: 'mock',
+      title: 'mock',
+      icon: { name: 'icon-heart-mono' },
+    });
     return undefined;
   });
   apiButton(s, 'partner-remove', async () => {

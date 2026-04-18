@@ -33,7 +33,7 @@
   "scripts": {
     "build": "tsdown",
     "dev": "tsdown --watch",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p e2e/fixture/tsconfig.json",
     "test": "vitest run",
     "test:e2e": "playwright test",
     "check-sdk-update": "tsx scripts/check-sdk-update.ts"

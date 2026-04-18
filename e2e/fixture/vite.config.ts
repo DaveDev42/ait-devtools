@@ -2,10 +2,18 @@ import { defineConfig } from 'vite';
 import aitDevtools from '@ait-co/devtools/unplugin';
 import path from 'path';
 import fs from 'fs';
+import { fileURLToPath } from 'url';
+
+// This config is loaded as ESM ("type": "module"), so __dirname is not defined.
+// Derive it from import.meta.url instead.
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const mockDist = path.resolve(__dirname, '../../dist/mock/index.js');
-if (!fs.existsSync(mockDist)) {
-  throw new Error(`dist/mock/index.js not found — run 'pnpm build' first (expected: ${mockDist})`);
+const panelDist = path.resolve(__dirname, '../../dist/panel/index.js');
+for (const p of [mockDist, panelDist]) {
+  if (!fs.existsSync(p)) {
+    throw new Error(`Required devtools dist file not found — run 'pnpm build' at the repo root first (missing: ${p})`);
+  }
 }
 
 export default defineConfig({

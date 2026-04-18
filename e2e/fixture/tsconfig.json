@@ -1,11 +1,11 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "rootDir": ".",
+    "rootDir": "..",
     "types": [],
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "noEmit": true
   },
-  "include": ["**/*.ts"],
+  "include": ["**/*.ts", "../panel.test.ts"],
   "exclude": ["dist", "node_modules"]
 }

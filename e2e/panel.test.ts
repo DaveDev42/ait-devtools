@@ -37,11 +37,15 @@ async function enableEditMode(page: Page) {
  * so result elements start empty and the not.toBeEmpty() guard is unambiguous.
  * Do NOT call twice for the same button within one test: the result element is not
  * cleared between calls, so not.toBeEmpty() would resolve immediately with the
- * first call's stale value on the second invocation.
+ * first call's stale value on the second invocation. The pre-click empty assertion
+ * below surfaces this mistake loudly instead of letting it pass with stale data.
  */
 async function apiClick(page: Page, id: string): Promise<string> {
-  await page.getByTestId(`${id}-btn`).click();
   const loc = page.getByTestId(`${id}-result`);
+  // Defensive: require result element to be empty before click. Fails fast if
+  // apiClick is accidentally called twice for the same id in one test.
+  await expect(loc, `apiClick(${id}): result must be empty before click — did you call apiClick twice for this id?`).toBeEmpty();
+  await page.getByTestId(`${id}-btn`).click();
   await expect(loc).not.toBeEmpty({ timeout: 5000 });
   return (await loc.textContent()) ?? '';
 }
@@ -62,6 +66,9 @@ test.describe('Smoke', () => {
     }
 
     await expect(page.locator('button.ait-panel-toggle')).toBeVisible();
+    // Wait for the page to settle so async microtasks (refreshEnv, etc.)
+    // get a chance to throw before we assert zero errors.
+    await page.waitForLoadState('networkidle');
     expect(errors).toHaveLength(0);
   });
 });
@@ -75,6 +82,18 @@ test.describe('Smoke', () => {
 // the fixture but are omitted here because their mocks are adequately covered
 // by the jsdom unit test suite (src/__tests__/). Layer A focuses on domains
 // whose mock return values are most likely to break across SDK updates.
+//
+// Shape-verification scope:
+//   - storage-set / storage-remove / storage-clear resolve to 'done' (from
+//     apiButton's undefined->'done' fallback), so a regression where the write
+//     silently becomes a no-op would still pass. Write-correctness is validated
+//     indirectly by the setItem+getItem round-trip test and by the jsdom unit
+//     tests in src/__tests__/storage.test.ts.
+//   - iap-products asserts the returned payload contains 'sku'.
+//   - location-current asserts the returned payload contains latitude.
+//   - Other domains (auth, game, navigation, analytics, haptic) rely on the
+//     'not.toMatch(/^error:/)' check — deep shape verification is deferred to
+//     the jsdom unit tests which are faster and more granular.
 
 test.describe('Layer A: Domain smoke', () => {
   test.beforeEach(async ({ page }) => {
@@ -136,6 +155,10 @@ test.describe('Layer A: Domain smoke', () => {
   test('iap: getProductItemList returns data', async ({ page }) => {
     const r = await apiClick(page, 'iap-products');
     expect(r).not.toMatch(/^error:/);
+    // Mock returns { products: [{ sku, type, ... }] }. Verify the shape has a
+    // non-empty product with an sku to catch regressions where the mock goes
+    // silent (e.g. returns { products: [] } or a bare empty object).
+    expect(r).toContain('sku');
   });
 
   test('analytics: click event logs without error', async ({ page }) => {
@@ -240,8 +263,11 @@ test.describe('Layer C: Panel-App bridge', () => {
 
     await openPanel(page);
     await switchTab(page, 'env');
-    // Panel env tab must display the same platform value (e.g. 'ios')
-    await expect(page.locator('.ait-panel-body')).toContainText(appPlatform, { timeout: 3000 });
+    // The OS <select> contains both 'ios' and 'android' as <option>s, so a
+    // descendant-text check would pass regardless of selection. Instead assert
+    // the select's current value matches the fixture app's platform value.
+    const osSelect = page.locator('.ait-panel-body select.ait-select').first();
+    await expect(osSelect).toHaveValue(appPlatform, { timeout: 3000 });
   });
 
   test('events tab: Trigger Back Event fires and fixture subscriber receives it', async ({ page }) => {
@@ -263,8 +289,11 @@ test.describe('Layer C: Panel-App bridge', () => {
   test('permissions tab renders camera permission state', async ({ page }) => {
     await openPanel(page);
     await switchTab(page, 'permissions');
-    // The fixture app calls getPermission({ name: 'camera', ... }), so the
-    // permissions tab must show the camera permission entry
+    // Smoke check only: the permissions tab hard-codes the permission list in
+    // src/panel/tabs/permissions.ts, so this confirms the tab renders but does
+    // NOT prove a bridge effect from the fixture app's getPermission() call.
+    // A true bridge test (panel mutation → fixture observes new return value)
+    // is intentionally deferred — see the layer comment above.
     await expect(page.locator('.ait-panel-body')).toContainText('camera', { timeout: 3000 });
   });
 });

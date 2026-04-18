@@ -266,7 +266,10 @@ test.describe('Layer C: Panel-App bridge', () => {
     // The OS <select> contains both 'ios' and 'android' as <option>s, so a
     // descendant-text check would pass regardless of selection. Instead assert
     // the select's current value matches the fixture app's platform value.
-    const osSelect = page.locator('.ait-panel-body select.ait-select').first();
+    // Scope by the row's label text ('OS') rather than .first(), so reordering
+    // of sections in environment.ts cannot silently match a different select
+    // (e.g. Environment dropdown or Network status).
+    const osSelect = page.locator('.ait-row', { has: page.locator('label', { hasText: /^OS$/ }) }).locator('select.ait-select');
     await expect(osSelect).toHaveValue(appPlatform, { timeout: 3000 });
   });
 

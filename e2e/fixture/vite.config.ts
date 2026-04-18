@@ -24,6 +24,11 @@ export default defineConfig({
       // (Panel is imported explicitly in main.ts; unplugin panel injection is
       // disabled below because unplugin transform is unreliable under Vite 8
       // production build with rolldown.)
+      //
+      // Note on types: this alias only rewires the runtime import; TypeScript
+      // still resolves the module via `node_modules/@apps-in-toss/web-framework`
+      // (a devDependency). If that devDep is removed, `pnpm typecheck` breaks
+      // for the fixture even though `pnpm test:e2e` keeps working.
       '@apps-in-toss/web-framework': mockDist,
     },
   },

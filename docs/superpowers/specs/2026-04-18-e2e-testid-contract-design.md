@@ -22,7 +22,7 @@ devtools E2E가 sdk-example의 새 아키텍처(React Router + `ApiCard`)를 con
 
 ## 3. sdk-example testid 계약 (PR #1)
 
-공통 컴포넌트 3개에만 testid를 추가한다. 도메인 페이지는 건드리지 않는다.
+공통 컴포넌트(`PageHeader`, `ApiCard`, `ResultView`, `EventSubscriberCard`, `HistoryLog`)에 testid를 추가한다. 페이지 파일은 `PageHeader`에 `testId` prop을 전달하는 한 줄만 바꾼다.
 
 | 위치 | testid | 용도 |
 |---|---|---|
@@ -31,6 +31,9 @@ devtools E2E가 sdk-example의 새 아키텍처(React Router + `ApiCard`)를 con
 | `<ApiCard>` 실행 버튼 | `api-card-${name}-run` | 카드 내부 "실행" 버튼 |
 | `<ResultView>` status 뱃지 | `result-status` | 텍스트: `Success` 또는 `Error`. `idle`/`loading` 상태에서는 해당 요소 없음 |
 | `<ResultView>` data/error 영역 | `result-data` | `<pre>` 안의 JSON 또는 에러 메시지 텍스트 |
+| `<EventSubscriberCard>` 루트 | `event-card-${name}` | `name`에서 ApiCard와 동일하게 유도. 다만 `EventSubscriberCard`의 name은 한국어/기호 포함이므로, 새 필수 prop `testId`(slug)를 받아 `event-card-${testId}` 사용 (예: `backEvent`, `homeEvent`) |
+| `<EventSubscriberCard>` 토글 버튼 | `event-card-${testId}-toggle` | 구독/해제 버튼 |
+| `<HistoryLog>` 항목 | `history-entry` | 각 `HistoryEntry`. 부모 카드로 scope해 검증 |
 
 ### 설계 노트
 
@@ -84,7 +87,7 @@ result-status == Success 대기
 | C3 | device modes | 패널 device 탭 → Clipboard=mock → Clipboard 페이지에서 `setClipboardText` → `getClipboardText` → 결정적 왕복 확인 |
 | C4 | events | 패널 events 탭 → "Trigger Back Event" 클릭 → Events 페이지의 이벤트 로그(app-side 구독)에 `backEvent` 표시 |
 
-**C4 참고**: 현재 sdk-example `EventsPage.tsx`가 이벤트 구독 + 로그 UI를 갖추고 있는지 구현 단계에서 재확인한다. 없으면 C4는 범위에서 드롭하고 B/C 통합 smoke로 대체(브레인스토밍 합의 시 "각 카테고리 1개"의 정신).
+**C4 구현 경로**: sdk-example `EventsPage`는 `EventSubscriberCard`로 `backEvent`/`homeEvent` 등 4종 구독 제공. 테스트는 `event-card-backEvent-toggle`을 눌러 구독 시작 → devtools 패널 events 탭에서 "Trigger Back Event" → 해당 카드 내부의 `history-entry`가 ≥ 1개로 증가했음을 확인.
 
 ### 4.5 Test helpers
 

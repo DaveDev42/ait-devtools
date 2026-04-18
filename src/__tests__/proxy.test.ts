@@ -17,11 +17,11 @@ describe('createMockProxy', () => {
     );
   });
 
-  it('throw되는 에러 메시지는 이슈 URL을 포함한다', () => {
+  it('throw되는 에러 메시지는 고정된 prefix와 이슈 URL을 포함한다', () => {
     const ref = createMockProxy('Ads', {}) as Record<string, unknown>;
 
     expect(() => ref['someNewApi']).toThrow(
-      /github\.com\/apps-in-toss-community\/devtools\/issues/,
+      /Ads\.someNewApi is not mocked\..*github\.com\/apps-in-toss-community\/devtools\/issues/,
     );
   });
 
@@ -29,5 +29,11 @@ describe('createMockProxy', () => {
     const ref = createMockProxy('TestModule', {}) as Record<string | symbol, unknown>;
     const anySymbol = Symbol('any');
     expect(ref[anySymbol]).toBeUndefined();
+  });
+
+  it('`in` 연산자는 throw하지 않고 존재 여부만 반환한다', () => {
+    const ref = createMockProxy('TestModule', { existing: () => 1 });
+    expect('existing' in ref).toBe(true);
+    expect('missing' in ref).toBe(false);
   });
 });

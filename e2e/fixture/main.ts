@@ -75,6 +75,13 @@ import {
 } from '@apps-in-toss/web-framework';
 import { apiButton, apiInput, apiSection, apiSubscriber, apiValue } from './helpers.js';
 
+function withTimeout<T>(p: Promise<T>, ms = 3000): Promise<T> {
+  return Promise.race([
+    p,
+    new Promise<T>((_, reject) => setTimeout(() => reject(new Error('timeout')), ms)),
+  ]);
+}
+
 const app = document.getElementById('app');
 if (!app) throw new Error('#app not found');
 
@@ -157,7 +164,10 @@ if (!app) throw new Error('#app not found');
     const insets = SafeAreaInsets.get();
     safeTop.textContent = String(insets.top);
   }
-  void refreshEnv();
+  refreshEnv().catch((e) => {
+    const msg = e instanceof Error ? e.message : String(e);
+    platform.textContent = `error:${msg}`;
+  });
 
   // A button that re-reads getPlatformOS so Layer C (env OS bridge) can
   // observe changes after panel-driven state updates.
@@ -281,29 +291,33 @@ if (!app) throw new Error('#app not found');
     return list;
   });
   apiButton(s, 'iap-purchase', async () => {
-    const result = await new Promise<unknown>((resolve, reject) => {
-      IAP.createOneTimePurchaseOrder({
-        options: {
-          sku: 'mock-gem-100',
-          processProductGrant: () => true,
-        },
-        onEvent: (event) => resolve(event.data),
-        onError: (error) => reject(error),
-      });
-    });
+    const result = await withTimeout(
+      new Promise<unknown>((resolve, reject) => {
+        IAP.createOneTimePurchaseOrder({
+          options: {
+            sku: 'mock-gem-100',
+            processProductGrant: () => true,
+          },
+          onEvent: (event) => resolve(event.data),
+          onError: (error) => reject(error),
+        });
+      }),
+    );
     return `success:${JSON.stringify(result)}`;
   });
   apiButton(s, 'iap-sub', async () => {
-    const result = await new Promise<unknown>((resolve, reject) => {
-      IAP.createSubscriptionPurchaseOrder({
-        options: {
-          sku: 'mock-sub',
-          processProductGrant: () => true,
-        },
-        onEvent: (event) => resolve(event.data),
-        onError: (error) => reject(error),
-      });
-    });
+    const result = await withTimeout(
+      new Promise<unknown>((resolve, reject) => {
+        IAP.createSubscriptionPurchaseOrder({
+          options: {
+            sku: 'mock-sub',
+            processProductGrant: () => true,
+          },
+          onEvent: (event) => resolve(event.data),
+          onError: (error) => reject(error),
+        });
+      }),
+    );
     return `success:${JSON.stringify(result)}`;
   });
   apiButton(s, 'iap-pending', async () => await IAP.getPendingOrders());
@@ -316,52 +330,60 @@ if (!app) throw new Error('#app not found');
 {
   const s = apiSection(app, 'ads', 'Ads');
   apiButton(s, 'ads-admob-load', async () => {
-    await new Promise<void>((resolve, reject) => {
-      GoogleAdMob.loadAppsInTossAdMob({
-        options: { adGroupId: 'mock-ad' },
-        onEvent: (event) => {
-          if (event.type === 'loaded') resolve();
-        },
-        onError: (error) => reject(error),
-      });
-    });
+    await withTimeout(
+      new Promise<void>((resolve, reject) => {
+        GoogleAdMob.loadAppsInTossAdMob({
+          options: { adGroupId: 'mock-ad' },
+          onEvent: (event) => {
+            if (event.type === 'loaded') resolve();
+          },
+          onError: (error) => reject(error),
+        });
+      }),
+    );
     return 'loaded';
   });
   apiButton(s, 'ads-admob-show', async () => {
-    await new Promise<void>((resolve, reject) => {
-      GoogleAdMob.showAppsInTossAdMob({
-        options: { adGroupId: 'mock-ad' },
-        onEvent: (event) => {
-          if (event.type === 'dismissed') resolve();
-        },
-        onError: (error) => reject(error),
-      });
-    });
+    await withTimeout(
+      new Promise<void>((resolve, reject) => {
+        GoogleAdMob.showAppsInTossAdMob({
+          options: { adGroupId: 'mock-ad' },
+          onEvent: (event) => {
+            if (event.type === 'dismissed') resolve();
+          },
+          onError: (error) => reject(error),
+        });
+      }),
+    );
     return 'dismissed';
   });
   apiButton(s, 'ads-admob-isloaded', async () => String(await GoogleAdMob.isAppsInTossAdMobLoaded({ adGroupId: 'mock-ad' })));
   apiButton(s, 'ads-fullscreen-load', async () => {
-    await new Promise<void>((resolve, reject) => {
-      loadFullScreenAd({
-        options: { adGroupId: 'mock-full' },
-        onEvent: (event) => {
-          if (event.type === 'loaded') resolve();
-        },
-        onError: (error) => reject(error),
-      });
-    });
+    await withTimeout(
+      new Promise<void>((resolve, reject) => {
+        loadFullScreenAd({
+          options: { adGroupId: 'mock-full' },
+          onEvent: (event) => {
+            if (event.type === 'loaded') resolve();
+          },
+          onError: (error) => reject(error),
+        });
+      }),
+    );
     return 'loaded';
   });
   apiButton(s, 'ads-fullscreen-show', async () => {
-    await new Promise<void>((resolve, reject) => {
-      showFullScreenAd({
-        options: { adGroupId: 'mock-full' },
-        onEvent: (event) => {
-          if (event.type === 'dismissed') resolve();
-        },
-        onError: (error) => reject(error),
-      });
-    });
+    await withTimeout(
+      new Promise<void>((resolve, reject) => {
+        showFullScreenAd({
+          options: { adGroupId: 'mock-full' },
+          onEvent: (event) => {
+            if (event.type === 'dismissed') resolve();
+          },
+          onError: (error) => reject(error),
+        });
+      }),
+    );
     return 'dismissed';
   });
   apiButton(s, 'ads-tossads-init', () => {
@@ -386,15 +408,17 @@ if (!app) throw new Error('#app not found');
     return undefined;
   });
   apiButton(s, 'game-viral', async () => {
-    const type = await new Promise<string>((resolve, reject) => {
-      contactsViral({
-        options: { moduleId: 'mock-module' },
-        onEvent: (event) => {
-          if (event.type === 'close') resolve('close');
-        },
-        onError: (error) => reject(error),
-      });
-    });
+    const type = await withTimeout(
+      new Promise<string>((resolve, reject) => {
+        contactsViral({
+          options: { moduleId: 'mock-module' },
+          onEvent: (event) => {
+            if (event.type === 'close') resolve('close');
+          },
+          onError: (error) => reject(error),
+        });
+      }),
+    );
     return type;
   });
 }

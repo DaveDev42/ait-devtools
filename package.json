@@ -33,7 +33,7 @@
   "scripts": {
     "build": "tsdown",
     "dev": "tsdown --watch",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p e2e/fixture/tsconfig.json",
     "test": "vitest run",
     "test:e2e": "playwright test",
     "lint": "biome check .",
@@ -61,6 +61,7 @@
     "tsdown": "^0.21.7",
     "tsx": "^4.21.0",
     "typescript": "^6.0.2",
+    "vite": "^8.0.8",
     "vitest": "^4.1.4"
   },
   "keywords": [

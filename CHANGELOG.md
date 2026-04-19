@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.1.2
+
+### Patch Changes
+
+- Flip the mock clipboard default mode from `'web'` to `'mock'`. The old default
+  called `navigator.clipboard.readText()` directly, which — when paired with
+  `@ait-co/polyfill` — recursed infinitely: the polyfill shim routes
+  `navigator.clipboard` back to the SDK's `getClipboardText`, which is this
+  mock, which calls `navigator.clipboard.readText`, and so on.
+
+  With the new default the mock returns state from `aitState.mockData.clipboardText`,
+  so the polyfill + devtools pair works out of the box. Users who still want
+  real-browser clipboard integration can flip the mode to `'web'` from the
+  DevTools panel.
+
 ## 0.1.1
 
 ### Patch Changes

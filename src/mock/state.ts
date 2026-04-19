@@ -221,7 +221,13 @@ const DEFAULT_STATE: AitDevtoolsState = {
     photos: 'mock',
     location: 'mock',
     network: 'mock',
-    clipboard: 'web',
+    // 'mock' so the clipboard mock is self-contained. With 'web' the mock
+    // calls `navigator.clipboard.readText()` directly, which — when paired
+    // with `@ait-co/polyfill` — recurses: polyfill routes `navigator.clipboard`
+    // back to the SDK's `getClipboardText`, which is this mock, which calls
+    // `navigator.clipboard.readText`, … Users who want true browser
+    // clipboard integration can flip this to 'web' from the panel.
+    clipboard: 'mock',
   },
 
   mockData: {

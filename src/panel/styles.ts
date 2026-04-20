@@ -4,6 +4,7 @@
 
 export const PANEL_WIDTH = 360;
 export const PANEL_HEIGHT = 480;
+export const PANEL_FULLSCREEN_BREAKPOINT = 720;
 
 export const PANEL_STYLES = /* css */ `
   .ait-panel-toggle {
@@ -359,7 +360,7 @@ export const PANEL_STYLES = /* css */ `
     color: #e53e3e; /* readable on both light (#fff) and dark (#1a1a2e) panel backgrounds */
   }
 
-  @media (max-width: 480px) {
+  @media (max-width: ${PANEL_FULLSCREEN_BREAKPOINT}px) {
     .ait-panel.open {
       position: fixed;
       top: 0;

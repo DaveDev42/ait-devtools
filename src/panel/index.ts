@@ -7,7 +7,7 @@
 
 import { aitState } from '../mock/state.js';
 import { h } from './helpers.js';
-import { PANEL_HEIGHT, PANEL_STYLES, PANEL_WIDTH } from './styles.js';
+import { PANEL_FULLSCREEN_BREAKPOINT, PANEL_HEIGHT, PANEL_STYLES, PANEL_WIDTH } from './styles.js';
 import { setDeviceRefreshPanel } from './tabs/device.js';
 import { createTabRenderers, TABS, type TabId } from './tabs/index.js';
 
@@ -101,8 +101,8 @@ function updatePanelPosition(toggleEl: HTMLElement) {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
 
-  // On mobile viewports, CSS media query handles fullscreen — clear any inline positioning
-  if (vw <= 480) {
+  // On narrow viewports, CSS media query handles fullscreen — clear any inline positioning
+  if (vw <= PANEL_FULLSCREEN_BREAKPOINT) {
     panelEl.style.top = '';
     panelEl.style.left = '';
     panelEl.style.right = '';

@@ -101,7 +101,7 @@ function updatePanelPosition(toggleEl: HTMLElement) {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
 
-  // On mobile viewports, CSS media query handles fullscreen — clear any inline positioning
+  // On narrow viewports, CSS media query handles fullscreen — clear any inline positioning
   if (vw <= PANEL_FULLSCREEN_BREAKPOINT) {
     panelEl.style.top = '';
     panelEl.style.left = '';

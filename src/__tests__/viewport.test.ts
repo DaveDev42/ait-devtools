@@ -141,6 +141,31 @@ describe('applyViewport (DOM)', () => {
     expect(document.documentElement.classList.contains('ait-viewport-active')).toBe(false);
     expect(document.documentElement.classList.contains('ait-viewport-framed')).toBe(false);
   });
+
+  it('Dynamic Island 프리셋은 notch 오버레이 엘리먼트를 추가한다', () => {
+    applyViewport(makeState({ preset: 'iphone-18', frame: true }));
+    const notch = document.getElementById('__ait-viewport-notch');
+    expect(notch).not.toBeNull();
+    expect(notch?.classList.contains('ait-notch-dynamic-island')).toBe(true);
+  });
+
+  it('홈버튼 iPhone(SE)은 notch 오버레이를 그리지 않는다', () => {
+    applyViewport(makeState({ preset: 'iphone-se-3', frame: true }));
+    expect(document.getElementById('__ait-viewport-notch')).toBeNull();
+  });
+
+  it('Galaxy 계열은 punch-hole 오버레이를 그린다', () => {
+    applyViewport(makeState({ preset: 'galaxy-s26', frame: true }));
+    const notch = document.getElementById('__ait-viewport-notch');
+    expect(notch?.classList.contains('ait-notch-punch-hole')).toBe(true);
+  });
+
+  it('landscape 시 notch 오버레이를 제거한다', () => {
+    applyViewport(makeState({ preset: 'iphone-18', frame: true }));
+    expect(document.getElementById('__ait-viewport-notch')).not.toBeNull();
+    applyViewport(makeState({ preset: 'iphone-18', orientation: 'landscape', frame: true }));
+    expect(document.getElementById('__ait-viewport-notch')).toBeNull();
+  });
 });
 
 describe('sessionStorage persistence', () => {

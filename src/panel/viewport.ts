@@ -259,6 +259,7 @@ function syncSafeAreaFromViewport(state: ViewportState): void {
 }
 
 const STYLE_ELEMENT_ID = '__ait-viewport-style';
+const NOTCH_ELEMENT_ID = '__ait-viewport-notch';
 
 function ensureStyleElement(): HTMLStyleElement | null {
   if (typeof document === 'undefined') return null;
@@ -269,6 +270,35 @@ function ensureStyleElement(): HTMLStyleElement | null {
     document.head.appendChild(el);
   }
   return el;
+}
+
+function removeNotchElement(): void {
+  const el = document.getElementById(NOTCH_ELEMENT_ID);
+  if (el) el.remove();
+}
+
+/**
+ * 현재 preset의 notch/Dynamic Island/punch-hole을 body 상단에 시각적으로 렌더한다.
+ * portrait 기준 좌표만 계산한다 (landscape는 오버레이를 숨김 — 노치가 한쪽 변에 가는
+ * 실제 레이아웃은 safeAreaInsets의 left/right 값으로 이미 반영됨).
+ */
+function renderNotchOverlay(preset: ViewportPreset, landscape: boolean): void {
+  removeNotchElement();
+  if (preset.notch === 'none' || landscape) return;
+
+  const notch = document.createElement('div');
+  notch.id = NOTCH_ELEMENT_ID;
+  notch.setAttribute('aria-hidden', 'true');
+
+  if (preset.notch === 'dynamic-island') {
+    notch.className = 'ait-notch ait-notch-dynamic-island';
+  } else if (preset.notch === 'notch') {
+    notch.className = 'ait-notch ait-notch-pill';
+  } else if (preset.notch === 'punch-hole-center') {
+    notch.className = 'ait-notch ait-notch-punch-hole';
+  }
+
+  document.body.appendChild(notch);
 }
 
 /**
@@ -290,11 +320,15 @@ export function applyViewport(state: ViewportState): void {
     html.classList.remove('ait-viewport-active');
     html.classList.remove('ait-viewport-framed');
     style.textContent = '';
+    removeNotchElement();
     return;
   }
 
   html.classList.add('ait-viewport-active');
   html.classList.toggle('ait-viewport-framed', state.frame);
+
+  const preset = state.preset === 'custom' ? null : getPreset(state.preset);
+  const landscape = state.orientation === 'landscape';
 
   style.textContent = /* css */ `
     html.ait-viewport-active {
@@ -302,6 +336,7 @@ export function applyViewport(state: ViewportState): void {
       min-height: 100vh;
     }
     html.ait-viewport-active body {
+      position: relative;
       width: ${size.width}px;
       max-width: ${size.width}px;
       min-height: ${size.height}px;
@@ -315,7 +350,40 @@ export function applyViewport(state: ViewportState): void {
       border-radius: 36px;
       box-shadow: 0 0 0 10px #1a1a2e, 0 0 0 12px #3a3a5a, 0 24px 48px rgba(0,0,0,0.5);
     }
+
+    /* Notch overlays — only rendered when frame=true (CSS visibility control) */
+    .ait-notch {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #000;
+      z-index: 2147483646;
+      pointer-events: none;
+      display: ${state.frame && preset && !landscape ? 'block' : 'none'};
+    }
+    .ait-notch-dynamic-island {
+      top: 11px;
+      width: 126px;
+      height: 37px;
+      border-radius: 20px;
+    }
+    .ait-notch-pill {
+      width: 160px;
+      height: 30px;
+      border-bottom-left-radius: 20px;
+      border-bottom-right-radius: 20px;
+    }
+    .ait-notch-punch-hole {
+      top: 10px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
   `;
+
+  if (preset) renderNotchOverlay(preset, landscape);
+  else removeNotchElement();
 }
 
 function isViewportPresetId(v: unknown): v is ViewportPresetId {

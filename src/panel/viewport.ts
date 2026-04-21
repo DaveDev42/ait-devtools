@@ -7,6 +7,7 @@
 
 import { aitState } from '../mock/state.js';
 import type {
+  SafeAreaInsets,
   ViewportOrientation,
   ViewportPreset,
   ViewportPresetId,
@@ -206,6 +207,57 @@ export function isLandscape(state: ViewportState): boolean {
   return state.orientation === 'landscape';
 }
 
+/**
+ * 프리셋 + orientation으로부터 OS-level safe-area insets를 계산한다.
+ *
+ * - Portrait: preset의 `safeAreaTop`, `safeAreaBottom`을 그대로 사용.
+ * - Landscape: notch/Dynamic Island가 가로로 서면서 양쪽 변으로 이동한다. 실제
+ *   기기에서는 노치 쪽 한쪽만 inset이 생기지만, 앱이 어느 방향으로 회전하든
+ *   레이아웃이 깨지지 않도록 **양쪽 다** top 값으로 채운다. top은 0.
+ *   home-indicator(`safeAreaBottom`)는 landscape에서도 하단에 유지된다.
+ * - Android punch-hole(status bar): landscape 시에도 top에 status bar가 유지된다.
+ */
+export function computeSafeAreaInsets(preset: ViewportPreset, landscape: boolean): SafeAreaInsets {
+  if (preset.id === 'none' || preset.id === 'custom') {
+    return { top: 0, bottom: 0, left: 0, right: 0 };
+  }
+  if (!landscape) {
+    return { top: preset.safeAreaTop, bottom: preset.safeAreaBottom, left: 0, right: 0 };
+  }
+  if (preset.notch === 'notch' || preset.notch === 'dynamic-island') {
+    return {
+      top: 0,
+      bottom: preset.safeAreaBottom,
+      left: preset.safeAreaTop,
+      right: preset.safeAreaTop,
+    };
+  }
+  // Android status bar stays on the top edge even in landscape.
+  return {
+    top: preset.safeAreaTop,
+    bottom: preset.safeAreaBottom,
+    left: 0,
+    right: 0,
+  };
+}
+
+/** viewport preset 또는 orientation이 바뀌면 safe-area insets도 자동 갱신한다. */
+function syncSafeAreaFromViewport(state: ViewportState): void {
+  if (state.preset === 'none' || state.preset === 'custom') return;
+  const preset = getPreset(state.preset);
+  const next = computeSafeAreaInsets(preset, state.orientation === 'landscape');
+  const current = aitState.state.safeAreaInsets;
+  if (
+    current.top === next.top &&
+    current.bottom === next.bottom &&
+    current.left === next.left &&
+    current.right === next.right
+  ) {
+    return;
+  }
+  aitState.update({ safeAreaInsets: next });
+}
+
 const STYLE_ELEMENT_ID = '__ait-viewport-style';
 
 function ensureStyleElement(): HTMLStyleElement | null {
@@ -314,7 +366,7 @@ export function saveViewportToStorage(state: ViewportState): void {
 
 /**
  * Panel mount 시 호출. sessionStorage 복원 → aitState에 반영 → DOM 적용.
- * aitState 변경을 구독해서 DOM과 storage를 자동 동기화한다.
+ * aitState 변경을 구독해서 DOM / storage / safe-area insets를 자동 동기화한다.
  */
 export function initViewport(): () => void {
   if (typeof window === 'undefined') return () => {};
@@ -323,13 +375,16 @@ export function initViewport(): () => void {
     aitState.patch('viewport', restored);
   }
   applyViewport(aitState.state.viewport);
+  syncSafeAreaFromViewport(aitState.state.viewport);
 
   let lastJson = JSON.stringify(aitState.state.viewport);
   return aitState.subscribe(() => {
-    const json = JSON.stringify(aitState.state.viewport);
+    const vp = aitState.state.viewport;
+    const json = JSON.stringify(vp);
     if (json === lastJson) return;
     lastJson = json;
-    applyViewport(aitState.state.viewport);
-    saveViewportToStorage(aitState.state.viewport);
+    applyViewport(vp);
+    saveViewportToStorage(vp);
+    syncSafeAreaFromViewport(vp);
   });
 }

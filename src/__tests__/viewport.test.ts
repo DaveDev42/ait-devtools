@@ -3,6 +3,7 @@ import { aitState } from '../mock/state.js';
 import type { ViewportState } from '../mock/types.js';
 import {
   applyViewport,
+  computeSafeAreaInsets,
   getPreset,
   initViewport,
   loadViewportFromStorage,
@@ -231,6 +232,76 @@ describe('sessionStorage persistence', () => {
     const parsed = JSON.parse(raw ?? '{}');
     expect(parsed.preset).toBe('galaxy-s26-ultra');
     expect(parsed.orientation).toBe('landscape');
+  });
+});
+
+describe('computeSafeAreaInsets', () => {
+  it('preset=none이면 모두 0을 반환한다', () => {
+    const none = VIEWPORT_PRESETS.find((p) => p.id === 'none');
+    if (!none) throw new Error('none preset missing');
+    expect(computeSafeAreaInsets(none, false)).toEqual({ top: 0, bottom: 0, left: 0, right: 0 });
+  });
+
+  it('portrait iPhone Dynamic Island: top/bottom만 채움', () => {
+    expect(computeSafeAreaInsets(getPreset('iphone-18-pro'), false)).toEqual({
+      top: 59,
+      bottom: 34,
+      left: 0,
+      right: 0,
+    });
+  });
+
+  it('landscape iPhone은 notch가 좌우로 가서 left/right에 top 값을 넣고 top=0이 된다', () => {
+    expect(computeSafeAreaInsets(getPreset('iphone-18-pro'), true)).toEqual({
+      top: 0,
+      bottom: 34,
+      left: 59,
+      right: 59,
+    });
+  });
+
+  it('iPhone SE(홈버튼)는 notch가 없으므로 landscape에서도 top에 status bar만 남는다', () => {
+    expect(computeSafeAreaInsets(getPreset('iphone-se-3'), true)).toEqual({
+      top: 20,
+      bottom: 0,
+      left: 0,
+      right: 0,
+    });
+  });
+
+  it('Android punch-hole은 landscape에서도 status bar가 top에 남는다', () => {
+    expect(computeSafeAreaInsets(getPreset('galaxy-s26'), true)).toEqual({
+      top: 32,
+      bottom: 0,
+      left: 0,
+      right: 0,
+    });
+  });
+});
+
+describe('viewport → safeAreaInsets auto-sync', () => {
+  beforeEach(() => {
+    aitState.reset();
+    sessionStorage.clear();
+  });
+
+  it('initViewport 이후 프리셋을 선택하면 aitState.safeAreaInsets가 갱신된다', () => {
+    initViewport();
+    aitState.patch('viewport', { preset: 'iphone-18-pro' });
+    expect(aitState.state.safeAreaInsets).toEqual({ top: 59, bottom: 34, left: 0, right: 0 });
+  });
+
+  it('landscape로 전환하면 iPhone 인셋이 좌우로 이동한다', () => {
+    initViewport();
+    aitState.patch('viewport', { preset: 'iphone-18-pro', orientation: 'landscape' });
+    expect(aitState.state.safeAreaInsets).toEqual({ top: 0, bottom: 34, left: 59, right: 59 });
+  });
+
+  it('preset=custom이면 safeAreaInsets를 덮어쓰지 않는다', () => {
+    initViewport();
+    aitState.update({ safeAreaInsets: { top: 10, bottom: 20, left: 0, right: 0 } });
+    aitState.patch('viewport', { preset: 'custom' });
+    expect(aitState.state.safeAreaInsets).toEqual({ top: 10, bottom: 20, left: 0, right: 0 });
   });
 });
 

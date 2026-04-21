@@ -91,6 +91,14 @@ export function renderViewportTab(): HTMLElement {
     aitState.patch('viewport', { frame: frameCheckbox.checked });
   });
 
+  // --- Apps in Toss nav bar toggle ---
+  const navBarCheckbox = h('input', { type: 'checkbox' }) as HTMLInputElement;
+  navBarCheckbox.checked = vp.aitNavBar;
+  if (disabled) navBarCheckbox.disabled = true;
+  navBarCheckbox.addEventListener('change', () => {
+    aitState.patch('viewport', { aitNavBar: navBarCheckbox.checked });
+  });
+
   // --- Status line: applied size ---
   const size = resolveViewportSize(vp);
   const statusText =
@@ -112,6 +120,12 @@ export function renderViewportTab(): HTMLElement {
       { className: 'ait-section' },
       h('div', { className: 'ait-section-title' }, 'Appearance'),
       h('div', { className: 'ait-row' }, h('label', {}, 'Show frame'), frameCheckbox),
+      h(
+        'div',
+        { className: 'ait-row' },
+        h('label', {}, 'Show Apps in Toss nav bar'),
+        navBarCheckbox,
+      ),
     ),
     h(
       'div',

@@ -260,6 +260,7 @@ function syncSafeAreaFromViewport(state: ViewportState): void {
 
 const STYLE_ELEMENT_ID = '__ait-viewport-style';
 const NOTCH_ELEMENT_ID = '__ait-viewport-notch';
+const NAV_BAR_ELEMENT_ID = '__ait-viewport-navbar';
 
 function ensureStyleElement(): HTMLStyleElement | null {
   if (typeof document === 'undefined') return null;
@@ -275,6 +276,42 @@ function ensureStyleElement(): HTMLStyleElement | null {
 function removeNotchElement(): void {
   const el = document.getElementById(NOTCH_ELEMENT_ID);
   if (el) el.remove();
+}
+
+function removeNavBarElement(): void {
+  const el = document.getElementById(NAV_BAR_ELEMENT_ID);
+  if (el) el.remove();
+}
+
+/**
+ * Apps in Toss host nav bar 렌더. OS status bar 아래에 48px 높이로 쌓인다.
+ * 구성: 좌측 뒤로가기(‹), 앱 아이콘 + 이름, 우측 `⋯` + 구분선 + `×`.
+ *
+ * `env(safe-area-inset-top)`에는 이 높이가 포함되지 않으므로 (공식 SDK 확인),
+ * 오버레이는 preset.safeAreaTop만큼 아래로 내려서 그린다.
+ */
+function renderNavBar(preset: ViewportPreset): void {
+  removeNavBarElement();
+  const el = document.createElement('div');
+  el.id = NAV_BAR_ELEMENT_ID;
+  el.className = 'ait-navbar';
+  el.setAttribute('aria-hidden', 'true');
+  el.style.top = `${preset.safeAreaTop}px`;
+
+  el.innerHTML = `
+    <button class="ait-navbar-btn ait-navbar-back" type="button" tabindex="-1">‹</button>
+    <div class="ait-navbar-title">
+      <span class="ait-navbar-icon"></span>
+      <span class="ait-navbar-name">Mini app</span>
+    </div>
+    <div class="ait-navbar-actions">
+      <button class="ait-navbar-btn" type="button" tabindex="-1">⋯</button>
+      <span class="ait-navbar-divider"></span>
+      <button class="ait-navbar-btn" type="button" tabindex="-1">×</button>
+    </div>
+  `;
+
+  document.body.appendChild(el);
 }
 
 /**
@@ -321,6 +358,7 @@ export function applyViewport(state: ViewportState): void {
     html.classList.remove('ait-viewport-framed');
     style.textContent = '';
     removeNotchElement();
+    removeNavBarElement();
     return;
   }
 
@@ -380,10 +418,83 @@ export function applyViewport(state: ViewportState): void {
       height: 12px;
       border-radius: 50%;
     }
+
+    /* Apps in Toss host nav bar — sits directly below the OS status bar */
+    .ait-navbar {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: ${AIT_NAV_BAR_HEIGHT}px;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(8px);
+      display: ${state.aitNavBar && preset && !landscape ? 'flex' : 'none'};
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      box-sizing: border-box;
+      font: 500 15px -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif;
+      color: #1a1a1a;
+      z-index: 2147483645;
+      pointer-events: none;
+      user-select: none;
+    }
+    .ait-navbar-title {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex: 1;
+      margin-left: 4px;
+      overflow: hidden;
+    }
+    .ait-navbar-icon {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      background: linear-gradient(135deg, #3182f6, #7c3aed);
+      flex-shrink: 0;
+    }
+    .ait-navbar-name {
+      font-size: 15px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .ait-navbar-actions {
+      display: flex;
+      align-items: center;
+      background: rgba(0, 0, 0, 0.05);
+      border-radius: 999px;
+      padding: 4px 8px;
+      gap: 4px;
+    }
+    .ait-navbar-btn {
+      background: none;
+      border: none;
+      padding: 2px 8px;
+      font: inherit;
+      font-size: 18px;
+      color: inherit;
+      cursor: default;
+      line-height: 1;
+      pointer-events: none;
+    }
+    .ait-navbar-back {
+      padding: 0 8px;
+      font-size: 24px;
+    }
+    .ait-navbar-divider {
+      width: 1px;
+      height: 16px;
+      background: rgba(0, 0, 0, 0.15);
+    }
   `;
 
   if (preset) renderNotchOverlay(preset, landscape);
   else removeNotchElement();
+
+  if (preset && state.aitNavBar && !landscape) renderNavBar(preset);
+  else removeNavBarElement();
 }
 
 function isViewportPresetId(v: unknown): v is ViewportPresetId {

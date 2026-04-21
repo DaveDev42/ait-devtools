@@ -166,6 +166,31 @@ describe('applyViewport (DOM)', () => {
     applyViewport(makeState({ preset: 'iphone-18', orientation: 'landscape', frame: true }));
     expect(document.getElementById('__ait-viewport-notch')).toBeNull();
   });
+
+  it('aitNavBar=true이면 nav bar 오버레이 엘리먼트를 추가한다', () => {
+    applyViewport(makeState({ preset: 'iphone-18', aitNavBar: true }));
+    const navBar = document.getElementById('__ait-viewport-navbar');
+    expect(navBar).not.toBeNull();
+    expect(navBar?.classList.contains('ait-navbar')).toBe(true);
+    expect(navBar?.querySelector('.ait-navbar-back')).not.toBeNull();
+    expect(navBar?.querySelector('.ait-navbar-actions')).not.toBeNull();
+  });
+
+  it('aitNavBar=false이면 nav bar 오버레이가 없다', () => {
+    applyViewport(makeState({ preset: 'iphone-18', aitNavBar: false }));
+    expect(document.getElementById('__ait-viewport-navbar')).toBeNull();
+  });
+
+  it('landscape에서는 nav bar 오버레이를 숨긴다', () => {
+    applyViewport(makeState({ preset: 'iphone-18', aitNavBar: true, orientation: 'landscape' }));
+    expect(document.getElementById('__ait-viewport-navbar')).toBeNull();
+  });
+
+  it('nav bar는 preset.safeAreaTop만큼 아래로 이동한다 (status bar 아래)', () => {
+    applyViewport(makeState({ preset: 'iphone-18', aitNavBar: true }));
+    const navBar = document.getElementById('__ait-viewport-navbar') as HTMLElement | null;
+    expect(navBar?.style.top).toBe('59px');
+  });
 });
 
 describe('sessionStorage persistence', () => {

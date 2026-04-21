@@ -89,3 +89,32 @@ export interface SafeAreaInsets {
   left: number;
   right: number;
 }
+
+export type ViewportPresetId =
+  | 'none'
+  | 'iphone-se'
+  | 'iphone-14'
+  | 'iphone-14-pro'
+  | 'iphone-14-pro-max'
+  | 'galaxy-s23'
+  | 'galaxy-s24-ultra'
+  | 'pixel-8'
+  | 'ipad-mini'
+  | 'custom';
+
+export type ViewportOrientation = 'portrait' | 'landscape';
+
+export interface ViewportPreset {
+  id: ViewportPresetId;
+  label: string;
+  width: number;
+  height: number;
+}
+
+export interface ViewportState {
+  preset: ViewportPresetId;
+  orientation: ViewportOrientation;
+  customWidth: number;
+  customHeight: number;
+  frame: boolean;
+}

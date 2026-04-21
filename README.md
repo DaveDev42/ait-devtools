@@ -8,7 +8,8 @@
 
 - **60+ SDK API mock** — 인증, 결제, IAP, 위치, 카메라, 스토리지 등
 - **Device API 모드 시스템** — mock / web / prompt 세 가지 모드로 디바이스 API 동작 전환
-- **Floating DevTools Panel** — 브라우저에서 SDK 상태를 실시간으로 제어 (8개 탭)
+- **Device simulation** — iPhone/Galaxy/Pixel/iPad 프리셋 + orientation 토글로 데스크탑 브라우저에서 모바일 뷰포트 시뮬레이션
+- **Floating DevTools Panel** — 브라우저에서 SDK 상태를 실시간으로 제어 (9개 탭)
 - **모든 번들러 지원** — [unplugin](https://github.com/unjs/unplugin) 기반 Vite, Webpack, Rspack, esbuild, Rollup 통합
 
 ## 설치
@@ -244,7 +245,7 @@ mock 모드에서 카메라/앨범 API는 더미 이미지를 반환합니다.
 
 플러그인 사용 시 진입점 파일에 패널이 자동 주입됩니다. 화면 우하단의 **'AIT' 버튼**을 클릭하면 토글됩니다.
 
-### 8개 탭
+### 9개 탭
 
 | 탭 | 설명 |
 |---|---|
@@ -252,12 +253,37 @@ mock 모드에서 카메라/앨범 API는 더미 이미지를 반환합니다.
 | **Permissions** | camera, photos, geolocation, clipboard, contacts, microphone 권한 상태 제어 (allowed/denied/notDetermined) |
 | **Location** | 위도, 경도, 정확도 설정 |
 | **Device** | API 모드 전환 (mock/web/prompt), 더미 이미지 관리 (추가/제거/기본값/초기화) |
+| **Viewport** | 디바이스 프리셋(iPhone/Galaxy/Pixel/iPad) + orientation 토글로 모바일 뷰포트 시뮬레이션 |
 | **IAP** | 다음 구매 결과 선택 (success/취소/에러 등), TossPay 결제 결과, 완료된 주문 내역 (최근 5건) |
 | **Events** | Back/Home 네비게이션 이벤트 트리거, 로그인 상태 토글 |
 | **Analytics** | 기록된 분석 이벤트 실시간 로그 뷰어 (최근 30건, 타임스탬프/타입/파라미터) |
 | **Storage** | `Storage` API로 저장된 항목 조회 및 초기화 |
 
 > **prompt 모드 자동 열림**: prompt 모드로 설정된 API가 호출되면, Panel이 자동으로 Device 탭을 열고 사용자 입력 UI를 표시합니다.
+
+## Device simulation (Viewport 탭)
+
+데스크탑 브라우저에서 모바일 미니앱을 개발할 때, 실제 디바이스 해상도로 레이아웃을 제한해 검증할 수 있습니다.
+
+- **프리셋**: iPhone SE / 14 / 14 Pro / 14 Pro Max, Galaxy S23 / S24 Ultra, Pixel 8, iPad mini, Custom (width/height 직접 입력)
+- **Orientation**: portrait ↔ landscape 토글 (선택 시 width/height가 swap됨)
+- **Frame**: 디바이스 베젤 느낌을 내는 border-radius + box-shadow (선택)
+- **영속성**: 선택 상태는 sessionStorage(`__ait_viewport`)에 저장되어 페이지 reload 시 유지됩니다.
+
+Panel의 **Viewport 탭**에서 드롭다운으로 선택하거나, 콘솔에서 상태를 직접 조작할 수 있습니다:
+
+```js
+// iPhone 14 Pro 세로 + 프레임 켜기
+__ait.patch('viewport', { preset: 'iphone-14-pro', orientation: 'portrait', frame: true });
+
+// Custom 크기
+__ait.patch('viewport', { preset: 'custom', customWidth: 360, customHeight: 740 });
+
+// 해제
+__ait.patch('viewport', { preset: 'none' });
+```
+
+> 뷰포트는 `document.body`에 `max-width`/`max-height` + `margin:auto`로 적용됩니다. iframe을 쓰지 않으므로 앱 JS/CSS가 그대로 실행되며, 콘솔·DevTools도 정상 접근 가능합니다. Chrome DevTools의 device mode와는 독립적으로 동작합니다 (User-Agent spoofing·touch emulation은 하지 않음).
 
 ## `window.__ait` 콘솔 API
 

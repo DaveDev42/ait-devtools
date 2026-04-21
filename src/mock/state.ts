@@ -17,6 +17,7 @@ import type {
   PermissionStatus,
   PlatformOS,
   SafeAreaInsets,
+  ViewportState,
 } from './types.js';
 
 export type {
@@ -36,6 +37,10 @@ export type {
   PermissionStatus,
   PlatformOS,
   SafeAreaInsets,
+  ViewportOrientation,
+  ViewportPreset,
+  ViewportPresetId,
+  ViewportState,
 } from './types.js';
 
 type Listener = () => void;
@@ -128,6 +133,9 @@ export interface AitDevtoolsState {
 
   // mock 활성화 상태
   panelEditable: boolean;
+
+  // 뷰포트 시뮬레이션 (devtools 전용, SDK와 무관)
+  viewport: ViewportState;
 }
 
 const DEFAULT_STATE: AitDevtoolsState = {
@@ -236,6 +244,14 @@ const DEFAULT_STATE: AitDevtoolsState = {
   },
 
   panelEditable: true,
+
+  viewport: {
+    preset: 'none',
+    orientation: 'portrait',
+    customWidth: 390,
+    customHeight: 844,
+    frame: false,
+  },
 };
 
 function generateDeviceId(): string {

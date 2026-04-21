@@ -10,6 +10,7 @@ import { h } from './helpers.js';
 import { PANEL_FULLSCREEN_BREAKPOINT, PANEL_HEIGHT, PANEL_STYLES, PANEL_WIDTH } from './styles.js';
 import { setDeviceRefreshPanel } from './tabs/device.js';
 import { createTabRenderers, TABS, type TabId } from './tabs/index.js';
+import { initViewport } from './viewport.js';
 
 // --- Draggable toggle button ---
 
@@ -221,6 +222,9 @@ function mount() {
   // Wire up device tab's refreshPanel reference
   setDeviceRefreshPanel(refreshPanel);
 
+  // Viewport simulation: restore from sessionStorage, apply to DOM, auto-sync.
+  initViewport();
+
   // Styles
   const style = document.createElement('style');
   style.textContent = PANEL_STYLES;
@@ -315,7 +319,10 @@ function mount() {
     try {
       if (
         isOpen &&
-        (currentTab === 'analytics' || currentTab === 'storage' || currentTab === 'device')
+        (currentTab === 'analytics' ||
+          currentTab === 'storage' ||
+          currentTab === 'device' ||
+          currentTab === 'viewport')
       ) {
         refreshPanel();
       }

@@ -10,6 +10,7 @@ const tabSpies: Record<TabId, Mock<() => HTMLElement>> = {
   permissions: vi.fn(() => document.createElement('div')),
   location: vi.fn(() => document.createElement('div')),
   device: vi.fn(() => document.createElement('div')),
+  viewport: vi.fn(() => document.createElement('div')),
   iap: vi.fn(() => document.createElement('div')),
   events: vi.fn(() => document.createElement('div')),
   analytics: vi.fn(() => document.createElement('div')),

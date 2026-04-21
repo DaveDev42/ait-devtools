@@ -71,12 +71,14 @@ src/
 │   ├── index.ts       # 마운트 로직, 드래그, 패널 셸
 │   ├── helpers.ts     # DOM 헬퍼 (h, selectRow, inputRow 등)
 │   ├── styles.ts      # CSS 문자열
+│   ├── viewport.ts    # 디바이스 시뮬레이션 (프리셋, orientation, sessionStorage 복원)
 │   └── tabs/          # 탭별 렌더러
 │       ├── index.ts       # 탭 registry
 │       ├── environment.ts
 │       ├── permissions.ts
 │       ├── location.ts
 │       ├── device.ts
+│       ├── viewport.ts    # 디바이스 프리셋 + orientation 선택 UI
 │       ├── iap.ts
 │       ├── events.ts
 │       ├── analytics.ts
@@ -99,7 +101,8 @@ src/
 │   ├── proxy.test.ts
 │   ├── state.test.ts
 │   ├── storage.test.ts
-│   └── unplugin.test.ts
+│   ├── unplugin.test.ts
+│   └── viewport.test.ts
 └── __typecheck.ts     # 원본 SDK 대비 타입 호환성 검증 (빌드에 포함 안 됨)
 ```
 

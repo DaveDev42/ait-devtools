@@ -15,27 +15,175 @@ import type {
 
 export const VIEWPORT_STORAGE_KEY = '__ait_viewport';
 
+/**
+ * Apps in Toss의 host nav bar 높이 (CSS px). 공식 docs에는 명시되어 있지 않지만
+ * Toss 공식 예제(`with-contacts-viral`, `random-balls`)가 safeArea.top에 `+ 48`을
+ * 추가하는 패턴을 쓴다. SafeAreaInsets에는 포함되지 않으므로 별도 상수로 관리.
+ */
+export const AIT_NAV_BAR_HEIGHT = 48;
+
+const NONE_PRESET: ViewportPreset = {
+  id: 'none',
+  label: 'None (full window)',
+  width: 0,
+  height: 0,
+  dpr: 1,
+  notch: 'none',
+  safeAreaTop: 0,
+  safeAreaBottom: 0,
+};
+
+const CUSTOM_PRESET: ViewportPreset = {
+  id: 'custom',
+  label: 'Custom',
+  width: 0,
+  height: 0,
+  dpr: 1,
+  notch: 'none',
+  safeAreaTop: 0,
+  safeAreaBottom: 0,
+};
+
+/**
+ * Device presets (2026). CSS viewport 크기는 실제 기기의 `window.innerWidth/innerHeight`.
+ * Apple의 iPhone 18 시리즈는 2026-04 기준 미출시이므로 iPhone 17 시리즈(2025-09 출시)의
+ * 실측 값을 사용한다. 실제 출시 후 값을 갱신한다.
+ */
 export const VIEWPORT_PRESETS: ViewportPreset[] = [
-  { id: 'none', label: 'None (full window)', width: 0, height: 0 },
-  { id: 'iphone-se', label: 'iPhone SE', width: 375, height: 667 },
-  { id: 'iphone-14', label: 'iPhone 14', width: 390, height: 844 },
-  { id: 'iphone-14-pro', label: 'iPhone 14 Pro', width: 393, height: 852 },
-  { id: 'iphone-14-pro-max', label: 'iPhone 14 Pro Max', width: 430, height: 932 },
-  { id: 'galaxy-s23', label: 'Galaxy S23', width: 360, height: 780 },
-  { id: 'galaxy-s24-ultra', label: 'Galaxy S24 Ultra', width: 412, height: 915 },
-  { id: 'pixel-8', label: 'Pixel 8', width: 412, height: 915 },
-  { id: 'ipad-mini', label: 'iPad mini', width: 768, height: 1024 },
-  { id: 'custom', label: 'Custom', width: 0, height: 0 },
+  NONE_PRESET,
+  // Apple
+  {
+    id: 'iphone-se-3',
+    label: 'iPhone SE (3rd gen)',
+    width: 375,
+    height: 667,
+    dpr: 2,
+    notch: 'none',
+    safeAreaTop: 20,
+    safeAreaBottom: 0,
+  },
+  {
+    id: 'iphone-16e',
+    label: 'iPhone 16e',
+    width: 390,
+    height: 844,
+    dpr: 3,
+    notch: 'notch',
+    safeAreaTop: 47,
+    safeAreaBottom: 34,
+  },
+  {
+    id: 'iphone-18',
+    label: 'iPhone 18',
+    width: 402,
+    height: 874,
+    dpr: 3,
+    notch: 'dynamic-island',
+    safeAreaTop: 59,
+    safeAreaBottom: 34,
+  },
+  {
+    id: 'iphone-air',
+    label: 'iPhone Air',
+    width: 420,
+    height: 912,
+    dpr: 3,
+    notch: 'dynamic-island',
+    safeAreaTop: 59,
+    safeAreaBottom: 34,
+  },
+  {
+    id: 'iphone-18-pro',
+    label: 'iPhone 18 Pro',
+    width: 402,
+    height: 874,
+    dpr: 3,
+    notch: 'dynamic-island',
+    safeAreaTop: 59,
+    safeAreaBottom: 34,
+  },
+  {
+    id: 'iphone-18-pro-max',
+    label: 'iPhone 18 Pro Max',
+    width: 440,
+    height: 956,
+    dpr: 3,
+    notch: 'dynamic-island',
+    safeAreaTop: 62,
+    safeAreaBottom: 34,
+  },
+  // Samsung
+  {
+    id: 'galaxy-s26',
+    label: 'Galaxy S26',
+    width: 384,
+    height: 832,
+    dpr: 3,
+    notch: 'punch-hole-center',
+    safeAreaTop: 32,
+    safeAreaBottom: 0,
+  },
+  {
+    id: 'galaxy-s26-plus',
+    label: 'Galaxy S26+',
+    width: 412,
+    height: 915,
+    dpr: 3,
+    notch: 'punch-hole-center',
+    safeAreaTop: 32,
+    safeAreaBottom: 0,
+  },
+  {
+    id: 'galaxy-s26-ultra',
+    label: 'Galaxy S26 Ultra',
+    width: 412,
+    height: 915,
+    dpr: 3.5,
+    notch: 'punch-hole-center',
+    safeAreaTop: 40,
+    safeAreaBottom: 0,
+  },
+  {
+    id: 'galaxy-z-flip7',
+    label: 'Galaxy Z Flip7',
+    width: 412,
+    height: 990,
+    dpr: 3,
+    notch: 'punch-hole-center',
+    safeAreaTop: 36,
+    safeAreaBottom: 0,
+  },
+  {
+    id: 'galaxy-z-fold7-folded',
+    label: 'Galaxy Z Fold7 (folded)',
+    width: 384,
+    height: 870,
+    dpr: 3,
+    notch: 'punch-hole-center',
+    safeAreaTop: 32,
+    safeAreaBottom: 0,
+  },
+  {
+    id: 'galaxy-z-fold7-unfolded',
+    label: 'Galaxy Z Fold7 (unfolded)',
+    width: 768,
+    height: 884,
+    dpr: 2.625,
+    notch: 'punch-hole-center',
+    safeAreaTop: 32,
+    safeAreaBottom: 0,
+  },
+  CUSTOM_PRESET,
 ];
 
 export function getPreset(id: ViewportPresetId): ViewportPreset {
-  return VIEWPORT_PRESETS.find((p) => p.id === id) ?? VIEWPORT_PRESETS[0];
+  return VIEWPORT_PRESETS.find((p) => p.id === id) ?? NONE_PRESET;
 }
 
 /**
  * 선택된 뷰포트의 실제 width/height를 계산한다.
  * preset === 'custom'이면 customWidth/customHeight, 그 외에는 preset의 값.
- * orientation === 'landscape'이면 width/height를 swap.
+ * orientation === 'landscape'이면 width/height를 swap한다. `auto`와 `portrait`는 동일.
  */
 export function resolveViewportSize(state: ViewportState): { width: number; height: number } {
   if (state.preset === 'none') return { width: 0, height: 0 };
@@ -46,6 +194,16 @@ export function resolveViewportSize(state: ViewportState): { width: number; heig
   return state.orientation === 'landscape'
     ? { width: base.height, height: base.width }
     : { width: base.width, height: base.height };
+}
+
+/**
+ * 현재 상태가 landscape로 표시되는지 여부.
+ * `auto`는 portrait와 동일하게 취급. Panel이 강제하지 않으므로 기본 세로.
+ * SDK `setDeviceOrientation({ type: 'landscape' })`이 호출되면 `auto`는 유지되지만
+ * aitState.orientation (별도 필드)이 바뀌어 반영되도록 후속 커밋에서 연결할 수 있다.
+ */
+export function isLandscape(state: ViewportState): boolean {
+  return state.orientation === 'landscape';
 }
 
 const STYLE_ELEMENT_ID = '__ait-viewport-style';
@@ -113,7 +271,7 @@ function isViewportPresetId(v: unknown): v is ViewportPresetId {
 }
 
 function isViewportOrientation(v: unknown): v is ViewportOrientation {
-  return v === 'portrait' || v === 'landscape';
+  return v === 'auto' || v === 'portrait' || v === 'landscape';
 }
 
 function isPositiveInt(v: unknown): v is number {
@@ -138,6 +296,7 @@ export function loadViewportFromStorage(): Partial<ViewportState> | null {
     if (isPositiveInt(obj.customWidth)) next.customWidth = obj.customWidth;
     if (isPositiveInt(obj.customHeight)) next.customHeight = obj.customHeight;
     if (typeof obj.frame === 'boolean') next.frame = obj.frame;
+    if (typeof obj.aitNavBar === 'boolean') next.aitNavBar = obj.aitNavBar;
     return next;
   } catch {
     return null;

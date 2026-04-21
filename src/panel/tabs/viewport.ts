@@ -38,7 +38,7 @@ export function renderViewportTab(): HTMLElement {
   // --- Orientation toggle ---
   const orientationSelect = h('select', { className: 'ait-select' });
   if (disabled) orientationSelect.disabled = true;
-  for (const opt of ['portrait', 'landscape'] as ViewportOrientation[]) {
+  for (const opt of ['auto', 'portrait', 'landscape'] as ViewportOrientation[]) {
     const option = h('option', { value: opt }, opt);
     if (opt === vp.orientation) option.selected = true;
     orientationSelect.appendChild(option);

@@ -263,27 +263,77 @@ mock 모드에서 카메라/앨범 API는 더미 이미지를 반환합니다.
 
 ## Device simulation (Viewport 탭)
 
-데스크탑 브라우저에서 모바일 미니앱을 개발할 때, 실제 디바이스 해상도로 레이아웃을 제한해 검증할 수 있습니다.
+데스크탑 브라우저에서 모바일 미니앱을 개발할 때, 실제 디바이스 해상도/safe area/노치/앱인토스 nav bar를 반영해 레이아웃을 검증할 수 있습니다.
 
-- **프리셋**: iPhone SE / 14 / 14 Pro / 14 Pro Max, Galaxy S23 / S24 Ultra, Pixel 8, iPad mini, Custom (width/height 직접 입력)
-- **Orientation**: portrait ↔ landscape 토글 (선택 시 width/height가 swap됨)
-- **Frame**: 디바이스 베젤 느낌을 내는 border-radius + box-shadow (선택)
-- **영속성**: 선택 상태는 sessionStorage(`__ait_viewport`)에 저장되어 페이지 reload 시 유지됩니다.
+### 프리셋 (2026)
 
-Panel의 **Viewport 탭**에서 드롭다운으로 선택하거나, 콘솔에서 상태를 직접 조작할 수 있습니다:
+| 카테고리 | 기기 |
+|---|---|
+| Apple | iPhone SE (3rd gen), iPhone 16e, iPhone 18, iPhone Air, iPhone 18 Pro, iPhone 18 Pro Max |
+| Samsung | Galaxy S26, S26+, S26 Ultra, Z Flip7, Z Fold7 (folded / unfolded) |
+| 기타 | Custom (width/height 직접 입력), None (기본) |
+
+> iPhone 18 시리즈는 2026-04 기준 미출시이므로 현재 iPhone 17 시리즈(2025-09)의 실측 값을 담고 있습니다.
+
+각 프리셋은 다음 정보를 포함합니다:
+- **CSS viewport** (portrait `width × height`)
+- **DPR** (devicePixelRatio: 2, 3, 3.5 등)
+- **Notch** 종류 (`none` / `notch` / `dynamic-island` / `punch-hole-center`)
+- **OS-level safe area insets** (status bar / 홈 인디케이터 / 노치 회전에 따른 좌우 인셋)
+
+### Orientation
+
+- **auto** (기본) — Panel이 강제하지 않음. 앱이 `setDeviceOrientation`을 호출하면 그 값이 반영됩니다.
+- **portrait / landscape** — Panel이 override. 앱의 `setDeviceOrientation` 호출은 무시되고 `console.warn`으로 알림.
+
+Landscape로 전환하면:
+- CSS viewport width/height가 swap됩니다.
+- iPhone(notch/Dynamic Island) 프리셋은 safe area의 top이 0이 되고 left/right에 기존 top 값이 들어갑니다 (양쪽 다).
+- Android(punch-hole) 프리셋은 status bar가 top에 유지됩니다.
+
+### Frame + 노치 + 앱인토스 nav bar
+
+**Show frame** 토글을 켜면:
+- 디바이스 베젤을 모사하는 border-radius + box-shadow
+- Notch / Dynamic Island / punch-hole 오버레이 (body 상단에 절대 배치)
+
+**Show Apps in Toss nav bar** 토글(기본 on)을 켜면:
+- 토스 호스트의 상단 nav bar(뒤로가기 / 앱 아이콘·이름 / ⋯ / ×)를 48px 높이로 오버레이
+- status bar 바로 아래, safe area top 이후에 배치
+- **중요**: 이 48px는 `env(safe-area-inset-top)` 및 `SafeAreaInsets.get().top`에 **포함되지 않습니다** (공식 SDK 동작). 토스 공식 예제들도 `insets.top + 48` 패턴으로 보정합니다.
+
+### 콘솔에서 직접 조작
 
 ```js
-// iPhone 14 Pro 세로 + 프레임 켜기
-__ait.patch('viewport', { preset: 'iphone-14-pro', orientation: 'portrait', frame: true });
+// iPhone 18 Pro 세로 + 프레임 켜기
+__ait.patch('viewport', { preset: 'iphone-18-pro', orientation: 'auto', frame: true });
+
+// Landscape 강제 (앱의 setDeviceOrientation 호출은 무시됨)
+__ait.patch('viewport', { orientation: 'landscape' });
 
 // Custom 크기
 __ait.patch('viewport', { preset: 'custom', customWidth: 360, customHeight: 740 });
+
+// 앱인토스 nav bar 숨기기 (순수 뷰포트만 보고 싶을 때)
+__ait.patch('viewport', { aitNavBar: false });
 
 // 해제
 __ait.patch('viewport', { preset: 'none' });
 ```
 
-> 뷰포트는 `document.body`에 `max-width`/`max-height` + `margin:auto`로 적용됩니다. iframe을 쓰지 않으므로 앱 JS/CSS가 그대로 실행되며, 콘솔·DevTools도 정상 접근 가능합니다. Chrome DevTools의 device mode와는 독립적으로 동작합니다 (User-Agent spoofing·touch emulation은 하지 않음).
+### Status 패널
+
+Viewport 탭 하단에 현재 적용된 값을 실시간으로 보여줍니다:
+- **Viewport**: `402×874 @3x → 1206×2622 portrait (auto)`
+- **Safe area**: `T59 R0 B34 L0`
+- **Apps in Toss nav bar**: `48px (not in SafeAreaInsets)`
+
+### 영속성 + 기술 세부
+
+- 상태는 sessionStorage(`__ait_viewport`)에 저장되어 페이지 reload 시 복원됩니다.
+- 프리셋 선택 시 `aitState.safeAreaInsets`도 자동 업데이트 → SDK의 `SafeAreaInsets.get()` / `.subscribe()`가 따라갑니다.
+- 뷰포트는 `document.body`에 `max-width`/`max-height` + `margin:auto`로 적용됩니다. iframe을 쓰지 않으므로 앱 JS/CSS가 그대로 실행되고, 콘솔·DevTools도 정상 접근 가능합니다.
+- User-Agent spoofing / touch event emulation / network throttling은 하지 않습니다 (Chrome DevTools가 이미 제공).
 
 ## `window.__ait` 콘솔 API
 

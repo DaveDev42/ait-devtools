@@ -154,6 +154,29 @@ describe('Navigation mock', () => {
     await expect(setDeviceOrientation({ type: 'landscape' })).resolves.toBeUndefined();
   });
 
+  it('setDeviceOrientation: orientation이 auto면 호출 값을 viewport에 반영한다', async () => {
+    const { aitState } = await import('../mock/state.js');
+    aitState.reset();
+    expect(aitState.state.viewport.orientation).toBe('auto');
+    await setDeviceOrientation({ type: 'landscape' });
+    expect(aitState.state.viewport.orientation).toBe('landscape');
+  });
+
+  it('setDeviceOrientation: Panel이 override 중이면 요청을 무시하고 경고를 낸다', async () => {
+    const { aitState } = await import('../mock/state.js');
+    aitState.reset();
+    aitState.patch('viewport', { orientation: 'portrait' });
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    await setDeviceOrientation({ type: 'landscape' });
+    expect(aitState.state.viewport.orientation).toBe('portrait'); // 유지
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining('setDeviceOrientation(landscape) ignored'),
+    );
+
+    warn.mockRestore();
+  });
+
   it('setSecureScreen: 설정한 값을 반환한다', async () => {
     const result = await setSecureScreen({ enabled: true });
     expect(result).toEqual({ enabled: true });

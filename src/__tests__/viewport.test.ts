@@ -1,7 +1,9 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { aitState } from '../mock/state.js';
+import type { ViewportState } from '../mock/types.js';
 import {
   applyViewport,
+  computeSafeAreaInsets,
   getPreset,
   initViewport,
   loadViewportFromStorage,
@@ -11,16 +13,33 @@ import {
   VIEWPORT_STORAGE_KEY,
 } from '../panel/viewport.js';
 
+/** 테스트에서 부분 필드만 바꾼 ViewportState를 만들기 위한 기본값 */
+function makeState(overrides: Partial<ViewportState> = {}): ViewportState {
+  return {
+    preset: 'none',
+    orientation: 'auto',
+    customWidth: 402,
+    customHeight: 874,
+    frame: false,
+    aitNavBar: true,
+    ...overrides,
+  };
+}
+
 describe('viewport presets', () => {
-  it('알려진 프리셋 id는 해당 가로/세로 값을 반환한다', () => {
-    expect(getPreset('iphone-14-pro')).toEqual({
-      id: 'iphone-14-pro',
-      label: 'iPhone 14 Pro',
-      width: 393,
-      height: 852,
-    });
-    expect(getPreset('galaxy-s23').width).toBe(360);
-    expect(getPreset('ipad-mini').height).toBe(1024);
+  it('알려진 프리셋 id는 라벨, 크기, DPR, notch, safeArea를 함께 반환한다', () => {
+    const iphone18Pro = getPreset('iphone-18-pro');
+    expect(iphone18Pro.label).toBe('iPhone 18 Pro');
+    expect(iphone18Pro.width).toBe(402);
+    expect(iphone18Pro.height).toBe(874);
+    expect(iphone18Pro.dpr).toBe(3);
+    expect(iphone18Pro.notch).toBe('dynamic-island');
+    expect(iphone18Pro.safeAreaTop).toBeGreaterThan(0);
+    expect(iphone18Pro.safeAreaBottom).toBeGreaterThan(0);
+
+    expect(getPreset('galaxy-s26').width).toBe(384);
+    expect(getPreset('iphone-se-3').notch).toBe('none');
+    expect(getPreset('iphone-se-3').safeAreaBottom).toBe(0);
   });
 
   it('VIEWPORT_PRESETS에는 none과 custom 엔트리가 항상 포함된다', () => {
@@ -28,66 +47,64 @@ describe('viewport presets', () => {
     expect(ids).toContain('none');
     expect(ids).toContain('custom');
   });
+
+  it('Z Fold7은 접힘/펼침 두 프리셋이 모두 있다', () => {
+    const ids = VIEWPORT_PRESETS.map((p) => p.id);
+    expect(ids).toContain('galaxy-z-fold7-folded');
+    expect(ids).toContain('galaxy-z-fold7-unfolded');
+    expect(getPreset('galaxy-z-fold7-unfolded').width).toBeGreaterThan(
+      getPreset('galaxy-z-fold7-folded').width,
+    );
+  });
 });
 
 describe('resolveViewportSize', () => {
   it('preset=none이면 0×0을 반환한다', () => {
-    expect(
-      resolveViewportSize({
-        preset: 'none',
-        orientation: 'portrait',
-        customWidth: 300,
-        customHeight: 500,
-        frame: false,
-      }),
-    ).toEqual({ width: 0, height: 0 });
+    expect(resolveViewportSize(makeState({ preset: 'none' }))).toEqual({ width: 0, height: 0 });
   });
 
   it('portrait는 프리셋 값 그대로 반환한다', () => {
     expect(
-      resolveViewportSize({
-        preset: 'iphone-14',
-        orientation: 'portrait',
-        customWidth: 0,
-        customHeight: 0,
-        frame: false,
-      }),
-    ).toEqual({ width: 390, height: 844 });
+      resolveViewportSize(makeState({ preset: 'iphone-18', orientation: 'portrait' })),
+    ).toEqual({ width: 402, height: 874 });
+  });
+
+  it('auto는 portrait와 동일하게 취급된다', () => {
+    expect(resolveViewportSize(makeState({ preset: 'iphone-18', orientation: 'auto' }))).toEqual({
+      width: 402,
+      height: 874,
+    });
   });
 
   it('landscape는 width/height를 swap한다', () => {
     expect(
-      resolveViewportSize({
-        preset: 'iphone-14',
-        orientation: 'landscape',
-        customWidth: 0,
-        customHeight: 0,
-        frame: false,
-      }),
-    ).toEqual({ width: 844, height: 390 });
+      resolveViewportSize(makeState({ preset: 'iphone-18', orientation: 'landscape' })),
+    ).toEqual({ width: 874, height: 402 });
   });
 
   it('custom 프리셋은 customWidth/customHeight를 사용한다', () => {
     expect(
-      resolveViewportSize({
-        preset: 'custom',
-        orientation: 'portrait',
-        customWidth: 500,
-        customHeight: 900,
-        frame: false,
-      }),
+      resolveViewportSize(
+        makeState({
+          preset: 'custom',
+          orientation: 'portrait',
+          customWidth: 500,
+          customHeight: 900,
+        }),
+      ),
     ).toEqual({ width: 500, height: 900 });
   });
 
   it('custom + landscape도 swap된다', () => {
     expect(
-      resolveViewportSize({
-        preset: 'custom',
-        orientation: 'landscape',
-        customWidth: 500,
-        customHeight: 900,
-        frame: false,
-      }),
+      resolveViewportSize(
+        makeState({
+          preset: 'custom',
+          orientation: 'landscape',
+          customWidth: 500,
+          customHeight: 900,
+        }),
+      ),
     ).toEqual({ width: 900, height: 500 });
   });
 });
@@ -101,58 +118,78 @@ describe('applyViewport (DOM)', () => {
   });
 
   it('preset=none이면 html에 active 클래스가 붙지 않는다', () => {
-    applyViewport({
-      preset: 'none',
-      orientation: 'portrait',
-      customWidth: 0,
-      customHeight: 0,
-      frame: false,
-    });
+    applyViewport(makeState({ preset: 'none' }));
     expect(document.documentElement.classList.contains('ait-viewport-active')).toBe(false);
   });
 
   it('프리셋 선택 시 html에 active 클래스가 붙고 style이 주입된다', () => {
-    applyViewport({
-      preset: 'iphone-14',
-      orientation: 'portrait',
-      customWidth: 0,
-      customHeight: 0,
-      frame: false,
-    });
+    applyViewport(makeState({ preset: 'iphone-18', orientation: 'portrait' }));
     expect(document.documentElement.classList.contains('ait-viewport-active')).toBe(true);
     const style = document.getElementById('__ait-viewport-style');
-    expect(style?.textContent).toContain('390px');
-    expect(style?.textContent).toContain('844px');
+    expect(style?.textContent).toContain('402px');
+    expect(style?.textContent).toContain('874px');
   });
 
   it('frame=true이면 framed 클래스가 추가된다', () => {
-    applyViewport({
-      preset: 'iphone-14',
-      orientation: 'portrait',
-      customWidth: 0,
-      customHeight: 0,
-      frame: true,
-    });
+    applyViewport(makeState({ preset: 'iphone-18', frame: true }));
     expect(document.documentElement.classList.contains('ait-viewport-framed')).toBe(true);
   });
 
   it('preset을 none으로 되돌리면 active/framed 클래스가 제거된다', () => {
-    applyViewport({
-      preset: 'iphone-14',
-      orientation: 'portrait',
-      customWidth: 0,
-      customHeight: 0,
-      frame: true,
-    });
-    applyViewport({
-      preset: 'none',
-      orientation: 'portrait',
-      customWidth: 0,
-      customHeight: 0,
-      frame: false,
-    });
+    applyViewport(makeState({ preset: 'iphone-18', frame: true }));
+    applyViewport(makeState({ preset: 'none' }));
     expect(document.documentElement.classList.contains('ait-viewport-active')).toBe(false);
     expect(document.documentElement.classList.contains('ait-viewport-framed')).toBe(false);
+  });
+
+  it('Dynamic Island 프리셋은 notch 오버레이 엘리먼트를 추가한다', () => {
+    applyViewport(makeState({ preset: 'iphone-18', frame: true }));
+    const notch = document.getElementById('__ait-viewport-notch');
+    expect(notch).not.toBeNull();
+    expect(notch?.classList.contains('ait-notch-dynamic-island')).toBe(true);
+  });
+
+  it('홈버튼 iPhone(SE)은 notch 오버레이를 그리지 않는다', () => {
+    applyViewport(makeState({ preset: 'iphone-se-3', frame: true }));
+    expect(document.getElementById('__ait-viewport-notch')).toBeNull();
+  });
+
+  it('Galaxy 계열은 punch-hole 오버레이를 그린다', () => {
+    applyViewport(makeState({ preset: 'galaxy-s26', frame: true }));
+    const notch = document.getElementById('__ait-viewport-notch');
+    expect(notch?.classList.contains('ait-notch-punch-hole')).toBe(true);
+  });
+
+  it('landscape 시 notch 오버레이를 제거한다', () => {
+    applyViewport(makeState({ preset: 'iphone-18', frame: true }));
+    expect(document.getElementById('__ait-viewport-notch')).not.toBeNull();
+    applyViewport(makeState({ preset: 'iphone-18', orientation: 'landscape', frame: true }));
+    expect(document.getElementById('__ait-viewport-notch')).toBeNull();
+  });
+
+  it('aitNavBar=true이면 nav bar 오버레이 엘리먼트를 추가한다', () => {
+    applyViewport(makeState({ preset: 'iphone-18', aitNavBar: true }));
+    const navBar = document.getElementById('__ait-viewport-navbar');
+    expect(navBar).not.toBeNull();
+    expect(navBar?.classList.contains('ait-navbar')).toBe(true);
+    expect(navBar?.querySelector('.ait-navbar-back')).not.toBeNull();
+    expect(navBar?.querySelector('.ait-navbar-actions')).not.toBeNull();
+  });
+
+  it('aitNavBar=false이면 nav bar 오버레이가 없다', () => {
+    applyViewport(makeState({ preset: 'iphone-18', aitNavBar: false }));
+    expect(document.getElementById('__ait-viewport-navbar')).toBeNull();
+  });
+
+  it('landscape에서는 nav bar 오버레이를 숨긴다', () => {
+    applyViewport(makeState({ preset: 'iphone-18', aitNavBar: true, orientation: 'landscape' }));
+    expect(document.getElementById('__ait-viewport-navbar')).toBeNull();
+  });
+
+  it('nav bar는 preset.safeAreaTop만큼 아래로 이동한다 (status bar 아래)', () => {
+    applyViewport(makeState({ preset: 'iphone-18', aitNavBar: true }));
+    const navBar = document.getElementById('__ait-viewport-navbar') as HTMLElement | null;
+    expect(navBar?.style.top).toBe('59px');
   });
 });
 
@@ -163,17 +200,19 @@ describe('sessionStorage persistence', () => {
   });
 
   it('saveViewportToStorage는 직렬화해 저장한다', () => {
-    saveViewportToStorage({
-      preset: 'iphone-14-pro',
-      orientation: 'landscape',
-      customWidth: 400,
-      customHeight: 900,
-      frame: true,
-    });
+    saveViewportToStorage(
+      makeState({
+        preset: 'iphone-18-pro',
+        orientation: 'landscape',
+        customWidth: 400,
+        customHeight: 900,
+        frame: true,
+      }),
+    );
     const raw = sessionStorage.getItem(VIEWPORT_STORAGE_KEY);
     expect(raw).toBeTruthy();
     const parsed = JSON.parse(raw ?? '{}');
-    expect(parsed.preset).toBe('iphone-14-pro');
+    expect(parsed.preset).toBe('iphone-18-pro');
     expect(parsed.orientation).toBe('landscape');
     expect(parsed.frame).toBe(true);
   });
@@ -182,30 +221,29 @@ describe('sessionStorage persistence', () => {
     sessionStorage.setItem(
       VIEWPORT_STORAGE_KEY,
       JSON.stringify({
-        preset: 'galaxy-s23',
+        preset: 'galaxy-s26',
         orientation: 'landscape',
         customWidth: 500,
         customHeight: 900,
         frame: false,
+        aitNavBar: false,
       }),
     );
     const restored = loadViewportFromStorage();
     expect(restored).toEqual({
-      preset: 'galaxy-s23',
+      preset: 'galaxy-s26',
       orientation: 'landscape',
       customWidth: 500,
       customHeight: 900,
       frame: false,
+      aitNavBar: false,
     });
   });
 
   it('잘못된 preset id는 무시한다', () => {
     sessionStorage.setItem(
       VIEWPORT_STORAGE_KEY,
-      JSON.stringify({
-        preset: 'not-a-real-device',
-        orientation: 'portrait',
-      }),
+      JSON.stringify({ preset: 'not-a-real-device', orientation: 'portrait' }),
     );
     const restored = loadViewportFromStorage();
     expect(restored?.preset).toBeUndefined();
@@ -225,7 +263,7 @@ describe('sessionStorage persistence', () => {
     sessionStorage.setItem(
       VIEWPORT_STORAGE_KEY,
       JSON.stringify({
-        preset: 'iphone-14-pro',
+        preset: 'iphone-18-pro',
         orientation: 'portrait',
         customWidth: 400,
         customHeight: 900,
@@ -233,17 +271,87 @@ describe('sessionStorage persistence', () => {
       }),
     );
     initViewport();
-    expect(aitState.state.viewport.preset).toBe('iphone-14-pro');
+    expect(aitState.state.viewport.preset).toBe('iphone-18-pro');
     expect(aitState.state.viewport.frame).toBe(true);
   });
 
   it('initViewport 이후 aitState 변경은 자동으로 sessionStorage에 저장된다', () => {
     initViewport();
-    aitState.patch('viewport', { preset: 'pixel-8', orientation: 'landscape' });
+    aitState.patch('viewport', { preset: 'galaxy-s26-ultra', orientation: 'landscape' });
     const raw = sessionStorage.getItem(VIEWPORT_STORAGE_KEY);
     const parsed = JSON.parse(raw ?? '{}');
-    expect(parsed.preset).toBe('pixel-8');
+    expect(parsed.preset).toBe('galaxy-s26-ultra');
     expect(parsed.orientation).toBe('landscape');
+  });
+});
+
+describe('computeSafeAreaInsets', () => {
+  it('preset=none이면 모두 0을 반환한다', () => {
+    const none = VIEWPORT_PRESETS.find((p) => p.id === 'none');
+    if (!none) throw new Error('none preset missing');
+    expect(computeSafeAreaInsets(none, false)).toEqual({ top: 0, bottom: 0, left: 0, right: 0 });
+  });
+
+  it('portrait iPhone Dynamic Island: top/bottom만 채움', () => {
+    expect(computeSafeAreaInsets(getPreset('iphone-18-pro'), false)).toEqual({
+      top: 59,
+      bottom: 34,
+      left: 0,
+      right: 0,
+    });
+  });
+
+  it('landscape iPhone은 notch가 좌우로 가서 left/right에 top 값을 넣고 top=0이 된다', () => {
+    expect(computeSafeAreaInsets(getPreset('iphone-18-pro'), true)).toEqual({
+      top: 0,
+      bottom: 34,
+      left: 59,
+      right: 59,
+    });
+  });
+
+  it('iPhone SE(홈버튼)는 notch가 없으므로 landscape에서도 top에 status bar만 남는다', () => {
+    expect(computeSafeAreaInsets(getPreset('iphone-se-3'), true)).toEqual({
+      top: 20,
+      bottom: 0,
+      left: 0,
+      right: 0,
+    });
+  });
+
+  it('Android punch-hole은 landscape에서도 status bar가 top에 남는다', () => {
+    expect(computeSafeAreaInsets(getPreset('galaxy-s26'), true)).toEqual({
+      top: 32,
+      bottom: 0,
+      left: 0,
+      right: 0,
+    });
+  });
+});
+
+describe('viewport → safeAreaInsets auto-sync', () => {
+  beforeEach(() => {
+    aitState.reset();
+    sessionStorage.clear();
+  });
+
+  it('initViewport 이후 프리셋을 선택하면 aitState.safeAreaInsets가 갱신된다', () => {
+    initViewport();
+    aitState.patch('viewport', { preset: 'iphone-18-pro' });
+    expect(aitState.state.safeAreaInsets).toEqual({ top: 59, bottom: 34, left: 0, right: 0 });
+  });
+
+  it('landscape로 전환하면 iPhone 인셋이 좌우로 이동한다', () => {
+    initViewport();
+    aitState.patch('viewport', { preset: 'iphone-18-pro', orientation: 'landscape' });
+    expect(aitState.state.safeAreaInsets).toEqual({ top: 0, bottom: 34, left: 59, right: 59 });
+  });
+
+  it('preset=custom이면 safeAreaInsets를 덮어쓰지 않는다', () => {
+    initViewport();
+    aitState.update({ safeAreaInsets: { top: 10, bottom: 20, left: 0, right: 0 } });
+    aitState.patch('viewport', { preset: 'custom' });
+    expect(aitState.state.safeAreaInsets).toEqual({ top: 10, bottom: 20, left: 0, right: 0 });
   });
 });
 
@@ -252,22 +360,27 @@ describe('aitState.viewport integration', () => {
     aitState.reset();
   });
 
-  it('기본값은 preset=none, orientation=portrait', () => {
+  it('기본값은 preset=none, orientation=auto, aitNavBar=true', () => {
     expect(aitState.state.viewport.preset).toBe('none');
-    expect(aitState.state.viewport.orientation).toBe('portrait');
+    expect(aitState.state.viewport.orientation).toBe('auto');
     expect(aitState.state.viewport.frame).toBe(false);
+    expect(aitState.state.viewport.aitNavBar).toBe(true);
   });
 
   it('patch로 프리셋을 변경할 수 있다', () => {
-    aitState.patch('viewport', { preset: 'iphone-14' });
-    expect(aitState.state.viewport.preset).toBe('iphone-14');
+    aitState.patch('viewport', { preset: 'iphone-18' });
+    expect(aitState.state.viewport.preset).toBe('iphone-18');
   });
 
   it('reset 후 viewport도 기본값으로 돌아간다', () => {
-    aitState.patch('viewport', { preset: 'ipad-mini', orientation: 'landscape', frame: true });
+    aitState.patch('viewport', {
+      preset: 'galaxy-s26-ultra',
+      orientation: 'landscape',
+      frame: true,
+    });
     aitState.reset();
     expect(aitState.state.viewport.preset).toBe('none');
-    expect(aitState.state.viewport.orientation).toBe('portrait');
+    expect(aitState.state.viewport.orientation).toBe('auto');
     expect(aitState.state.viewport.frame).toBe(false);
   });
 });

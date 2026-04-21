@@ -32,10 +32,18 @@ export async function setIosSwipeGestureEnabled(_options: { isEnabled: boolean }
   console.log('[@ait-co/devtools] setIosSwipeGestureEnabled:', _options.isEnabled);
 }
 
-export async function setDeviceOrientation(_options: {
+export async function setDeviceOrientation(options: {
   type: 'portrait' | 'landscape';
 }): Promise<void> {
-  console.log('[@ait-co/devtools] setDeviceOrientation:', _options.type);
+  const current = aitState.state.viewport.orientation;
+  if (current === 'auto') {
+    console.log('[@ait-co/devtools] setDeviceOrientation:', options.type);
+    aitState.patch('viewport', { orientation: options.type });
+    return;
+  }
+  console.warn(
+    `[@ait-co/devtools] setDeviceOrientation(${options.type}) ignored — Panel is forcing "${current}". Change the Viewport tab's orientation to "auto" to let the app control rotation.`,
+  );
 }
 
 export async function setScreenAwakeMode(options: {

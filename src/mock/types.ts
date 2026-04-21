@@ -92,23 +92,43 @@ export interface SafeAreaInsets {
 
 export type ViewportPresetId =
   | 'none'
-  | 'iphone-se'
-  | 'iphone-14'
-  | 'iphone-14-pro'
-  | 'iphone-14-pro-max'
-  | 'galaxy-s23'
-  | 'galaxy-s24-ultra'
-  | 'pixel-8'
-  | 'ipad-mini'
+  | 'iphone-se-3'
+  | 'iphone-16e'
+  | 'iphone-18'
+  | 'iphone-air'
+  | 'iphone-18-pro'
+  | 'iphone-18-pro-max'
+  | 'galaxy-s26'
+  | 'galaxy-s26-plus'
+  | 'galaxy-s26-ultra'
+  | 'galaxy-z-flip7'
+  | 'galaxy-z-fold7-folded'
+  | 'galaxy-z-fold7-unfolded'
   | 'custom';
 
-export type ViewportOrientation = 'portrait' | 'landscape';
+/**
+ * Panel의 orientation 선택.
+ * - `auto` — Panel이 강제하지 않음. 앱이 SDK `setDeviceOrientation`을 호출하면 값이 반영됨.
+ * - `portrait` / `landscape` — Panel이 강제. SDK 호출은 무시됨 (로그만 남김).
+ */
+export type ViewportOrientation = 'auto' | 'portrait' | 'landscape';
+
+export type NotchType = 'none' | 'notch' | 'dynamic-island' | 'punch-hole-center';
 
 export interface ViewportPreset {
   id: ViewportPresetId;
   label: string;
+  /** CSS viewport width in portrait (px) */
   width: number;
+  /** CSS viewport height in portrait (px) */
   height: number;
+  /** devicePixelRatio */
+  dpr: number;
+  /** Notch / camera cutout style (portrait) */
+  notch: NotchType;
+  /** OS-level safe area insets in portrait (px). Excludes Apps in Toss nav bar. */
+  safeAreaTop: number;
+  safeAreaBottom: number;
 }
 
 export interface ViewportState {
@@ -117,4 +137,6 @@ export interface ViewportState {
   customWidth: number;
   customHeight: number;
   frame: boolean;
+  /** Render the Apps in Toss host nav bar (back / app name / ··· / close) inside the frame. */
+  aitNavBar: boolean;
 }

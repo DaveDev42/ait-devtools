@@ -32,6 +32,7 @@ export type {
   MockIapProduct,
   MockLocation,
   NetworkStatus,
+  NotchType,
   OperationalEnvironment,
   PermissionName,
   PermissionStatus,
@@ -247,10 +248,11 @@ const DEFAULT_STATE: AitDevtoolsState = {
 
   viewport: {
     preset: 'none',
-    orientation: 'portrait',
-    customWidth: 390,
-    customHeight: 844,
+    orientation: 'auto',
+    customWidth: 402,
+    customHeight: 874,
     frame: false,
+    aitNavBar: true,
   },
 };
 

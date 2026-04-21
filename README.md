@@ -269,11 +269,11 @@ mock 모드에서 카메라/앨범 API는 더미 이미지를 반환합니다.
 
 | 카테고리 | 기기 |
 |---|---|
-| Apple | iPhone SE (3rd gen), iPhone 16e, iPhone 18, iPhone Air, iPhone 18 Pro, iPhone 18 Pro Max |
+| Apple | iPhone SE (3rd gen), iPhone 16e, iPhone 17, iPhone Air, iPhone 17 Pro, iPhone 17 Pro Max |
 | Samsung | Galaxy S26, S26+, S26 Ultra, Z Flip7, Z Fold7 (folded / unfolded) |
 | 기타 | Custom (width/height 직접 입력), None (기본) |
 
-> iPhone 18 시리즈는 2026-04 기준 미출시이므로 현재 iPhone 17 시리즈(2025-09)의 실측 값을 담고 있습니다.
+> iPhone 17 시리즈는 2025-09에 출시되었습니다. Samsung Galaxy S26 시리즈는 2026-04 기준 미출시이므로 현재 S25 기반 값을 담고 있으며, 실제 출시 후 갱신 예정입니다.
 
 각 프리셋은 다음 정보를 포함합니다:
 - **CSS viewport** (portrait `width × height`)
@@ -305,8 +305,8 @@ Landscape로 전환하면:
 ### 콘솔에서 직접 조작
 
 ```js
-// iPhone 18 Pro 세로 + 프레임 켜기
-__ait.patch('viewport', { preset: 'iphone-18-pro', orientation: 'auto', frame: true });
+// iPhone 17 Pro 세로 + 프레임 켜기
+__ait.patch('viewport', { preset: 'iphone-17-pro', orientation: 'auto', frame: true });
 
 // Landscape 강제 (앱의 setDeviceOrientation 호출은 무시됨)
 __ait.patch('viewport', { orientation: 'landscape' });

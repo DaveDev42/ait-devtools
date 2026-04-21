@@ -47,8 +47,8 @@ const CUSTOM_PRESET: ViewportPreset = {
 
 /**
  * Device presets (2026). CSS viewport 크기는 실제 기기의 `window.innerWidth/innerHeight`.
- * Apple의 iPhone 18 시리즈는 2026-04 기준 미출시이므로 iPhone 17 시리즈(2025-09 출시)의
- * 실측 값을 사용한다. 실제 출시 후 값을 갱신한다.
+ * iPhone 17 시리즈는 2025-09 출시, Galaxy S26 시리즈는 2026-04 기준 미출시라 S25 기반
+ * 값을 사용한다. 실제 출시 후 값을 갱신한다.
  */
 export const VIEWPORT_PRESETS: ViewportPreset[] = [
   NONE_PRESET,
@@ -74,8 +74,8 @@ export const VIEWPORT_PRESETS: ViewportPreset[] = [
     safeAreaBottom: 34,
   },
   {
-    id: 'iphone-18',
-    label: 'iPhone 18',
+    id: 'iphone-17',
+    label: 'iPhone 17',
     width: 402,
     height: 874,
     dpr: 3,
@@ -94,8 +94,8 @@ export const VIEWPORT_PRESETS: ViewportPreset[] = [
     safeAreaBottom: 34,
   },
   {
-    id: 'iphone-18-pro',
-    label: 'iPhone 18 Pro',
+    id: 'iphone-17-pro',
+    label: 'iPhone 17 Pro',
     width: 402,
     height: 874,
     dpr: 3,
@@ -104,8 +104,8 @@ export const VIEWPORT_PRESETS: ViewportPreset[] = [
     safeAreaBottom: 34,
   },
   {
-    id: 'iphone-18-pro-max',
-    label: 'iPhone 18 Pro Max',
+    id: 'iphone-17-pro-max',
+    label: 'iPhone 17 Pro Max',
     width: 440,
     height: 956,
     dpr: 3,

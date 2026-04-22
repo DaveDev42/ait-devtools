@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { aitState } from '../mock/state.js';
 import type { ViewportState } from '../mock/types.js';
 import {
@@ -249,12 +249,15 @@ describe('applyViewport (DOM)', () => {
     expect(navBar?.style.top).toBe('59px');
   });
 
-  it('nav bar는 brand.displayName을 사용한다 (textContent로 안전하게)', () => {
+  it('nav bar는 brand.displayName을 사용한다 (textContent로 안전하게, XSS 방지)', () => {
     aitState.patch('brand', { displayName: '<script>x</script>도끼 게임' });
     applyViewport(makeState({ preset: 'iphone-17', aitNavBar: true }));
     const name = document.querySelector('.ait-navbar-name');
+    // textContent로 raw 문자열 그대로 표시
     expect(name?.textContent).toBe('<script>x</script>도끼 게임');
-    // textContent로 들어가야 하므로 실제 script 엘리먼트는 없어야 함
+    // innerHTML에서는 &lt;...&gt; 엔티티로 escape됨 — markup으로 해석되지 않음을 직접 검증
+    expect(name?.innerHTML).toBe('&lt;script&gt;x&lt;/script&gt;도끼 게임');
+    // 실제 script 엘리먼트도 없음 (방어적)
     expect(document.querySelector('.ait-navbar-name script')).toBeNull();
   });
 
@@ -387,6 +390,35 @@ describe('viewport → safeAreaInsets auto-sync', () => {
     // appOrientation이 landscape가 되어 effective orientation이 landscape
     expect(aitState.state.viewport.appOrientation).toBe('landscape');
     expect(aitState.state.safeAreaInsets).toEqual({ top: 0, bottom: 34, left: 59, right: 0 });
+  });
+});
+
+describe('disposeViewport', () => {
+  beforeEach(() => {
+    aitState.reset();
+    sessionStorage.clear();
+    _resetViewportInit();
+    disposeViewport();
+  });
+
+  afterEach(() => {
+    _resetViewportInit();
+    disposeViewport();
+  });
+
+  it('dispose 후 aitState 변경은 viewport DOM에 반영되지 않는다', () => {
+    initViewport();
+    aitState.patch('viewport', { preset: 'iphone-17' });
+    expect(document.getElementById('__ait-viewport-style')).not.toBeNull();
+
+    disposeViewport();
+    expect(document.getElementById('__ait-viewport-style')).toBeNull();
+
+    // 후속 patch는 무시되어야 한다 — listener가 해제되었으므로 style이 다시 생기지 않는다.
+    aitState.patch('viewport', { preset: 'iphone-17-pro' });
+    expect(document.getElementById('__ait-viewport-style')).toBeNull();
+    expect(document.getElementById('__ait-viewport-notch')).toBeNull();
+    expect(document.getElementById('__ait-viewport-navbar')).toBeNull();
   });
 });
 
@@ -555,6 +587,79 @@ describe('sessionStorage persistence', () => {
     const parsed = JSON.parse(raw ?? '{}');
     expect(parsed.preset).toBe('galaxy-s26-ultra');
     expect(parsed.orientation).toBe('landscape');
+  });
+});
+
+describe('brand displayName subscription', () => {
+  beforeEach(() => {
+    aitState.reset();
+    sessionStorage.clear();
+    _resetViewportInit();
+    disposeViewport();
+  });
+
+  afterEach(() => {
+    _resetViewportInit();
+    disposeViewport();
+  });
+
+  it('brand.displayName 변경 시 nav bar 텍스트만 갱신되고 element 자체는 재생성되지 않는다', () => {
+    initViewport();
+    aitState.patch('viewport', { preset: 'iphone-17', aitNavBar: true });
+    const initialNavBar = document.getElementById('__ait-viewport-navbar');
+    expect(initialNavBar).not.toBeNull();
+    const initialName = initialNavBar?.querySelector('.ait-navbar-name');
+    expect(initialName?.textContent).toBe('Mock App');
+
+    aitState.patch('brand', { displayName: '도끼 게임' });
+
+    // 같은 nav bar element 인스턴스에서 텍스트만 바뀐다 (M-3: brand-only refresh).
+    expect(document.getElementById('__ait-viewport-navbar')).toBe(initialNavBar);
+    expect(initialName?.textContent).toBe('도끼 게임');
+  });
+});
+
+describe('body-scroll hint (console.info)', () => {
+  beforeEach(() => {
+    aitState.reset();
+    _resetViewportInit();
+    disposeViewport();
+  });
+
+  afterEach(() => {
+    _resetViewportInit();
+    disposeViewport();
+  });
+
+  it('viewport 활성화 시 console.info를 한 번만 발행하고, 후속 호출은 침묵한다', () => {
+    const info = vi.spyOn(console, 'info').mockImplementation(() => {});
+
+    applyViewport({
+      preset: 'iphone-17',
+      orientation: 'auto',
+      appOrientation: null,
+      landscapeSide: 'left',
+      customWidth: 0,
+      customHeight: 0,
+      frame: false,
+      aitNavBar: false,
+    });
+    expect(info).toHaveBeenCalledTimes(1);
+    expect(info.mock.calls[0][0]).toContain('Viewport simulation active');
+
+    applyViewport({
+      preset: 'iphone-17-pro',
+      orientation: 'auto',
+      appOrientation: null,
+      landscapeSide: 'left',
+      customWidth: 0,
+      customHeight: 0,
+      frame: false,
+      aitNavBar: false,
+    });
+    expect(info).toHaveBeenCalledTimes(1); // not re-emitted
+
+    info.mockRestore();
   });
 });
 

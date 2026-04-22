@@ -285,6 +285,8 @@ const NOTCH_ELEMENT_ID = '__ait-viewport-notch';
 const HOME_INDICATOR_ID = '__ait-viewport-home-indicator';
 const NAV_BAR_ELEMENT_ID = '__ait-viewport-navbar';
 
+let bodyScrollHintEmitted = false;
+
 function ensureStyleElement(): HTMLStyleElement | null {
   if (typeof document === 'undefined') return null;
   let el = document.getElementById(STYLE_ELEMENT_ID) as HTMLStyleElement | null;
@@ -406,6 +408,12 @@ function renderNotchOverlay(preset: ViewportPreset): void {
   document.body.appendChild(notch);
 }
 
+/** brand 이름만 바뀐 경우 nav bar 전체를 다시 만들지 않고 텍스트 노드만 교체한다. */
+function refreshNavBarBrand(displayName: string): void {
+  const name = document.querySelector(`#${NAV_BAR_ELEMENT_ID} .ait-navbar-name`);
+  if (name) name.textContent = displayName;
+}
+
 function renderHomeIndicator(): void {
   removeHomeIndicator();
   const el = h('div', {
@@ -417,10 +425,13 @@ function renderHomeIndicator(): void {
 }
 
 /**
- * 모든 viewport DOM mutation을 원복한다. 외부 consumer가 패널을 동적으로 제거할 때 호출.
+ * 모든 viewport DOM mutation을 원복하고 aitState 구독도 해제한다.
+ * 외부 consumer가 패널을 동적으로 제거할 때 호출. 호출 후에는 aitState 변경이
+ * DOM에 반영되지 않으므로 안전하게 panel을 떼어낼 수 있다.
  */
 export function disposeViewport(): void {
   if (typeof document === 'undefined') return;
+  if (viewportUnsubscribe) viewportUnsubscribe();
   const html = document.documentElement;
   html.classList.remove('ait-viewport-active');
   html.classList.remove('ait-viewport-framed');
@@ -428,6 +439,7 @@ export function disposeViewport(): void {
   removeNotchElement();
   removeHomeIndicator();
   removeNavBarElement();
+  bodyScrollHintEmitted = false;
 }
 
 /**
@@ -451,6 +463,14 @@ export function applyViewport(state: ViewportState): void {
     removeHomeIndicator();
     removeNavBarElement();
     return;
+  }
+
+  if (!bodyScrollHintEmitted) {
+    bodyScrollHintEmitted = true;
+    console.info(
+      '[@ait-co/devtools] Viewport simulation active — scroll happens on body, not window. ' +
+        'See README "Known limitations" for details.',
+    );
   }
 
   html.classList.add('ait-viewport-active');
@@ -585,10 +605,13 @@ export function initViewport(): () => void {
     lastViewportJson = json;
     lastBrandName = brandName;
 
-    applyViewport(vp);
     if (viewportChanged) {
+      applyViewport(vp);
       saveViewportToStorage(vp);
       syncSafeAreaFromViewport(vp);
+    } else {
+      // Brand-only change: refresh just the nav bar text instead of rebuilding all overlays.
+      refreshNavBarBrand(brandName);
     }
   });
 
@@ -601,7 +624,9 @@ export function initViewport(): () => void {
   return viewportUnsubscribe;
 }
 
-/** Test helper. Production code never touches this — use disposeViewport(). */
+/**
+ * @internal Test helper. Production code never touches this — use `disposeViewport()`.
+ */
 export function _resetViewportInit(): void {
   if (viewportUnsubscribe) viewportUnsubscribe();
   viewportInitialized = false;

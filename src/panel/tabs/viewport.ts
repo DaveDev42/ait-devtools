@@ -188,15 +188,6 @@ export function renderViewportTab(): HTMLElement {
       );
     }
 
-    // Limitation note: scroll moves to body in viewport mode.
-    rows.push(
-      h(
-        'div',
-        { style: 'color:#666;font-size:10px;margin-top:6px;line-height:1.4' },
-        'Note: scroll happens on body, not window — IntersectionObserver and window scroll listeners may differ from real device.',
-      ),
-    );
-
     for (const row of rows) statusEl.appendChild(row);
   }
 
@@ -211,15 +202,13 @@ export function renderViewportTab(): HTMLElement {
 
   // Landscape side row only shown when effective orientation is landscape and
   // the device has a notch (otherwise the value has no visible effect).
-  if (
-    effectiveOrientation(vp) === 'landscape' &&
-    vp.preset !== 'none' &&
-    vp.preset !== 'custom' &&
-    (getPreset(vp.preset).notch === 'notch' || getPreset(vp.preset).notch === 'dynamic-island')
-  ) {
-    deviceSection.appendChild(
-      h('div', { className: 'ait-row' }, h('label', {}, 'Notch side'), landscapeSideSelect),
-    );
+  if (effectiveOrientation(vp) === 'landscape' && vp.preset !== 'none' && vp.preset !== 'custom') {
+    const notch = getPreset(vp.preset).notch;
+    if (notch === 'notch' || notch === 'dynamic-island') {
+      deviceSection.appendChild(
+        h('div', { className: 'ait-row' }, h('label', {}, 'Notch side'), landscapeSideSelect),
+      );
+    }
   }
 
   container.append(

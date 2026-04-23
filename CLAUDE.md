@@ -176,6 +176,20 @@ testid 규약 (`e2e/fixture/helpers.ts` 참고):
 - `<id>-value` — 페이지 로드 시 즉시 노출되는 읽기 전용 값
 - `<id>-log` / `<id>-empty` — 구독형 이벤트 로그
 
+## jsdom 환경의 제약 (테스트 작성 시 주의)
+
+`vitest.config.ts`는 `environment: 'jsdom'`로 고정되어 있다. 대부분의 DOM API는 jsdom에 있지만, **`web` 모드 mock 구현이 의존하는 브라우저 전용 API들은 jsdom에 없거나 stub만 있다**. 테스트에서 `web` 모드 경로를 돌리면 런타임에 `undefined`/`throw`를 만나 silent하게 mock fallback으로 빠지거나, 반대로 real 브라우저에서만 재현되는 경로가 테스트에서 검증되지 못한 채 지나간다.
+
+| API | jsdom 상태 | `web` 모드 영향 | 테스트에서 취해야 할 것 |
+|---|---|---|---|
+| `navigator.geolocation` | 없음 | `getCurrentLocationWeb`이 `console.warn` 찍고 `buildLocation()` fallback (`src/mock/device/location.ts`) | fallback 경로 전용 테스트는 OK. 실제 geolocation 분기는 Playwright fixture(`e2e/fixture/`)에서만 검증 가능 |
+| `navigator.mediaDevices.getUserMedia` | 없음 | Camera `web` 모드 실패 | Camera `web` 모드는 e2e로 |
+| `navigator.onLine` / `navigator.connection` | `onLine`은 있음, `connection`은 없음 | `device.ts`의 `getNetworkStatus`가 `connection`에 의존하면 값이 state 기반으로 떨어진다 (`src/__tests__/device.test.ts:127-130` 참고) | `navigator.connection` 분기는 Playwright로 |
+| `Contacts API` / `ContactsManager` | 없음 | Contacts `web` 모드 불가 | mock/prompt 모드로만 단위 테스트 |
+| `prompt()` 모달 (devtools 패널) | jsdom이 DOM을 제공하므로 동작 | — | prompt 모드는 단위 테스트 가능, `src/mock/device/_helpers.ts#waitForPromptResponse` 경로 |
+
+**원칙:** 단위 테스트(`vitest`)는 **`mock` 모드 + `prompt` 모드** 경로만 커버한다. `web` 모드의 브라우저 API 분기는 **`e2e/fixture/` Playwright 실행으로만 의미 있는 검증**이 된다. 이 경계를 흐리면 "테스트는 녹색인데 실제 브라우저에서는 깨진다"가 재발한다.
+
 ## Playwright MCP를 활용한 수동 QA
 
 Claude Code의 Playwright MCP 플러그인을 사용하면 브라우저를 직접 제어하여 수동 QA를 수행할 수 있다.

@@ -39,7 +39,8 @@
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "format": "biome format --write .",
-    "check-sdk-update": "tsx scripts/check-sdk-update.ts"
+    "check-sdk-update": "tsx scripts/check-sdk-update.ts",
+    "prepublishOnly": "pnpm build && pnpm typecheck && pnpm test"
   },
   "peerDependencies": {
     "@apps-in-toss/web-framework": ">=2.4.0 <2.4.8"

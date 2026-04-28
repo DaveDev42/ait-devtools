@@ -18,5 +18,7 @@ fi
 
 # Run biome check on staged files. `--no-errors-on-unmatched` so files
 # excluded by biome.json `files.includes` (e.g., dist/, node_modules/)
-# don't fail the hook.
-echo "$staged" | xargs pnpm exec biome check --no-errors-on-unmatched
+# don't fail the hook. We use `tr '\n' '\0' | xargs -0` (instead of
+# `echo | xargs`) so paths containing spaces are passed as a single
+# argument — both POSIX and macOS bsd-xargs handle `-0`.
+printf '%s\n' "$staged" | tr '\n' '\0' | xargs -0 pnpm exec biome check --no-errors-on-unmatched

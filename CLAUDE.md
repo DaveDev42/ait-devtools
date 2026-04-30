@@ -1,14 +1,14 @@
 # CLAUDE.md
 
-조직 공통 규칙(프로젝트 성격, 공통 스택, pre-commit hook, 버전·Changesets 정책, MCP 전략, gw, TODO, 짝 관계 전체 그림)은 umbrella `../CLAUDE.md` 및 `../meta/{mcp-strategy,release-strategy}.md`가 source of truth. 이 파일은 devtools repo only knowledge만 담는다.
+조직 공통 규칙(프로젝트 성격, 공통 스택, pre-commit hook, 버전·Changesets 정책, MCP 전략, gw, TODO, 짝 관계 전체 그림)은 umbrella [`CLAUDE.md`](https://github.com/apps-in-toss-community/umbrella/blob/main/CLAUDE.md) 및 [`meta/mcp-strategy.md`](https://github.com/apps-in-toss-community/umbrella/blob/main/meta/mcp-strategy.md) / [`meta/release-strategy.md`](https://github.com/apps-in-toss-community/umbrella/blob/main/meta/release-strategy.md)가 source of truth. 이 파일은 devtools repo only knowledge만 담는다.
 
 ## 프로젝트 성격 (요약)
 
-`apps-in-toss-community`는 비공식(unofficial) 오픈소스 커뮤니티. 토스 팀과 제휴 없음. 산출물에서 "공식/official/powered by Toss" 등 제휴·후원·인증 암시 표현 금지. 상세는 umbrella `../CLAUDE.md`.
+`apps-in-toss-community`는 비공식(unofficial) 오픈소스 커뮤니티. 토스 팀과 제휴 없음. 산출물에서 "공식/official/powered by Toss" 등 제휴·후원·인증 암시 표현 금지. 상세는 umbrella [`CLAUDE.md`](https://github.com/apps-in-toss-community/umbrella/blob/main/CLAUDE.md).
 
 ## 짝 repo
 
-이 repo와 직접 묶이는 짝만 적는다. 전체 그림은 umbrella의 "짝(pair) 관계" 참조.
+이 repo와 직접 묶이는 짝만 적는다. 전체 그림은 umbrella [`CLAUDE.md`](https://github.com/apps-in-toss-community/umbrella/blob/main/CLAUDE.md)의 "짝(pair) 관계" 참조.
 
 - **`polyfill`** — devtools가 SDK mock이라면 polyfill은 표준 Web API shim. devtools unplugin이 polyfill 주입 옵션 지원은 추후 고려.
 - **`sdk-example`** (downstream consumer) — reference consumer이자 dog-fooding 타겟. E2E는 이 repo 내부 fixture(`e2e/fixture/`)로 운영하므로 sdk-example을 직접 clone하지 않는다.
@@ -21,7 +21,7 @@
 
 ## 기술 스택 (repo 고유)
 
-공통(Node 24 / pnpm 10.33.0 / TypeScript strict / Biome)은 umbrella 참조. 이 repo 고유:
+공통(Node 24 / pnpm 10.33.0 / TypeScript strict / Biome)은 umbrella [`CLAUDE.md`](https://github.com/apps-in-toss-community/umbrella/blob/main/CLAUDE.md) 참조. 이 repo 고유:
 
 - **tsdown** — 빌드 (ESM + CJS for unplugin)
 - **vitest** — 테스트 (jsdom 환경, 아래 "jsdom 제약" 섹션 주의)
@@ -38,6 +38,7 @@ pnpm build          # tsdown으로 dist/ 빌드
 pnpm typecheck      # tsc --noEmit (원본 SDK 시그니처 호환성 검증 포함)
 pnpm test           # vitest
 pnpm test:e2e       # Playwright E2E (자동 빌드 + preview)
+pnpm check-sdk-update  # 새 SDK 버전 감지 (수동 트리거, 매주 월요일 CI도 동일)
 ```
 
 ## 프로젝트 구조
@@ -124,6 +125,6 @@ devtools는 `@apps-in-toss/web-framework`의 좁은 범위(`>=2.4.0 <2.4.8`)만 
 
 이 repo의 시각 산출물(Floating DevTools Panel, fixture 앱, viewport 시뮬레이션)을 변경한 후에는 **반드시 Playwright MCP로 브라우저에서 동작 확인**. 단순 prop 변경이라도 렌더 깨짐 가능. 타입체크/테스트만으로 UI 회귀 못 잡는다.
 
-워크플로: `pnpm build && pnpm exec vite build --config e2e/fixture/vite.config.ts && pnpm exec vite preview --config e2e/fixture/vite.config.ts --port 4173` → `http://localhost:4173/` 접속 → snapshot/screenshot/console 확인 → 인터랙션 시뮬레이션. 도구 schema는 시스템 자동 제공이라 여기 표는 두지 않는다 (umbrella의 "Playwright MCP" 섹션도 동일 기조).
+워크플로: `pnpm build && pnpm exec vite build --config e2e/fixture/vite.config.ts && pnpm exec vite preview --config e2e/fixture/vite.config.ts --port 4173` → `http://localhost:4173/` 접속 → snapshot/screenshot/console 확인 → 인터랙션 시뮬레이션. 도구 schema는 시스템 자동 제공이라 여기 표는 두지 않는다 (umbrella [`CLAUDE.md`](https://github.com/apps-in-toss-community/umbrella/blob/main/CLAUDE.md)의 "Playwright MCP" 섹션도 동일 기조).
 
-확인할 핵심 동작: AIT 버튼 → 8개 탭(Environment/Permissions/Location/Device/Viewport/IAP/Events/Analytics/Storage) 전환, Events 탭에서 Trigger Back/Home → fixture의 Granite Events 수신 표시, Storage setItem/getItem 왕복, Login → authorizationCode 반환, Location/IAP/Analytics 등 각 섹션 버튼 무에러.
+확인할 핵심 동작: AIT 버튼 → 9개 탭(Environment/Permissions/Location/Device/Viewport/IAP/Events/Analytics/Storage) 전환, Events 탭에서 Trigger Back/Home → fixture의 Granite Events 수신 표시, Storage setItem/getItem 왕복, Login → authorizationCode 반환, Location/IAP/Analytics 등 각 섹션 버튼 무에러.

@@ -845,6 +845,69 @@ it('can write and read from Storage', async () => {
 });
 ```
 
+## On-device test runner (`devtools-test`)
+
+"Using in tests" above verifies mocks in desktop jsdom. `devtools-test` is a separate executable that runs tests written in the same style **against the real SDK inside the Toss app WebView on a real phone (environment 3)**. Installing the package also installs the `devtools-test` bin.
+
+```bash
+# shape
+devtools-test <glob> --scheme-url <intoss-private URL> [--manual-blocking] \
+  --cell-sdk-line <2.x|3.x> --cell-platform <ios|android> [--report-dir <dir>]
+
+# example
+pnpm exec devtools-test 'src/**/*.ait.test.ts' \
+  --scheme-url "intoss-private://my-mini-app?_deploymentId=<uuid>" \
+  --cell-sdk-line 3.x --cell-platform ios --report-dir .ait-report
+```
+
+| Flag | Meaning |
+|---|---|
+| `<glob>` | Test file glob (more than one may be given) |
+| `--scheme-url` | The `intoss-private://` URL printed by `ait deploy --scheme-only`. Required for environment 3 attach |
+| `--cell-sdk-line` | SDK line axis stamped into the report (`2.x` / `3.x`, defaults to `2.x`) |
+| `--cell-platform` | Platform axis (`mock` / `ios` / `android` / `ios-pwa`). Resolution order: flag → `AIT_CELL_PLATFORM` env → `mock` |
+| `--manual-blocking` | Run `*.manual.ait.test.ts` last, with a human driving the native sheets |
+| `--report-dir` | Directory for the report + captures. Omitted means nothing is written |
+
+Four things need to be in place:
+
+| Item | Detail |
+|---|---|
+| A relay TOTP secret | The runner requires this before it boots the relay — without it, it exits 1 before the QR ever appears. Booting `pnpm dev:phone:cdp` once (unplugin's `tunnel.cdp` option) auto-generates `.ait_relay` in the project root; otherwise set `AIT_DEBUG_TOTP_SECRET` yourself (`openssl rand -hex 32`). Which directory the runner looks for `.ait_relay` in is decided by `--project-root` (defaults to cwd) |
+| Dog-food bundle | `ait build && ait deploy --scheme-only` → the printed `intoss-private://…?_deploymentId=…` URL is your `--scheme-url` value |
+| One line in the mini-app entry | `import '@ait-co/devtools/in-app/auto'` — wires attach + the `window.__sdk` bridge ([section above](#on-device-debugging-in-one-line)) |
+| Test files | `*.ait.test.ts`. `describe`/`it`/`test`/`expect` are installed as globals by the runner (no import needed), and `@apps-in-toss/web-framework` imports are redirected to `window.__sdk` at bundle time |
+
+### Scan the dashboard QR, not the raw scheme URL
+
+On start, the runner boots its own Chii relay + cloudflared tunnel + a local QR dashboard, and prints the dashboard address to stderr (`http://127.0.0.1:8317/` by default — if that port is taken it scans up to 20 ports, incrementing by 1, then falls back to an ephemeral port; override with `--dashboard-port` or `AIT_DEBUG_HTTP_PORT`).
+
+**The QR you scan with the phone is the one on that dashboard.** Only that QR carries the scheme URL, the relay wss URL, and the always-present rotating `at=` code in a single capsule, so one scan cold-loads the bundle in the Toss app and attaches CDP at the same time. Once the attach succeeds a `Debugger Connected` badge appears in the phone's bottom-left corner and the runner starts executing tests.
+
+> Turning the bare `intoss-private://` URL from `ait deploy --scheme-only` into a QR and scanning that opens the app but **does not attach the debugger** — without `debug=1` and `relay=` the in-app gate blocks the attach. The runner waits indefinitely for a scan (`--attach-timeout` bounds the wait) and runs no tests until one arrives.
+
+### The debugger disconnects when the run ends (this is normal)
+
+The runner is run-then-exit. Once the last test file finishes it prints the summary, tears down the relay, tunnel, and dashboard, and exits (exit code 1 if any test failed) — at that moment the badge on the phone flips to a disconnected notice and then dismisses itself. The debug session closed; the app did not crash, and the mini-app stays open. To run again, restart the runner and scan the new dashboard QR.
+
+### Tests that open native sheets (`--manual-blocking`)
+
+Tests that need a human to tap through a native sheet — photo picker, permission dialog, fullscreen ad — go in files named `*.manual.ait.test.ts`. Those files are **excluded** from a default run and are only included with `--manual-blocking`, where they run **last**, after every regular file. Before each manual file the dashboard and stdout show its filename plus progress (k/n), and the per-file timeout is raised to 5 minutes.
+
+### Artifacts (`--report-dir`)
+
+| Path | Contents |
+|---|---|
+| `<dir>/<sdkLine>.<platform>.json` | Runner-agnostic report. File paths are relative to the project root, and no relay / scheme / TOTP values are stored |
+| `<dir>/<sdkLine>.<platform>.manual.json` | The manual files included in a `--manual-blocking` run — written alongside the standard report, never replacing it |
+| `<dir>/.ait-capture/<category>.<sdkLine>.<platform>.json` | `__AIT_CAPTURE__` lines emitted by the tests (for offline 2.x↔3.0 comparison) |
+
+`<sdkLine>` and `<platform>` are the `--cell-sdk-line` / `--cell-platform` values verbatim. Without `--report-dir`, neither the report nor the captures are collected.
+
+### Everything else
+
+`devtools-test --help` is the source of truth for the full flag reference. Attach/run timeouts, bridge-call pacing, and the `--attach-launcher --app-url` mode that attaches to the environment 2 launcher PWA all live there.
+
 ## SDK update tracking
 
 devtools tracks [`@apps-in-toss/web-framework`](https://www.npmjs.com/package/@apps-in-toss/web-framework), and [`sdk-example`](https://github.com/apps-in-toss-community/sdk-example) tracks both the original SDK and devtools. When a new SDK version is released, the flow is: (1) devtools catches up on mock/type signatures → (2) sdk-example incorporates both new versions together. If a devtools-only PR breaks sdk-example, both are addressed together.

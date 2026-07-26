@@ -199,6 +199,14 @@ pnpm 10+ 소비자에 대한 안내는 README에 있다: 프로젝트 `package.j
 
 **testid 규약** (`e2e/fixture/components.tsx`): `section-<id>` 루트, `<id>-btn` 버튼, `<id>-result` 결과, `<id>-input` 입력, `<id>-value` 즉시 값, `<id>-log`/`<id>-empty` 이벤트 로그.
 
+**온디바이스 테스트 러너 (`devtools-test`)** — 위 Playwright fixture E2E와는 별개의 실행 경로다. env 3 온디바이스 러너(`devtools-test` bin, `src/test-runner/`)는 실 토스 앱 WebView에 CDP를 직접 attach해 `*.ait.test.ts` 파일을 구동한다. 호출 형태:
+
+```
+devtools-test <glob> --scheme-url <intoss-private URL> [--manual-blocking] --cell-sdk-line <2.x|3.x> --cell-platform <ios|android>
+```
+
+`main()`(`src/test-runner/cli.ts`)이 자체적으로 Chii relay + cloudflared 터널 + QR 대시보드(기본 포트 `DEFAULT_DASHBOARD_PORT`=8317, `src/mcp/qr-http-server.ts`)를 띄운다. **폰은 반드시 이 대시보드 QR을 스캔해야 한다** — relay wss + 회전하는 TOTP(`at=`)가 scheme URL에 함께 실려 있어, 스캔 한 번으로 앱을 cold-load하면서 동시에 CDP를 attach한다. `ait deploy --scheme-only`가 출력하는 맨 `intoss-private://` scheme URL만 스캔하면 앱은 cold-load되지만 디버거는 붙지 않는다. 실행은 run-then-exit이다 — 테스트 파일이 다 끝나면 디버거가 detach되어(폰 화면에 "디버거 연결 끊김" 표시) 앱 자체는 켜진 채로 남는다. `--manual-blocking`을 주면 `*.manual.ait.test.ts` 파일들을 맨 마지막에, 사람이 네이티브 시트(사진 선택기·권한 다이얼로그·전면 광고 등)를 직접 조작하며 실행한다. 플래그 전체 레퍼런스는 `devtools-test --help`가 정본.
+
 ## jsdom 환경의 제약
 
 `vitest.config.ts`는 `environment: 'jsdom'` 고정. 대부분의 DOM API는 있으나 **`web` 모드 mock이 의존하는 브라우저 전용 API들은 jsdom에 없거나 stub만 있다**. 단위 테스트에서 `web` 모드 경로를 돌리면 silent fallback에 빠지거나, real 브라우저에서만 재현되는 경로가 검증되지 못한다.

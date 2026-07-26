@@ -632,6 +632,7 @@ __ait.update({ networkStatus: 'OFFLINE' });
 __ait.patch('permissions', { camera: 'denied' });
 __ait.patch('deviceModes', { location: 'web' });
 __ait.patch('iap', { nextResult: 'USER_CANCELED' });
+__ait.patch('failureModes', { loadAdMob: 'PLACEMENT_ID_FETCH_FAILED' }); // 실기기 광고 지면 조회 실패 재현
 
 // 이벤트 트리거
 __ait.trigger('backEvent');
@@ -745,6 +746,8 @@ unsubscribe(); // 구독 해제
 | `TossAds.initialize/attach/attachBanner` | 회색 플레이스홀더 div 렌더링 |
 | `TossAds.destroy/destroyAll` | no-op |
 | `loadFullScreenAd` / `showFullScreenAd` | GoogleAdMob과 유사한 흐름 |
+
+> 실패 다이얼(`failureModes.loadAdMob`, 패널 `forceNoFill`)을 설정하지 않으면 위 이벤트들은 매번 동일하게 발화합니다 — mock은 `adGroupId`를 판정에 쓰지 않고, 서버 측 지면(placement) 조회 단계를 모델링하지 않습니다. 실기기는 광고가 존재하기도 전에 지면 조회 자체가 실패해(예: `PLACEMENT_ID_FETCH_FAILED`) 즉시 거부될 수 있으므로, mock의 `loaded` 발화가 "실기기에서 광고가 실제로 나간다"는 신호는 아닙니다. 로컬에서 이 실패를 재현하려면: `__ait.patch('failureModes', { loadAdMob: 'PLACEMENT_ID_FETCH_FAILED' })`.
 
 ### 이벤트
 

@@ -174,7 +174,7 @@ iPhone 15 Pro 실 web-relevant 스펙(devtools#190 relay 실측): CSS viewport *
 
 | API | mock 동작 | real 동작 | 분류 | 관측? | gap |
 |---|---|---|---|---|---|
-| `GoogleAdMob.loadAppsInTossAdMob` | 200ms 후 `forceNoFill`이면 error, 아니면 `isLoaded=true` + `loaded` 이벤트 | 실 AdMob 로드 | 🟢 faithful | ✓ sdkCallLog | 패널 `forceNoFill` 토글로 no-fill 시험. |
+| `GoogleAdMob.loadAppsInTossAdMob` | 200ms 후 `forceNoFill`이면 error, 아니면 `isLoaded=true` + `loaded` 이벤트 | 실 AdMob 로드 | 🟢 faithful | ✓ sdkCallLog | 패널 `forceNoFill` 토글로 no-fill 시험. 서버 측 지면(placement) 조회 단계는 모델링되지 않는다 — `adGroupId`는 판정에 쓰이지 않는다. 실기기의 지면 조회 실패(`PLACEMENT_ID_FETCH_FAILED`)는 `failureModes.loadAdMob` 다이얼로만 재현 가능하며, 다이얼 미설정 시 mock의 load 성공이 실기기에서 광고가 실제로 나간다는 신호는 아니다. |
 | `GoogleAdMob.showAppsInTossAdMob` | `isLoaded` 체크 후 requested→show→impression→reward→dismissed 시퀀스 emit | 실 광고 노출 + 리워드 | 🟢 faithful | ✓ sdkCallLog | 이벤트 타임라인 재현. reward는 `state.ads.rewardUnitType`/`rewardAmount`로 파라미터화 (#196). |
 | `GoogleAdMob.isAppsInTossAdMobLoaded` | `ads.isLoaded` 반환 | 실 로드 상태 | 🟢 faithful | ✓ sdkCallLog | 상태 기반. `adGroupId`가 빈 문자열/공백뿐이면 실기기와 동일하게 `INVALID_REQUEST`로 reject한다(필드 자체가 없는 호출은 하위호환으로 통과, [#780](https://github.com/apps-in-toss-community/devtools/issues/780)). |
 | `TossAds.initialize` | `onInitialized` 발화. `forceNoFill=true`이면 `onInitializationFailed` 발화 (#196) | 실 SDK 초기화 | 🟢 faithful | ✓ sdkCallLog | 콜백 발화 완성. 패널 Load 버튼이 initialize를 통해 `isLoaded=true` + `loaded` 이벤트 기록. |

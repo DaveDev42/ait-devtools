@@ -876,23 +876,24 @@ pnpm exec devtools-test 'src/**/*.ait.test.ts' \
 | `<glob>` | 테스트 파일 glob (여러 개 지정 가능) |
 | `--scheme-url` | `ait deploy --scheme-only`가 출력한 `intoss-private://` URL. 환경 3 attach에 필수 |
 | `--cell-sdk-line` | 리포트에 박히는 SDK 라인 축 (`2.x` / `3.x`, 생략 시 `2.x`) |
-| `--cell-platform` | 플랫폼 축 (`mock` / `ios` / `android` / `ios-pwa`, 생략 시 `mock`) |
+| `--cell-platform` | 플랫폼 축 (`mock` / `ios` / `android` / `ios-pwa`). 해석 순서: 플래그 → `AIT_CELL_PLATFORM` env → `mock` |
 | `--manual-blocking` | `*.manual.ait.test.ts`를 사람이 조작하며 맨 마지막에 실행 |
 | `--report-dir` | 리포트·capture 저장 디렉토리. 생략하면 아무것도 저장하지 않습니다 |
 
-준비물은 세 가지입니다:
+준비물은 네 가지입니다:
 
 | 항목 | 내용 |
 |---|---|
+| relay TOTP 시크릿 | 러너가 relay를 띄우기 전에 필수로 검사하며, 없으면 QR이 뜨기도 전에 exit 1 합니다. `pnpm dev:phone:cdp`(unplugin `tunnel.cdp` 옵션)를 한 번 띄우면 프로젝트 루트에 `.ait_relay`가 자동 생성되고, 없으면 `AIT_DEBUG_TOTP_SECRET`을 직접 설정하세요 (`openssl rand -hex 32`). `.ait_relay`를 찾는 디렉토리는 `--project-root`(생략 시 cwd)가 정합니다 |
 | dog-food 번들 | `ait build && ait deploy --scheme-only` → 출력된 `intoss-private://…?_deploymentId=…` URL이 `--scheme-url` 값 |
 | 미니앱 entry 한 줄 | `import '@ait-co/devtools/in-app/auto'` — attach + `window.__sdk` 브리지 설치 ([위 섹션](#on-device-디버깅-한-줄-설정)) |
 | 테스트 파일 | `*.ait.test.ts`. `describe`/`it`/`test`/`expect`는 러너가 글로벌로 주입하므로 import가 필요 없고, `@apps-in-toss/web-framework` import는 번들 시 `window.__sdk`로 리다이렉트됩니다 |
 
 ### 스캔할 QR은 대시보드 QR입니다
 
-실행하면 러너가 자체적으로 Chii relay + cloudflared 터널 + 로컬 QR 대시보드를 띄우고 그 주소를 stderr에 출력합니다 (기본 `http://127.0.0.1:8317/` — 포트가 점유돼 있으면 +1씩 최대 20회 올려보고 그래도 안 되면 임의 포트. `--dashboard-port` 또는 `AIT_DEBUG_HTTP_PORT`로 변경).
+실행하면 러너가 자체적으로 Chii relay + cloudflared 터널 + 로컬 QR 대시보드를 띄우고 그 주소를 stderr에 출력합니다 (기본 `http://127.0.0.1:8317/` — 포트가 점유돼 있으면 +1씩 최대 20개 포트를 훑고 그래도 안 되면 임의 포트. `--dashboard-port` 또는 `AIT_DEBUG_HTTP_PORT`로 변경).
 
-**폰으로 스캔할 QR은 이 대시보드의 QR입니다.** 이 QR만 scheme URL + relay wss + (TOTP를 쓰는 프로젝트라면) 회전 코드 `at=`을 한 캡슐에 담고 있어서, 한 번 스캔하면 토스 앱이 번들을 cold-load하면서 동시에 CDP가 attach됩니다. attach에 성공하면 폰 화면 좌하단에 `Debugger Connected` 배지가 뜨고 러너가 곧바로 테스트를 실행합니다.
+**폰으로 스캔할 QR은 이 대시보드의 QR입니다.** 이 QR만 scheme URL + relay wss + 항상 실리는 회전 코드 `at=`을 한 캡슐에 담고 있어서, 한 번 스캔하면 토스 앱이 번들을 cold-load하면서 동시에 CDP가 attach됩니다. attach에 성공하면 폰 화면 좌하단에 `Debugger Connected` 배지가 뜨고 러너가 곧바로 테스트를 실행합니다.
 
 > `ait deploy --scheme-only`가 출력한 맨 `intoss-private://` URL을 그대로 QR로 만들어 스캔하면 앱은 열리지만 **디버거는 붙지 않습니다** — `debug=1`·`relay=`가 없어 in-app gate가 attach를 막습니다. 러너는 스캔이 올 때까지 무한 대기하며(`--attach-timeout`으로 상한을 줄 수 있습니다) 그 사이 테스트는 한 줄도 실행되지 않습니다.
 

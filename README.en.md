@@ -865,23 +865,24 @@ pnpm exec devtools-test 'src/**/*.ait.test.ts' \
 | `<glob>` | Test file glob (more than one may be given) |
 | `--scheme-url` | The `intoss-private://` URL printed by `ait deploy --scheme-only`. Required for environment 3 attach |
 | `--cell-sdk-line` | SDK line axis stamped into the report (`2.x` / `3.x`, defaults to `2.x`) |
-| `--cell-platform` | Platform axis (`mock` / `ios` / `android` / `ios-pwa`, defaults to `mock`) |
+| `--cell-platform` | Platform axis (`mock` / `ios` / `android` / `ios-pwa`). Resolution order: flag → `AIT_CELL_PLATFORM` env → `mock` |
 | `--manual-blocking` | Run `*.manual.ait.test.ts` last, with a human driving the native sheets |
 | `--report-dir` | Directory for the report + captures. Omitted means nothing is written |
 
-Three things need to be in place:
+Four things need to be in place:
 
 | Item | Detail |
 |---|---|
+| A relay TOTP secret | The runner requires this before it boots the relay — without it, it exits 1 before the QR ever appears. Booting `pnpm dev:phone:cdp` once (unplugin's `tunnel.cdp` option) auto-generates `.ait_relay` in the project root; otherwise set `AIT_DEBUG_TOTP_SECRET` yourself (`openssl rand -hex 32`). Which directory the runner looks for `.ait_relay` in is decided by `--project-root` (defaults to cwd) |
 | Dog-food bundle | `ait build && ait deploy --scheme-only` → the printed `intoss-private://…?_deploymentId=…` URL is your `--scheme-url` value |
 | One line in the mini-app entry | `import '@ait-co/devtools/in-app/auto'` — wires attach + the `window.__sdk` bridge ([section above](#on-device-debugging-in-one-line)) |
 | Test files | `*.ait.test.ts`. `describe`/`it`/`test`/`expect` are installed as globals by the runner (no import needed), and `@apps-in-toss/web-framework` imports are redirected to `window.__sdk` at bundle time |
 
 ### Scan the dashboard QR, not the raw scheme URL
 
-On start, the runner boots its own Chii relay + cloudflared tunnel + a local QR dashboard, and prints the dashboard address to stderr (`http://127.0.0.1:8317/` by default — if that port is taken it increments by 1 up to 20 times, then falls back to an ephemeral port; override with `--dashboard-port` or `AIT_DEBUG_HTTP_PORT`).
+On start, the runner boots its own Chii relay + cloudflared tunnel + a local QR dashboard, and prints the dashboard address to stderr (`http://127.0.0.1:8317/` by default — if that port is taken it scans up to 20 ports, incrementing by 1, then falls back to an ephemeral port; override with `--dashboard-port` or `AIT_DEBUG_HTTP_PORT`).
 
-**The QR you scan with the phone is the one on that dashboard.** Only that QR carries the scheme URL, the relay wss URL, and (in projects using TOTP) the rotating `at=` code in a single capsule, so one scan cold-loads the bundle in the Toss app and attaches CDP at the same time. Once the attach succeeds a `Debugger Connected` badge appears in the phone's bottom-left corner and the runner starts executing tests.
+**The QR you scan with the phone is the one on that dashboard.** Only that QR carries the scheme URL, the relay wss URL, and the always-present rotating `at=` code in a single capsule, so one scan cold-loads the bundle in the Toss app and attaches CDP at the same time. Once the attach succeeds a `Debugger Connected` badge appears in the phone's bottom-left corner and the runner starts executing tests.
 
 > Turning the bare `intoss-private://` URL from `ait deploy --scheme-only` into a QR and scanning that opens the app but **does not attach the debugger** — without `debug=1` and `relay=` the in-app gate blocks the attach. The runner waits indefinitely for a scan (`--attach-timeout` bounds the wait) and runs no tests until one arrives.
 

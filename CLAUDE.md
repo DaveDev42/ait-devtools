@@ -1,5 +1,11 @@
 # CLAUDE.md
 
+## SPLIT FREEZE
+
+이 repo는 현재 **3 패키지 / 2 repo 분리** 이행 중이다. `src/mcp` · `src/in-app` · `src/test-runner` · `src/shared`는 **freeze** — 변경 PR을 열지 않는다(`src/shared`는 일부만 이동하지만 통째로 얼린다). 얼지 않는 것: `src/mock` · `src/panel` · `src/unplugin` · `src/i18n` · `e2e/fixture` · `scripts/`.
+
+이동 대상: `src/mcp` + `src/test-runner` → `@ait-co/debugger`, `src/in-app` → `@ait-co/debug-console`. 상세와 해제 조건은 이슈 #813(pinned)이 정본. devtools V2(표면 제거 + 0.2.0) 머지 후 이 배너를 제거한다.
+
 ## 이 파일의 독자
 
 이 파일(`CLAUDE.md`)은 **메인테이너/contributor 전용**이다 — 코드 구조, 컨벤션, 테스트 경계, SDK 대응 절차를 다룬다.

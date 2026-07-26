@@ -621,6 +621,7 @@ __ait.update({ networkStatus: 'OFFLINE' });
 __ait.patch('permissions', { camera: 'denied' });
 __ait.patch('deviceModes', { location: 'web' });
 __ait.patch('iap', { nextResult: 'USER_CANCELED' });
+__ait.patch('failureModes', { loadAdMob: 'PLACEMENT_ID_FETCH_FAILED' }); // reproduce a real-device ad placement lookup failure
 
 // Trigger events
 __ait.trigger('backEvent');
@@ -734,6 +735,8 @@ unsubscribe(); // unsubscribe
 | `TossAds.initialize/attach/attachBanner` | Renders a gray placeholder div |
 | `TossAds.destroy/destroyAll` | No-op |
 | `loadFullScreenAd` / `showFullScreenAd` | Similar flow to GoogleAdMob |
+
+> Unless a failure dial is set (`failureModes.loadAdMob`, panel `forceNoFill`), the events above fire the same way every time — the mock does not use `adGroupId` to decide the outcome, and it does not model a server-side placement-resolution step. A real device can fail placement lookup itself before any ad exists (e.g. `PLACEMENT_ID_FETCH_FAILED`) and reject immediately, so a mock `loaded` event is not a signal that an ad will actually serve on a real device. To reproduce this failure locally: `__ait.patch('failureModes', { loadAdMob: 'PLACEMENT_ID_FETCH_FAILED' })`.
 
 ### Events
 

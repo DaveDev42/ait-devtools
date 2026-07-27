@@ -17,15 +17,19 @@ import '@ait-co/polyfill/auto';
 // 이 fixture는 rolldown(Vite 8) 우회책으로 unplugin transform을 비활성화하므로
 // (vite.config.ts: inApp: false) 여기에 명시 배선을 유지한다 — panel 명시 import와 동일한 패턴.
 //
-// NOTE: the in-app gate (Layer B1 in src/in-app/gate.ts) BLOCKS localhost — it
-// only allows *.trycloudflare.com and *.private-apps.tossmini.com hostnames.
-// In a real env-2 session the fixture is served from a trycloudflare.com tunnel
-// and the gate passes. In local development / Playwright e2e, localhost is
-// blocked — see e2e/launcher-cdp.test.ts for the documented manual residue.
+// NOTE: the in-app gate BLOCKS localhost — it only allows *.trycloudflare.com
+// and *.private-apps.tossmini.com hostnames. In a real env-2 session the fixture
+// is served from a trycloudflare.com tunnel and the gate passes. In local
+// development / Playwright e2e, localhost is blocked — see
+// e2e/launcher-cdp.test.ts for the documented manual residue.
+//
+// #817: the attach package is `@ait-co/debug-console` — the optional peer the
+// unplugin injects for a normal consumer. This fixture keeps the wiring explicit
+// (see the note above), so it names the same package a consumer would get.
 if (typeof window !== 'undefined') {
   const _p = new URLSearchParams(window.location.search);
   if (_p.get('debug') === '1' && _p.get('relay')) {
-    import('@ait-co/devtools/in-app').then(({ maybeAttach }) => {
+    import('@ait-co/debug-console').then(({ maybeAttach }) => {
       maybeAttach();
     });
   }

@@ -26,6 +26,13 @@
 import { fileURLToPath } from 'node:url';
 import { createUnplugin } from 'unplugin';
 import { startParentWatcher } from '../shared/parent-watcher.js';
+import {
+  buildInAppSnippet,
+  hasDebugConsole,
+  hasDebugger,
+  hasInAppWiring,
+  INSTALL_HINT,
+} from './optional-peers.js';
 
 /**
  * Resolve `@ait-co/devtools/mock` to its real file path at plugin-load time.
@@ -56,13 +63,19 @@ export interface AitDevtoolsOptions {
    *
    * true이면 진입점에 게이트된 dynamic import를 자동 추가한다:
    * `?debug=1` + `relay` URL 파라미터가 모두 존재할 때만 런타임에
-   * `@ait-co/devtools/in-app`을 로드하고 `maybeAttach()`를 호출한다.
+   * `@ait-co/debug-console`을 로드하고 `maybeAttach()`를 호출한다.
    *
    * gate가 통과하지 못하면 chunk 자체를 로드하지 않으므로 일반 production
    * 로드에서 dormant하고, 번들러의 DCE 대상이 된다.
    *
+   * `@ait-co/debug-console`은 **optional peer**다 (#817). 설치돼 있지 않으면
+   * 주입 자체를 하지 않으므로 attach 코드가 번들에 구조적으로 들어갈 수 없다 —
+   * 이게 디버그 표면 보안 스코프의 기술적 강제 지점이다. 환경 1(브라우저 mock)만
+   * 쓰는 소비자는 아무것도 추가로 설치하지 않아도 된다.
+   *
    * 소비자가 이미 직접 배선한 경우 중복 주입을 방지하기 위해 파일에
-   * `@ait-co/devtools/in-app`이 이미 있으면 자동으로 스킵한다.
+   * `@ait-co/debug-console`(또는 분리 전 `@ait-co/devtools/in-app`)이 이미 있으면
+   * 자동으로 스킵한다.
    */
   inApp?: boolean;
   /**
@@ -132,6 +145,10 @@ export interface AitDevtoolsOptions {
          * AI host MCP가 그 relay에 client로 붙으면 실기기 WebKit 위에서 CDP 디버깅이 열린다.
          * mock SDK는 그대로라 `call_sdk`는 환경 2에서 mock을 친다 (fidelity 사다리의
          * 설계 의도 — SDK fidelity가 필요하면 환경 3로 올라간다).
+         *
+         * 이 경로는 **optional peer `@ait-co/debugger`**를 요구한다 (#817).
+         * 미설치면 CDP 배선을 건너뛰고 일반 화면 미리보기 터널로 degrade하며,
+         * 설치 안내를 한 번 출력한다.
          */
         cdp?: boolean;
       };
@@ -177,7 +194,19 @@ const aitDevtoolsPlugin = createUnplugin((options?: AitDevtoolsOptions) => {
   const shouldPanel = shouldEnable && (options?.panel ?? true);
   // in-app attach 주입: shouldEnable과 동일하게 dev에서 자동.
   // maybeAttach()가 런타임 gate(Layer B·C)를 자체 검증하므로 dev 항상 주입이 안전하다.
-  const shouldInApp = shouldEnable && (options?.inApp ?? true);
+  //
+  // #817: 주입 대상인 `@ait-co/debug-console`은 optional peer다. 미설치면 주입
+  // 자체를 하지 않는다 — attach 코드가 번들에 구조적으로 못 들어가는 게 보안
+  // 스코프의 강제 지점이고, 환경 1만 쓰는 다수 소비자는 아무것도 더 설치하지
+  // 않아도 된다. 사용자가 `inApp: true`로 명시 요청했는데 패키지가 없을 때만
+  // 안내를 출력한다 (기본값 경로는 조용히 degrade — 상시 nag 금지).
+  const debugConsoleInstalled = hasDebugConsole();
+  const shouldInApp = shouldEnable && (options?.inApp ?? true) && debugConsoleInstalled;
+  if (shouldEnable && options?.inApp === true && !debugConsoleInstalled) {
+    console.warn(
+      `[@ait-co/devtools] inApp: @ait-co/debug-console이 없어 in-app attach를 주입하지 않습니다. 설치: ${INSTALL_HINT}`,
+    );
+  }
   const shouldMcp = shouldEnable && (options?.mcp ?? false);
 
   // In-memory store for the last state snapshot pushed by the browser panel.
@@ -247,20 +276,12 @@ const aitDevtoolsPlugin = createUnplugin((options?: AitDevtoolsOptions) => {
 
       // in-app attach 주입: shouldInApp이 활성화되어 있고 아직 배선이 없으면 prepend.
       // 게이트된 dynamic import로 주입 — ?debug=1 + relay 파라미터가 모두 있을 때만
-      // 런타임에 @ait-co/devtools/in-app을 로드하고 maybeAttach()를 호출한다.
+      // 런타임에 @ait-co/debug-console을 로드하고 maybeAttach()를 호출한다 (#817).
       // production DCE: URLSearchParams gate가 조건을 false로 평가하면
       // dynamic import 자체가 dead code — 번들러가 제거 가능.
-      if (shouldInApp && !code.includes('@ait-co/devtools/in-app')) {
-        const inAppSnippet = [
-          '// @ait-co/devtools: in-app attach auto-injected by unplugin — 수동 배선 불필요',
-          "if (typeof window !== 'undefined') {",
-          '  const __ait_p = new URLSearchParams(window.location.search);',
-          "  if (__ait_p.get('debug') === '1' && __ait_p.get('relay')) {",
-          "    void import('@ait-co/devtools/in-app').then((m) => m.maybeAttach());",
-          '  }',
-          '}',
-        ].join('\n');
-        result = `${inAppSnippet}\n${result}`;
+      // dedupe는 신·구 specifier를 모두 인정한다 (hasInAppWiring).
+      if (shouldInApp && !hasInAppWiring(code)) {
+        result = `${buildInAppSnippet()}\n${result}`;
         changed = true;
       }
 
@@ -387,8 +408,26 @@ const aitDevtoolsPlugin = createUnplugin((options?: AitDevtoolsOptions) => {
                 let relayHttpUrl: string | undefined;
                 // LOCAL relay base — loopback URL, safe to surface (issue #530).
                 let relayLocalHttpUrl: string | undefined;
-                if (tunnelConfig.cdp) {
+                // #817: env-2 CDP는 optional peer `@ait-co/debugger`를 요구한다.
+                // 미설치면 relay·dashboard 배선을 통째로 건너뛰고 일반 화면
+                // 미리보기 터널로 degrade한다 — 사용자가 명시적으로 cdp를 켠
+                // 경로이므로 설치 안내를 한 번 출력한다.
+                // SECRET-HANDLING: 고정 문구만 — URL·host·코드 없음.
+                if (tunnelConfig.cdp && !hasDebugger()) {
+                  console.warn(
+                    `[@ait-co/devtools] tunnel: @ait-co/debugger가 없어 CDP relay를 건너뜁니다 — 화면 미리보기는 그대로 동작합니다. 설치: ${INSTALL_HINT}`,
+                  );
+                } else if (tunnelConfig.cdp) {
                   try {
+                    // NOTE (#817): the relay BOOTSTRAP below still calls this
+                    // package's local `../mcp/*` modules. `@ait-co/debugger@0.1.1`
+                    // publishes only `startTunnelDashboard` from `/dev-bridge` —
+                    // there is no published entry for the secret store / TOTP /
+                    // chii relay / URL store yet, so those four steps cannot be
+                    // delegated. The GATE above is nonetheless the real contract:
+                    // env-2 CDP requires `@ait-co/debugger`, matching the shape
+                    // this path takes once V2 removes the local copies.
+                    //
                     // Relay-auth baseline (issue #250): the env-2 CDP relay is
                     // reachable over a public `*.trycloudflare.com` tunnel, so a
                     // configured TOTP secret is MANDATORY and the relay enforces

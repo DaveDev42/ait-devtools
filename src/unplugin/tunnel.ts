@@ -13,6 +13,7 @@
 import { existsSync } from 'node:fs';
 import { mkdir } from 'node:fs/promises';
 import { dirname } from 'node:path';
+import { DEBUGGER_DEV_BRIDGE_ID } from './optional-peers.js';
 
 /** Matches the public URL cloudflared prints for an unauthenticated quick tunnel. */
 const TRYCLOUDFLARE_RE = /https:\/\/[a-z0-9-]+\.trycloudflare\.com/i;
@@ -219,26 +220,6 @@ export async function printTunnelBanner(
   }
 }
 
-/**
- * Heuristic: can this process open a GUI browser? Mirrors `canOpenBrowser` in
- * `src/mcp/tools.ts` but is re-declared here (not imported) so the tunnel path
- * does not statically pull the heavy MCP `tools.ts` module graph into the lazy
- * `import('./tunnel.js')` chunk. Kept in sync with the MCP copy.
- *
- *   - macOS / Windows → assume yes (env-2 dev normally runs on the user's Mac).
- *   - Linux → require `DISPLAY` or `WAYLAND_DISPLAY`.
- *   - CI (`CI=true`/`CI=1`) → no.
- */
-function canOpenBrowser(): boolean {
-  if (process.env.CI === 'true' || process.env.CI === '1') return false;
-  const platform = process.platform;
-  if (platform === 'darwin' || platform === 'win32') return true;
-  if (platform === 'linux') {
-    return Boolean(process.env.DISPLAY ?? process.env.WAYLAND_DISPLAY);
-  }
-  return false;
-}
-
 /** Handle returned by {@link startTunnelDashboard}. */
 export interface TunnelDashboard {
   /** `http://127.0.0.1:<port>` — the local dashboard URL opened in the browser. */
@@ -270,129 +251,58 @@ export interface StartTunnelDashboardOptions {
 }
 
 /**
- * Env-2 UX parity with env 3/4 (issue #408): when CDP wiring is on and a GUI is
+ * Env-2 UX parity with env 3 (issue #408): when CDP wiring is on and a GUI is
  * available, start the SAME `127.0.0.1` HTML dashboard (QR image + connect steps
- * + FAQ) that the MCP `start_attach` path serves, and auto-open it in the
+ * + FAQ) the debug daemon's `start_attach` path serves, and auto-open it in the
  * browser. headless / opt-out falls back to the terminal ASCII QR (printed
  * separately by {@link printTunnelBanner}).
  *
- * Every part the install-graph invariant depends on (`qrcode`, the MCP HTTP
- * server, the opener) is reached only through dynamic `import()` here, inside
- * the already-lazy `tunnel.js` chunk — nothing is added to the common build
- * graph or the MCP-only install graph.
+ * DELEGATED (issue #817): the implementation now lives in `@ait-co/debugger`'s
+ * `/dev-bridge` subpath — the one cross-repo code delegation of the package
+ * split. The dashboard needs the daemon's QR HTTP server, deep-link builder and
+ * TOTP minting, all of which moved into that package; keeping a second copy here
+ * would fork them. `@ait-co/debugger` is an OPTIONAL peer, so a consumer who
+ * never asks for env-2 CDP installs nothing extra.
  *
- * TOTP encapsulation: the dashboard's `getDashboardState` closure mints a FRESH
- * TOTP `at=` code on every call via `generateTotp(secret, Date.now())` and folds
- * it into a fresh `buildLauncherAttachUrl(...)`. Because the QR is re-rendered on
- * each SSE push / page reload from this closure, the code a phone scans is always
- * within its 30 s window — no stale code is baked into static HTML.
+ * Why this is not a separate plugin: the relay `wss://` URL must exist BEFORE
+ * the QR banner is printed (the launcher QR carries `&relay=`), so the relay and
+ * the dashboard are order-dependent and stay one composed call in the dev loop.
+ *
+ * Degradation: when `@ait-co/debugger` is not installed the import fails and we
+ * return `undefined` — exactly the same "no dashboard" outcome as a closed GUI
+ * gate, with the terminal ASCII QR standing alone. We do NOT fall back to a
+ * local copy of the daemon code. The caller (`./index.ts`) prints the install
+ * hint once when CDP was requested without the package.
  *
  * SECRET-HANDLING: the tunnel host, relay wssUrl, TOTP code, and `.ait_relay`
- * value/path are NEVER written to stdout/stderr/logs here. They live only inside
- * the attach URL (HTML body + `/qr.png` query, per qr-http-server's invariant).
- * The only thing opened/logged is `http://127.0.0.1:<port>` (local, safe).
+ * value/path are NEVER written to stdout/stderr/logs — neither here nor in the
+ * delegate. The only thing opened/logged is `http://127.0.0.1:<port>` (local).
  *
  * @returns the dashboard handle when it started (caller wires `close()` into the
- *   tunnel cleanup), or `undefined` when skipped (no relay, `qr:false`, headless,
- *   opt-out, or a start failure) — in which case ASCII QR fallback stands alone.
+ *   tunnel cleanup), or `undefined` when skipped (package absent, no relay,
+ *   `qr:false`, headless, opt-out, or a start failure) — in which case the ASCII
+ *   QR fallback stands alone.
  */
 export async function startTunnelDashboard(
   opts: StartTunnelDashboardOptions,
 ): Promise<TunnelDashboard | undefined> {
-  const log = opts.log ?? ((m: string) => console.log(m));
-
-  // Gate: dashboard is a CDP-only UX (needs a relay to attach to).
+  // Gate: dashboard is a CDP-only UX (needs a relay to attach to). Checked here
+  // as well as in the delegate so an absent relay never even probes the package.
   if (!opts.relayWssUrl) return undefined;
   // Opt-out via `tunnel.qr:false` (same toggle that suppresses the ASCII QR).
   if (opts.qr === false) return undefined;
 
-  // GUI + AIT_AUTO_DEVTOOLS gate. Reuse the MCP opener's opt-out predicate so
-  // the env-2 path honours the same `AIT_AUTO_DEVTOOLS=0` switch as env 3/4.
-  const { isAutoDevtoolsDisabled } = await import('../mcp/devtools-opener.js');
-  const gateOpen = opts.shouldOpen ?? (() => !isAutoDevtoolsDisabled() && canOpenBrowser());
-  if (!gateOpen()) return undefined;
-
-  const { startQrHttpServer } = await import('../mcp/qr-http-server.js');
-  const { buildLauncherAttachUrl } = await import('../mcp/deeplink.js');
-  const { generateTotp } = await import('../mcp/totp.js');
-
-  // getDashboardState — mints a fresh TOTP + attach URL on every call so the QR
-  // the dashboard renders (on load and on each SSE push) is never expired.
-  // SECRET-HANDLING: the secret is read from env AT CALL TIME (it was injected
-  // by ensureRelaySecret in the same CDP block) and is used only to compute the
-  // at= code folded into attachUrl. tunnel.up is always true here — the relay
-  // tunnel is already up by the time this runs.
-  const getDashboardState = () => {
-    const secret = process.env.AIT_DEBUG_TOTP_SECRET;
-    const totpCode = secret ? generateTotp(secret, Date.now()) : undefined;
-    const attachUrl = buildLauncherAttachUrl(opts.tunnelUrl, opts.relayWssUrl, totpCode, {
-      name: opts.name,
-    });
-    // pages: null — env 2(unplugin)는 데몬이 아니라 vite 플러그인 안이라
-    // startChiiRelay 핸들이 connected target을 노출하지 않는다. 라이브 page 목록을
-    // 알 수 없으므로 거짓 빈 목록 대신 "연결된 Pages" 섹션 자체를 숨긴다(#411).
-    // env 3/4(debug-server.ts)는 router.active.listTargets()로 실제 목록을 채운다.
-    // mode: 'relay-mobile' — 이 대시보드는 항상 환경 2(AITC Sandbox PWA) 전용이므로
-    // /attach 카피가 launcher PWA 절차(sandbox family)로 분기된다(#468).
-    // inspectorUrl: null — env 2에서는 unplugin relay가 connected target ID를 노출하지
-    // 않아 buildChiiInspectorUrl에 필요한 targetId를 알 수 없다. target attach 후
-    // target ID가 필요하므로 env 3/4에서만 non-null이 된다(#503).
-    return {
-      tunnel: { up: true, wssUrl: opts.relayWssUrl },
-      pages: null,
-      attachUrl,
-      inspectorUrl: null,
-      mode: 'relay-mobile' as const,
-      // phase (#730): this dev-tunnel dashboard has no CLI run lifecycle or
-      // daemon shutdown signal to drive — it stays 'active' for its lifetime.
-      phase: 'active' as const,
-    };
-  };
-
-  let server: Awaited<ReturnType<typeof startQrHttpServer>>;
+  let devBridge: { startTunnelDashboard: typeof startTunnelDashboard };
   try {
-    server = await startQrHttpServer(getDashboardState);
+    devBridge = (await import(DEBUGGER_DEV_BRIDGE_ID)) as {
+      startTunnelDashboard: typeof startTunnelDashboard;
+    };
   } catch {
-    // SECRET-HANDLING: do not surface the error (could embed paths/hosts). The
-    // ASCII QR printed by printTunnelBanner stays as the fallback.
+    // Not installed (or an unexpected load failure) — degrade to ASCII QR only.
+    // SECRET-HANDLING: the error is not surfaced (it can embed local paths).
     return undefined;
   }
-
-  // TOTP periodic refresh timer — pushes a fresh at= code to SSE clients every
-  // 20 s so a page left open never stales past the 90 s acceptance window (#448).
-  // tunnel.ts always has relayWssUrl available here (gated above), so no
-  // lastAttachParts guard is needed — getDashboardState mints a fresh TOTP on
-  // every call unconditionally.
-  // SECRET-HANDLING: callback is a plain trigger only — TOTP value and at= code
-  // must never be logged or written to stdout.
-  const TOTP_REFRESH_INTERVAL_MS = 20_000;
-  let totpRefreshHandle: ReturnType<typeof setInterval> | null = setInterval(() => {
-    server.notifyStateChange();
-  }, TOTP_REFRESH_INTERVAL_MS);
-  totpRefreshHandle.unref();
-
-  const dashboardUrl = `http://127.0.0.1:${server.port}`;
-
-  const { openUrlInBrowser } = await import('../mcp/devtools-opener.js');
-  const opened = openUrlInBrowser(dashboardUrl);
-  // SECRET-HANDLING: only the local 127.0.0.1 URL is logged — never the tunnel
-  // host, relay wssUrl, or TOTP code.
-  log(
-    opened
-      ? `  │  Opened a QR dashboard in your browser: ${dashboardUrl}`
-      : `  │  Open this QR dashboard in your browser: ${dashboardUrl}`,
-  );
-
-  return {
-    url: dashboardUrl,
-    close: () => {
-      if (totpRefreshHandle) {
-        clearInterval(totpRefreshHandle);
-        totpRefreshHandle = null;
-      }
-      return server.close();
-    },
-  };
+  return devBridge.startTunnelDashboard(opts);
 }
 
 export interface QuickTunnel {

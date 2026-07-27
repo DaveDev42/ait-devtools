@@ -563,22 +563,27 @@ describe('install-graph invariant (env-2 dashboard wiring)', () => {
     expect(src).toContain("import('./tunnel.js')");
   });
 
-  it('src/unplugin/tunnel.ts reaches qrcode + qr-http-server only via dynamic import()', () => {
+  it('src/unplugin/tunnel.ts reaches qrcode + the dev-bridge only via dynamic import()', () => {
     const src = read('src/unplugin/tunnel.ts');
     const statics = staticImportSpecifiers(src);
     // No static edge to qrcode-terminal, qrcode, the qr-http-server, the opener,
-    // deeplink, or totp — all of those are behind `await import(...)`.
+    // deeplink, totp, or the optional `@ait-co/debugger` peer — all of those are
+    // behind `await import(...)`. (`./optional-peers.js` IS a static import: it
+    // holds only string constants and an `import.meta.resolve` probe, no deps.)
     for (const spec of statics) {
       expect(spec).not.toContain('qrcode');
       expect(spec).not.toContain('qr-http-server');
       expect(spec).not.toContain('devtools-opener');
       expect(spec).not.toContain('deeplink');
+      expect(spec).not.toContain('@ait-co/debugger');
       expect(spec).not.toMatch(/\/totp$|\/totp\.js$/);
     }
-    // They ARE present as dynamic imports inside the lazy helpers.
+    // qrcode-terminal is still a lazy import inside printTunnelBanner.
     expect(src).toContain("import('qrcode-terminal')");
-    expect(src).toContain("import('../mcp/qr-http-server.js')");
-    expect(src).toContain("import('../mcp/devtools-opener.js')");
+    // #817: the dashboard is delegated to @ait-co/debugger/dev-bridge, reached
+    // through a dynamic import of the DEBUGGER_DEV_BRIDGE_ID constant so an
+    // absent optional peer degrades instead of breaking the module graph.
+    expect(src).toContain('import(DEBUGGER_DEV_BRIDGE_ID)');
   });
 });
 

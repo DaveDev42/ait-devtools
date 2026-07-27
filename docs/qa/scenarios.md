@@ -164,7 +164,7 @@ npx -y @ait-co/devtools devtools-mcp --target=local
 
 ```bash
 # 방법 A: agent-plugin skill 사용
-# /ait setup-phone-preview
+# /ait:setup-phone-preview
 
 # 방법 B: 직접 터널 실행
 AIT_TUNNEL=1 pnpm exec vite --config e2e/fixture/vite.config.ts

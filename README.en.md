@@ -411,9 +411,9 @@ The launcher **only works when launched as an installed PWA from the home screen
 >
 > The `tunnel` option only works in Vite dev mode — no tunnel is started for production builds, even with `forceEnable`. It is silently ignored for other bundlers (Webpack/Rspack, etc.). When the option is enabled, `cloudflared` and `qrcode-terminal` are loaded via dynamic import only, so they do not appear in the bundle graph when the option is off.
 
-### One-line setup (planned)
+### One-line setup
 
-The per-project steps above (vite.config patch + `onlyBuiltDependencies` + `dev:phone` script) are planned to be absorbed into a single command like `/ait setup phone` in the future [`agent-plugin`](https://github.com/apps-in-toss-community/agent-plugin) (command name is tentative). Since this README serves as the spec for that automation, the manual steps will remain documented here even after automation is available.
+The per-project steps above (vite.config patch + `onlyBuiltDependencies` + `dev:phone` script) are automated by a single [`agent-plugin`](https://github.com/apps-in-toss-community/agent-plugin) command, `/ait:setup-phone-preview`. Since this README serves as the spec for that automation, the manual steps stay documented here alongside it.
 
 ## Device API mode system
 

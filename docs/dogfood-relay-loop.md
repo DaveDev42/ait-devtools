@@ -10,7 +10,7 @@
 
 | 항목 | 비고 |
 |---|---|
-| Node 24 LTS + pnpm 10.33.0 | `packageManager` 고정 |
+| Node 24 LTS + pnpm 11.17.0 | `packageManager` 고정 |
 | `AIT_DEBUG_TOTP_SECRET` 환경 변수 설정 | TOTP 인증 활성화에 필요. 미설정 시 relay 인증 없이 동작하지만, **production dogfood 루프에서는 반드시 설정**해야 터널 URL 유출 시 제3자 attach를 막을 수 있다. 값은 `<your-totp-secret>` 플레이스홀더로 대체 — 실 값은 절대 문서·로그·stdout에 출력 금지 |
 | 토스 앱 설치된 실기기 | iOS 권장 |
 | sdk-example dogfood 배포 완료 | 워크스페이스 `3095`, miniAppId `31146`. `aitcc app deploy` 로 배포. 배포 상태·운영 컨텍스트: [`console-cli/docs/api/mini-apps.md`](https://github.com/apps-in-toss-community/console-cli/blob/main/docs/api/mini-apps.md) |

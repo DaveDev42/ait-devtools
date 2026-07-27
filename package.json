@@ -76,9 +76,17 @@
     "prepublishOnly": "pnpm build && pnpm check:mcp-react-free && pnpm check:test-runner-dist && pnpm check:debug-surface-absent && pnpm typecheck && pnpm test && pnpm build:og"
   },
   "peerDependencies": {
+    "@ait-co/debug-console": "^0.1.0",
+    "@ait-co/debugger": "^0.1.0",
     "@apps-in-toss/web-framework": ">=2.6.0 <3.0.0"
   },
   "peerDependenciesMeta": {
+    "@ait-co/debug-console": {
+      "optional": true
+    },
+    "@ait-co/debugger": {
+      "optional": true
+    },
     "@apps-in-toss/web-framework": {
       "optional": true
     }
@@ -98,6 +106,8 @@
     "ws": "^8.21.0"
   },
   "devDependencies": {
+    "@ait-co/debug-console": "^0.1.1",
+    "@ait-co/debugger": "^0.1.1",
     "@ait-co/polyfill": "^0.1.17",
     "@apps-in-toss/web-framework": "3.0.0-beta.3051978",
     "@apps-in-toss/web-framework-2x": "npm:@apps-in-toss/web-framework@2.10.7",

@@ -79,7 +79,7 @@ describe('unplugin: dev mode + panel:false', () => {
     // 하지만 실제 transform 결과에 panel import가 없다
     const result = hooks.transform('console.log("hello");');
     expect(result).not.toContain("import '@ait-co/devtools/panel'");
-    expect(result).toContain('@ait-co/devtools/in-app');
+    expect(result).toContain('@ait-co/debug-console');
   });
 
   it('panel: false + inApp: false이면 transformInclude가 false이다', () => {
@@ -236,14 +236,16 @@ describe('unplugin: transform', () => {
 });
 
 describe('unplugin: in-app attach 자동 주입 (#465)', () => {
-  it('dev 모드에서 in-app snippet을 자동 주입한다', () => {
+  it('dev 모드에서 in-app snippet을 자동 주입한다 (#817: @ait-co/debug-console)', () => {
     vi.stubEnv('NODE_ENV', 'development');
     const hooks = getRawHooks();
     const result = hooks.transform('console.log("hello");');
-    expect(result).toContain('@ait-co/devtools/in-app');
+    expect(result).toContain('@ait-co/debug-console');
     expect(result).toContain('maybeAttach');
     expect(result).toContain("get('debug') === '1'");
     expect(result).toContain("get('relay')");
+    // 분리 전 specifier는 더 이상 주입하지 않는다 (dedupe로만 인정).
+    expect(result).not.toContain('@ait-co/devtools/in-app');
   });
 
   it('panel + in-app snippet이 모두 주입된다', () => {
@@ -251,16 +253,25 @@ describe('unplugin: in-app attach 자동 주입 (#465)', () => {
     const hooks = getRawHooks();
     const result = hooks.transform('console.log("hello");');
     expect(result).toContain("import '@ait-co/devtools/panel'");
-    expect(result).toContain('@ait-co/devtools/in-app');
+    expect(result).toContain('@ait-co/debug-console');
   });
 
   it('이미 in-app import가 있으면 스킵한다', () => {
     vi.stubEnv('NODE_ENV', 'development');
     const hooks = getRawHooks({ panel: false });
     const code =
-      "import('@ait-co/devtools/in-app').then((m) => m.maybeAttach());\nconsole.log('hello');";
+      "import('@ait-co/debug-console').then((m) => m.maybeAttach());\nconsole.log('hello');";
     const result = hooks.transform(code);
     // in-app이 이미 있으므로 변경 없음 (panel도 false이므로 null)
+    expect(result).toBeNull();
+  });
+
+  it('#817: 분리 전 specifier로 직접 배선한 소비자도 dedupe 대상이다', () => {
+    vi.stubEnv('NODE_ENV', 'development');
+    const hooks = getRawHooks({ panel: false });
+    const code =
+      "import('@ait-co/devtools/in-app').then((m) => m.maybeAttach());\nconsole.log('hello');";
+    const result = hooks.transform(code);
     expect(result).toBeNull();
   });
 
@@ -268,7 +279,7 @@ describe('unplugin: in-app attach 자동 주입 (#465)', () => {
     vi.stubEnv('NODE_ENV', 'development');
     const hooks = getRawHooks({ inApp: false });
     const result = hooks.transform('console.log("hello");');
-    expect(result).not.toContain('@ait-co/devtools/in-app');
+    expect(result).not.toContain('@ait-co/debug-console');
     // panel은 여전히 주입된다
     expect(result).toContain("import '@ait-co/devtools/panel'");
   });

@@ -47,7 +47,7 @@ pnpm dev:phone          # same as AIT_TUNNEL=1 pnpm dev
 # QR appears in the terminal → scan with your phone camera → opens in the launcher PWA
 ```
 
-With `tunnel: { cdp: true }`, a single QR scan opens both the screen preview and on-device CDP — inspect the real WebKit DOM, console, and exceptions from your MCP host (`call_sdk` still hits the mock on environment 2; the real SDK lives on environment 3).
+With `tunnel: { cdp: true }`, a single QR scan opens both the screen preview and on-device CDP — inspect the real WebKit DOM, console, and exceptions from your MCP host (`call_sdk` still hits the mock on environment 2; the real SDK lives on environment 3). CDP needs two extra packages — see [Debugging packages](#debugging-packages-environments-2-and-3) below.
 
 One-time prerequisite: add `https://devtools.aitc.dev/launcher/` to your phone's home screen. Details: [`docs/scenarios/env-2.md`](./docs/scenarios/env-2.md)
 
@@ -137,6 +137,26 @@ devtools runs two npm dist-tags off the same code at once. Pick the channel that
 - Both channels keep the web-framework peer `optional`, so MCP-only debugging users are never forced to pull the SDK.
 
 When 3.0 ships GA, the stable `latest` peer moves up to the 3.0 line and the beta channel is retired. Calling an API that devtools has not yet mocked will throw a runtime error — please [file an issue](https://github.com/apps-in-toss-community/devtools/issues) for missing APIs.
+
+### Debugging packages (environments 2 and 3)
+
+**If you only use environment 1 (local browser + mock + panel), the install above is all you need.** Nothing else to add.
+
+For on-device CDP debugging — `tunnel: { cdp: true }` on environment 2, or relay attach on environment 3 — install the two debugging packages as well:
+
+```bash
+pnpm add -D @ait-co/debugger @ait-co/debug-console
+```
+
+| Package | Role | Can enter a bundle |
+|---|---|---|
+| [`@ait-co/debugger`](https://www.npmjs.com/package/@ait-co/debugger) | MCP daemon · real-device test runner · dev-bridge (environment 2 CDP relay + QR dashboard) | No — devDependency / `npx` only |
+| [`@ait-co/debug-console`](https://www.npmjs.com/package/@ait-co/debug-console) | On-device attach + in-app eruda console | Yes — the only one that enters a debug build |
+
+Both are **optional peers** of devtools.
+
+- Without `@ait-co/debugger`, `tunnel: { cdp: true }` skips the CDP wiring, degrades to the plain screen-preview tunnel, and prints the install hint once.
+- Without `@ait-co/debug-console`, the unplugin injects no in-app attach at all — the attach code cannot structurally enter your bundle, which is the technical boundary of the debug surface.
 
 ## Reference consumer
 

@@ -47,7 +47,7 @@ pnpm dev:phone          # AIT_TUNNEL=1 pnpm dev 와 동일
 # 터미널에 QR 출력 → 폰 카메라로 스캔 → launcher PWA에서 자동 열림
 ```
 
-`tunnel: { cdp: true }`를 켜면 같은 QR 한 번으로 화면 미리보기 + on-device CDP가 함께 열려 실기기 WebKit의 DOM·콘솔·예외를 MCP로 관측합니다 (`call_sdk`는 환경 2에서 mock — 실 SDK는 환경 3).
+`tunnel: { cdp: true }`를 켜면 같은 QR 한 번으로 화면 미리보기 + on-device CDP가 함께 열려 실기기 WebKit의 DOM·콘솔·예외를 MCP로 관측합니다 (`call_sdk`는 환경 2에서 mock — 실 SDK는 환경 3). CDP를 쓰려면 디버깅 패키지 두 개를 추가로 설치하세요 — 아래 [디버깅 패키지](#디버깅-패키지-환경-23) 참고.
 
 사전: 폰에 `https://devtools.aitc.dev/launcher/` 를 홈 화면에 한 번 추가. 상세: [`docs/scenarios/env-2.md`](./docs/scenarios/env-2.md)
 
@@ -137,6 +137,26 @@ devtools는 같은 코드에서 두 개의 npm dist-tag를 동시에 운영합�
 - 두 채널 모두 web-framework peer는 `optional`이라 MCP 디버깅만 쓰는 경우 SDK를 강제로 끌어오지 않습니다.
 
 3.0이 정식(GA) 출시되면 stable `latest` peer가 3.0 라인으로 올라가고 beta 채널은 정리됩니다. devtools가 아직 mock하지 않은 API를 호출하면 런타임에 에러가 발생합니다 — 누락된 API는 [이슈](https://github.com/apps-in-toss-community/devtools/issues)로 알려주세요.
+
+### 디버깅 패키지 (환경 2·3)
+
+**환경 1(로컬 브라우저 + mock + 패널)만 쓴다면 위 설치가 전부입니다.** 아무것도 더 설치하지 않아도 됩니다.
+
+on-device CDP 디버깅(환경 2의 `tunnel: { cdp: true }`, 환경 3의 relay attach)을 쓰려면 디버깅 패키지 두 개를 추가로 설치하세요:
+
+```bash
+pnpm add -D @ait-co/debugger @ait-co/debug-console
+```
+
+| 패키지 | 역할 | 번들 반입 |
+|---|---|---|
+| [`@ait-co/debugger`](https://www.npmjs.com/package/@ait-co/debugger) | MCP 데몬 · 실기기 테스트 러너 · dev-bridge(환경 2 CDP relay + QR 대시보드) | 안 됨 — devDependency / `npx` 전용 |
+| [`@ait-co/debug-console`](https://www.npmjs.com/package/@ait-co/debug-console) | on-device attach + 인앱 eruda 콘솔 | 됨 — debug 빌드에만 들어가는 유일한 패키지 |
+
+두 패키지 모두 devtools의 **optional peer**입니다.
+
+- `@ait-co/debugger`가 없으면 `tunnel: { cdp: true }`는 CDP 배선을 건너뛰고 일반 화면 미리보기 터널로 degrade하며, 터미널에 설치 안내를 한 번 출력합니다.
+- `@ait-co/debug-console`이 없으면 unplugin이 in-app attach를 아예 주입하지 않습니다 — attach 코드가 번들에 구조적으로 들어갈 수 없다는 뜻이고, 이게 디버그 표면의 기술적 경계입니다.
 
 ## Reference consumer
 

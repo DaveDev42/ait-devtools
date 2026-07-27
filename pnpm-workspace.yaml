@@ -1,7 +1,7 @@
-onlyBuiltDependencies:
-  - esbuild
-ignoredBuiltDependencies:
-  - "@sentry/cli"
-  - "@swc/core"
-  - protobufjs
-  - sharp
+allowBuilds:
+  "@sentry/cli": false
+  "@swc/core": false
+  cloudflared: false
+  esbuild: true
+  protobufjs: false
+  sharp: false

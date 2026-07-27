@@ -411,9 +411,9 @@ launcher는 **PWA(홈 화면 앱)로 실행할 때만 동작**합니다. 일반 
 >
 > `tunnel` 옵션은 Vite dev 모드에서만 동작합니다 — production 빌드는 `forceEnable`이어도 터널을 띄우지 않습니다. 다른 번들러(Webpack/Rspack 등)에서는 무시됩니다. 이 옵션을 켜면 `cloudflared` / `qrcode-terminal`가 동적 import로만 로드되므로, 끄면 번들 그래프에 들어오지 않습니다.
 
-### 한 줄 셋업 (예정)
+### 한 줄 셋업
 
-위 "프로젝트당 1회" 단계(vite.config 패치 + `onlyBuiltDependencies` + `dev:phone` 스크립트)는 향후 [`agent-plugin`](https://github.com/apps-in-toss-community/agent-plugin)이 `/ait setup phone` 같은 단일 명령으로 흡수할 예정입니다 (명령 이름은 잠정). 이 README가 그 자동화의 명세서 역할을 하므로, 수동 셋업 단계가 줄어들어도 동작 모델 자체는 동일합니다.
+위 "프로젝트당 1회" 단계(vite.config 패치 + `onlyBuiltDependencies` + `dev:phone` 스크립트)는 [`agent-plugin`](https://github.com/apps-in-toss-community/agent-plugin)의 `/ait:setup-phone-preview` 한 명령으로 자동화돼 있습니다. 이 README가 그 자동화의 명세서 역할을 하므로, 수동 셋업 단계가 줄어들어도 동작 모델 자체는 동일합니다.
 
 ## Device API 모드 시스템
 

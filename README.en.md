@@ -463,7 +463,7 @@ When using the plugin, the panel is auto-injected into your entry point file. Cl
 
 | Tab | Description |
 |---|---|
-| **Environment** | Platform OS (ios/android), app version, environment (toss/sandbox), locale, network status, Safe Area Insets |
+| **Environment** | Platform OS (ios/android), app version, environment (toss/sandbox), locale, network status, Safe Area Insets, Navigation (observed call values of no-op SDK APIs) |
 | **Presets** | Apply/remove common QA scenarios (permission denied, offline, logged out, etc.) with one click. Save and delete user presets |
 | **Viewport** | Simulate a mobile viewport using device presets (iPhone/Galaxy) + orientation toggle |
 | **Permissions** | Control camera, photos, geolocation, clipboard, contacts, and microphone permission states (allowed/denied/notDetermined) |
@@ -477,6 +477,16 @@ When using the plugin, the panel is auto-injected into your entry point file. Cl
 | **Storage** | View and clear items stored via the `Storage` API |
 
 > **Prompt mode auto-open**: When an API set to prompt mode is called, the Panel automatically opens the Device tab and shows the input UI.
+
+### Trying toss-gated behavior in dev (Environment + Navigation)
+
+Some no-op APIs that only fire through the native bridge in a real Toss WebView — `setIosSwipeGestureEnabled`, for instance — mirror their **last call value** into observable state in the mock. The **Navigation** section of the Environment tab shows that value read-only.
+
+That makes it possible to exercise code paths gated on `getOperationalEnvironment() === 'toss'` without the Toss app:
+
+1. In the Environment tab, switch **Environment** to `toss` (the default is `sandbox` — entering `toss` is an explicit opt-in).
+2. Your app's toss-gated guard runs — sdk-example's `useDisableIosSwipeGestureInToss`, for example — and calls `setIosSwipeGestureEnabled({ isEnabled: false })`.
+3. Watch the `iOS swipe-back` value in the Navigation section switch from `not called` to `disabled` live in the panel. You can also cross-check `navigation.iosSwipeGestureEnabled` via `AIT.getMockState()`.
 
 ### Mock state preset library (Presets tab)
 

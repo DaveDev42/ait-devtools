@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.2.1
+
+### Patch Changes
+
+- e198cf7: THROTTLED 시뮬레이션 다이얼을 추가한다 (#834).
+
+  실기기 네이티브 브리지는 같은 메서드를 짧은 간격으로 연타하면 `APP_BRIDGE_THROTTLED`로 거부하는데, 그 코드는 `NativeErrorCode` 유니온과 `CODE_META`에 인벤토리로만 등재돼 있었고 이 코드로 reject하는 mock은 한 곳도 없었다. `failureModes.throttled = { methods, intervalMs }`로 그 rate limit을 env1에서 opt-in 재현한다 — 다이얼 미설정이 기본이라 기존 동작은 그대로다.
+
+  거부된 호출은 창을 갱신하지 않으므로 연타 중에도 최초 허용 시점 기준으로 풀린다. 훅은 `observe()`가 아니라 각 mock 본문 안에 넣었다 — `observe()`는 원 함수 호출 _전에_ 감싸므로 거기서 던지면 Promise를 반환해야 할 API가 동기 throw로 바뀌고, `threwSync`는 env1↔env3 동치 diff의 관측 축이라 그 차이가 곧 가짜 불일치가 된다.
+
+- 9e93da4: 영어 README에 빠져 있던 `toss-gated 동작을 dev에서 시험하기` 섹션을 채운다 (#826).
+
+  `README.md`(ko)와 `README.en.md`(en)는 동등 정본인데 이 섹션만 en에 없어서, 영어 독자는 `getOperationalEnvironment() === 'toss'`로 게이트된 코드 경로를 토스 앱 없이 검증하는 방법을 안내받지 못했다. Environment 탭의 Navigation 섹션이 `setIosSwipeGestureEnabled` 같은 no-op API의 마지막 호출값을 비춘다는 사실 자체가 en에서는 12-탭 표에서도 빠져 있었다 — 표 행도 함께 맞췄다.
+
+  두 README 모두 npm 타르볼에 실리므로 패키지 페이지에 반영된다. 코드 변경은 없다.
+
 ## 0.2.0
 
 ### Minor Changes

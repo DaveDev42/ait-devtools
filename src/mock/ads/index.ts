@@ -23,6 +23,7 @@ import { buildNativeError } from '../native-error.js';
 import { observe } from '../observe.js';
 import { createMockProxy } from '../proxy.js';
 import { aitState } from '../state.js';
+import { throttleErrorFor } from '../throttle.js';
 
 function withIsSupported<T extends (...args: never[]) => unknown>(
   fn: T,
@@ -67,6 +68,12 @@ export const GoogleAdMob = createMockProxy('GoogleAdMob', {
           const failureCode = aitState.state.failureModes.loadAdMob;
           if (failureCode) {
             args.onError(buildNativeError(failureCode));
+            return;
+          }
+          // THROTTLED 다이얼 (#834). 콜백형 API라 throw가 아니라 onError로 흘린다.
+          const throttleError = throttleErrorFor('loadAppsInTossAdMob');
+          if (throttleError) {
+            args.onError(throttleError);
             return;
           }
           if (aitState.state.ads.forceNoFill) {
@@ -344,6 +351,12 @@ const _loadFullScreenAdImpl = observe(
       const failureCode = aitState.state.failureModes.loadFullScreenAd;
       if (failureCode) {
         args.onError(buildNativeError(failureCode));
+        return;
+      }
+      // THROTTLED 다이얼 (#834). 콜백형 API라 throw가 아니라 onError로 흘린다.
+      const throttleError = throttleErrorFor('loadFullScreenAd');
+      if (throttleError) {
+        args.onError(throttleError);
         return;
       }
       if (aitState.state.ads.forceNoFill) {

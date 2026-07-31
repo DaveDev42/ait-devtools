@@ -5,6 +5,7 @@
 
 import { checkPermission, withPermission } from '../permissions.js';
 import { aitState } from '../state.js';
+import { checkThrottle } from '../throttle.js';
 import type { MockLocation } from '../types.js';
 import { waitForPromptResponse } from './_helpers.js';
 
@@ -76,6 +77,7 @@ async function getCurrentLocationPrompt(): Promise<MockLocation> {
 
 const _getCurrentLocation = async (_options?: { accuracy: Accuracy }): Promise<MockLocation> => {
   checkPermission('geolocation', 'getCurrentLocation');
+  checkThrottle('getCurrentLocation');
   const mode = aitState.state.deviceModes.location;
   if (mode === 'web') return getCurrentLocationWeb();
   if (mode === 'prompt') return getCurrentLocationPrompt();

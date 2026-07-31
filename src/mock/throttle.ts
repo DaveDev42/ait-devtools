@@ -47,8 +47,11 @@ export const THROTTLE_INSTRUMENTED_METHODS = [
  * (= reject), 콜백형 mock은 `onError(err)`. 그래서 이 함수 자체는 던지지 않는다.
  */
 export function throttleErrorFor(method: string): Error | undefined {
+  // `methods`까지 optional-chain으로 받는다 (#836). `__ait.patch`는 콘솔에서 손으로
+  // 치는 무타입 표면이라, `methods`를 빠뜨린 다이얼이 mock 안에서 TypeError로 터지는
+  // 대신 no-op이어야 한다 — 주변 다이얼(`getPermission?.[…]`)과 같은 방어 수준.
   const dial = aitState.state.failureModes.throttled;
-  if (!dial?.methods.includes(method)) return undefined;
+  if (!dial?.methods?.includes(method)) return undefined;
 
   const now = Date.now();
   const prev = lastAllowedAt.get(method);

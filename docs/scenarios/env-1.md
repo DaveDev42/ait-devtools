@@ -5,7 +5,7 @@
 ## 전제조건
 
 - `pnpm dev` (Vite dev server + unplugin `mcp: true`)  
-- `.mcp.json`의 `devtools-mcp --mode=dev` (권장 — HTTP mock-state 기반, relay/Chromium 불필요) 또는 `--target=local` (CDP 필요 시)
+- `.mcp.json`의 `debugger --mode=dev` (권장 — HTTP mock-state 기반, relay/Chromium 불필요) 또는 `--target=local` (CDP 필요 시)
 - 환경 변수: `MCP_ENV=mock` (명시 권장, 미설정 시 default mock으로 동일 동작)
 
 ## `--mode=dev` vs `--target=local` 선택 기준
@@ -50,7 +50,7 @@ list_pages → measure_safe_area → call_sdk(getOperationalEnvironment)
 pnpm dev
 
 # 2. MCP 서버 실행
-npx -y @ait-co/devtools devtools-mcp --mode=dev
+npx -y -p @ait-co/debugger debugger --mode=dev
 
 # 3. 에이전트에서 순서대로 호출
 # list_pages → measure_safe_area → call_sdk("getOperationalEnvironment", [])
@@ -65,7 +65,7 @@ pnpm exec vite build --config e2e/fixture/vite.config.ts
 pnpm exec vite preview --config e2e/fixture/vite.config.ts --port 4173 &
 
 # 2. MCP 서버 실행 (local 타깃 — Chromium을 자동 실행하고 CDP로 연결)
-npx -y @ait-co/devtools devtools-mcp --target=local
+npx -y -p @ait-co/debugger debugger --target=local
 
 # 3. 에이전트에서 순서대로 호출
 # list_pages → measure_safe_area → call_sdk("getOperationalEnvironment", [])
@@ -86,16 +86,16 @@ npx -y @ait-co/devtools devtools-mcp --target=local
 
 ### MCP 서버가 "이미 실행 중" 안내가 뜰 때
 
-`devtools-mcp`가 이미 실행 중인 세션을 감지하면 stderr에 PID + wssUrl + 회복 명령을 출력합니다.
+`debugger`가 이미 실행 중인 세션을 감지하면 stderr에 PID + wssUrl + 회복 명령을 출력합니다.
 `--force` 플래그로 기존 세션을 종료하고 takeover할 수 있습니다:
 
 ```bash
-npx @ait-co/devtools devtools-mcp --target=local --force
+npx -y -p @ait-co/debugger debugger --target=local --force
 ```
 
 ## 환경 1 한계 (구조적 불가)
 
 - 실기기 WebKit 엔진 fidelity: 환경 2(PWA, `/ait:setup-phone-preview`)로 보완
-- 토스 WebView native bridge: 환경 3(`devtools-mcp` + `start_debug(relay-staging)`)으로 보완
+- 토스 WebView native bridge: 환경 3(`debugger` + `start_debug(relay-staging)`)으로 보완
 
-다음 단계: 실기기 검증이 필요하면 `npx @ait-co/devtools devtools-mcp` 실행 후 `start_debug({mode: 'relay-staging'})` → `get_debug_status`로 상태 확인.
+다음 단계: 실기기 검증이 필요하면 `npx -y -p @ait-co/debugger debugger` 실행 후 `start_debug({mode: 'relay-staging'})` → `get_debug_status`로 상태 확인.

@@ -393,7 +393,8 @@ const NAVIGATE_BACK_MESSAGE_TYPE = 'ait:navigate-back';
 
 // The webViewType self-report postMessage type (#580). The framed mini-app
 // posts `{ type: 'ait:web-view-type', value: 'partner' | 'game' }` to its parent
-// (the in-app self-report in src/in-app/attach.ts) so the launcher auto-enters
+// (the in-app self-report in @ait-co/debug-console,
+// packages/debug-console/src/attach.ts) so the launcher auto-enters
 // game mode without a manual `?navBarType=game` URL edit. Canonical definition +
 // the receive-side parser live in src/mock/safe-area-bridge.ts
 // (WEB_VIEW_TYPE_MESSAGE_TYPE / parseWebViewTypeMessage); the value is mirrored

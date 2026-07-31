@@ -14,7 +14,9 @@
  * when `@ait-co/debugger` is not installed at all. The file format is the
  * contract between the two packages; changing it requires changing both sides.
  *
- * Kept deliberately minimal compared with the pre-split `src/mcp/relay-url-store.ts`:
+ * Kept deliberately minimal compared with the pre-split `src/mcp/relay-url-store.ts`
+ * (that module now lives in `@ait-co/debugger` as
+ * `packages/debugger/src/mcp/relay-url-store.ts`):
  * the read path (`readRelayUrls`) moved out with the daemon, so only
  * {@link writeRelayUrls} and {@link deleteRelayUrls} remain.
  *

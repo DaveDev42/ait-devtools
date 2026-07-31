@@ -9,7 +9,8 @@
  */
 
 // ---------------------------------------------------------------------------
-// isPidAlive — extracted from src/mcp/server-lock.ts
+// isPidAlive — extracted from src/mcp/server-lock.ts (that daemon-side module
+// now lives in @ait-co/debugger as packages/debugger/src/mcp/server-lock.ts)
 // ---------------------------------------------------------------------------
 
 /**
@@ -31,7 +32,8 @@ export function isPidAlive(pid: number): boolean {
 }
 
 // ---------------------------------------------------------------------------
-// startParentWatcher — extracted from src/mcp/debug-server.ts
+// startParentWatcher — extracted from src/mcp/debug-server.ts (that daemon-side
+// module now lives in @ait-co/debugger as packages/debugger/src/mcp/debug-server.ts)
 // ---------------------------------------------------------------------------
 
 /**

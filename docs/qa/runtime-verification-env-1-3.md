@@ -25,14 +25,15 @@
 
 ### 준비물
 
-- Node 24 + `@ait-co/devtools` 설치 (또는 `npx -y @ait-co/devtools devtools-mcp`)
+- Node 24 + `@ait-co/debugger` 설치 (또는 `npx -y -p @ait-co/debugger debugger`) — MCP 디버그 데몬
+- 검증 대상 dev 앱: `@ait-co/devtools`(mock·panel·unplugin)가 배선된 상태
 - 데스크톱: Claude Code 세션
 
 ### 진입 절차
 
 ```bash
 # --target=local 로 기동 — local eager, relay lazy
-npx @ait-co/devtools devtools-mcp --target=local
+npx -y -p @ait-co/debugger debugger --target=local
 ```
 
 Claude Code에서:
@@ -97,7 +98,7 @@ ait deploy --scheme-only
 ```bash
 # TOTP secret 설정 (선택 — relay URL 유출 방어)
 export AIT_DEBUG_TOTP_SECRET=<.env에서 복사>
-npx @ait-co/devtools devtools-mcp
+npx -y -p @ait-co/debugger debugger
 ```
 
 MCP 서버가 올라오면 Claude Code에서:

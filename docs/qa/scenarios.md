@@ -8,7 +8,7 @@ M1 acceptance 기준: 환경 1(로컬 브라우저), 환경 3(intoss relay dev)�
 
 ## 공통 전제조건
 
-- `devtools-mcp` 실행 중 (`npx -y @ait-co/devtools devtools-mcp` 또는 `.mcp.json` 활성화)
+- MCP 디버그 데몬(`@ait-co/debugger`의 bin `debugger`) 실행 중 (`npx -y -p @ait-co/debugger debugger` 또는 `.mcp.json` 활성화)
 - 에이전트(Claude Code 등)가 MCP 서버에 연결된 상태
 - MCP tool 목록에 `list_pages`, `measure_safe_area`, `call_sdk` 노출 확인
 
@@ -35,11 +35,11 @@ M1 acceptance 기준: 환경 1(로컬 브라우저), 환경 3(intoss relay dev)�
 **방법 A: `--mode=dev` 권장 (Chromium 불필요)**
 
 ```bash
-# 1. Vite dev 서버 실행 (unplugin mcp: true 옵션 필요)
+# 1. Vite dev 서버 실행 (@ait-co/devtools unplugin mcp: true 옵션 필요)
 pnpm dev
 
 # 2. MCP 서버 실행 (dev 모드)
-npx -y @ait-co/devtools devtools-mcp --mode=dev
+npx -y -p @ait-co/debugger debugger --mode=dev
 ```
 
 **방법 B: `--target=local` (CDP 도구 포함, Chromium 자동 실행)**
@@ -54,10 +54,10 @@ pnpm exec vite preview --config e2e/fixture/vite.config.ts --port 4173 &
 
 # 3. MCP 서버 실행
 # DOM/screenshot/safe-area CDP tool 필요 시: --target=local (로컬 Chromium CDP direct-attach)
-npx -y @ait-co/devtools devtools-mcp --target=local
+npx -y -p @ait-co/debugger debugger --target=local
 
 # AIT mock state만 필요할 때: --mode=dev (Vite dev server mock state, CDP 없음)
-# npx -y @ait-co/devtools devtools-mcp --mode=dev
+# npx -y -p @ait-co/debugger debugger --mode=dev
 ```
 
 ### 검증 명령 (에이전트에서 순서대로)
@@ -144,7 +144,7 @@ npx -y @ait-co/devtools devtools-mcp --target=local
 
 | 증상 | 원인 | 처리 |
 |---|---|---|
-| `list_pages`가 "Unknown tool" | MCP 서버가 이전 버전 | `@ait-co/devtools` 업데이트 후 서버 재시작 |
+| `list_pages`가 "Unknown tool" | MCP 서버가 이전 버전 | `@ait-co/debugger` 업데이트 후 서버 재시작 |
 | `list_pages`가 빈 배열 (`--target=local`) | fixture 서버 미실행 | 서버 재시작 |
 | `measure_safe_area` `source: null` (`--mode=dev`) | Vite dev 서버 미실행 또는 `mcp: true` 옵션 누락 | dev 서버 재시작, unplugin 옵션 확인 |
 | `measure_safe_area` 에러 (`--target=local`) | MCP 서버가 mock 모드로 실행 안 됨 | `--target=local` 또는 `MCP_ENV=mock` 확인 |
@@ -222,8 +222,8 @@ Safari 원격 검사를 사용할 수 없는 경우, launcher setup 화면의 pa
 ### 진입 절차
 
 ```bash
-# 1. devtools MCP 실행 (debug 모드)
-npx -y @ait-co/devtools devtools-mcp
+# 1. MCP 디버그 데몬 실행 (debug 모드)
+npx -y -p @ait-co/debugger debugger
 
 # 2. relay-staging(env 3)으로 진입 (MCP 세션에서) — 입력 mode: 'relay-staging'
 # start_debug({mode: 'relay-staging'})

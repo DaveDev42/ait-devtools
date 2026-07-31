@@ -15,7 +15,9 @@
  * - 3.x 라인: 같은 실패가 "맨 Error"(위 envelope 필드 없음)로 평탄화된다 —
  *   sdk-example#284 "패턴 ① 오류 envelope 평탄화" 표.
  *
- * `src/test-runner/bridge-stub.ts`의 `NativeBridgeErrorShape`/`makeNativeError`가
+ * `@ait-co/debugger`의 `packages/debugger/src/test-runner/bridge-stub.ts`(분리 전
+ * 이 repo의 `src/test-runner/bridge-stub.ts`)에 있는
+ * `NativeBridgeErrorShape`/`makeNativeError`가
  * 같은 shape을 이미 CI 러너 쪽에서 재현하고 있다(devtools#740) — 이 모듈은 그
  * shape을 mock 소비자 표면(`src/mock/**`)에 대해 재사용 가능한 형태로 옮긴 것이다.
  * 두 모듈은 레이어가 다르다: test-runner 쪽은 env3 blocking-call 인터셉터(빌드에

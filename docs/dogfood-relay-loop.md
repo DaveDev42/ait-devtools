@@ -30,7 +30,7 @@ umbrella `.mcp.json`에 이미 배선돼 있다:
   "mcpServers": {
     "ait-devtools": {
       "command": "npx",
-      "args": ["-y", "@ait-co/devtools", "devtools-mcp"],
+      "args": ["-y", "-p", "@ait-co/debugger", "debugger"],
       "env": {
         "AIT_DEBUG_TOTP_SECRET": "<your-totp-secret>"
       }
@@ -39,7 +39,7 @@ umbrella `.mcp.json`에 이미 배선돼 있다:
 }
 ```
 
-Claude Code를 시작하면 MCP server가 자동 기동한다. `devtools-mcp`는 로컬 Chii relay를 OS 할당 포트로 띄우고 cloudflared quick tunnel(`*.trycloudflare.com`)을 발급한다.
+Claude Code를 시작하면 MCP server가 자동 기동한다. `@ait-co/debugger`의 `debugger` bin은 로컬 Chii relay를 OS 할당 포트로 띄우고 cloudflared quick tunnel(`*.trycloudflare.com`)을 발급한다.
 
 > **반복 실행 시**: MCP server를 재시작하면 **tunnel URL이 교체된다**. 이전 세션의 QR/URL로는 relay에 붙을 수 없다 — 아래 "자주 깨지는 경우"를 참고.
 
@@ -91,7 +91,7 @@ TOTP 시크릿·코드 값은 QR 페이지에 표시되지 않는다(SECRET-HAND
 | Layer | 역할 | 실패 원인 |
 |---|---|---|
 | A | `__DEBUG_BUILD__` 플래그 확인 | dogfood 빌드가 아닌 경우 |
-| B | `@ait-co/devtools/in-app` 주입 여부 | in-app import 누락 |
+| B | `@ait-co/debug-console` 주입 여부 | in-app import 누락 |
 | C | relay TOTP 인증 | `AIT_DEBUG_TOTP_SECRET` 미설정 또는 TOTP 코드 만료 |
 
 모든 gate 통과 후 Chii `target.js`가 주입되고 relay에 WebSocket으로 연결된다.
@@ -232,7 +232,7 @@ call_sdk("setSecureScreen", [{ enabled: true }])               // ✓
 - [#194](https://github.com/apps-in-toss-community/devtools/issues/194) — relay TOTP 인증 구현 (`AIT_DEBUG_TOTP_SECRET` 배경)
 - [#252](https://github.com/apps-in-toss-community/devtools/issues/252) — cloudflared 연결 끊김 fail-fast
 - [`console-cli/docs/api/mini-apps.md`](https://github.com/apps-in-toss-community/console-cli/blob/main/docs/api/mini-apps.md) — 31146 dogfood 앱 운영 컨텍스트 (REVIEW 상태·이력)
-- [README.md `## MCP Server`](../README.md#mcp-server) — devtools MCP tool 레퍼런스
+- [README.md `## MCP Server`](../README.md#mcp-server) — MCP 서버 등록 안내 (tool 레퍼런스 정본은 `@ait-co/debugger`)
 
 ---
 

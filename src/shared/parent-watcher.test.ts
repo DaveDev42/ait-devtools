@@ -6,7 +6,8 @@
  *
  * This is the canonical test location for `startParentWatcher` and
  * `isPidAlive` after they were extracted from `src/mcp/debug-server.ts` to
- * the shared package (#420).
+ * the shared package (#420). That daemon-side module now lives in
+ * `@ait-co/debugger` as `packages/debugger/src/mcp/debug-server.ts`.
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';

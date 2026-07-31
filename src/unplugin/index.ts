@@ -117,7 +117,9 @@ export interface AitDevtoolsOptions {
    *  - GET  /api/ait-devtools/state  — 마지막으로 브라우저가 push한 mock state 스냅샷 반환
    *  - POST /api/ait-devtools/state  — 브라우저 panel이 상태 변경 시 자동 push (panel 내부 처리)
    *
-   * 이 endpoint를 `@ait-co/devtools` MCP stdio server가 읽어 AI 에이전트에 mock state를 노출한다.
+   * 이 endpoint는 이 패키지가 여는 producer 쪽이고, 읽는 consumer는 `@ait-co/debugger`의
+   * MCP stdio 데몬(bin `debugger`, `--mode=dev`)이다 — 그쪽이 AI 에이전트에 mock state를
+   * 노출한다. 데몬은 optional peer라 미설치여도 이 endpoint 자체는 정상 동작한다.
    * Vite 전용: webpack/rspack/esbuild/rollup 환경에서는 무시된다.
    */
   mcp?: boolean;
@@ -125,7 +127,7 @@ export interface AitDevtoolsOptions {
    * 미니앱의 webViewType (`granite.config.ts`의 `webViewProps.type`)을 빌드 상수
    * `__WEB_VIEW_TYPE__`로 주입한다 (#580). **Vite 전용** (다른 번들러는 무시).
    *
-   * 이 상수는 in-app self-report(`@ait-co/devtools/in-app`)가 읽어 launcher(env-2
+   * 이 상수는 in-app self-report(`@ait-co/debug-console`)가 읽어 launcher(env-2
    * PWA)에 webViewType을 postMessage로 알리고, launcher가 game 타입 미니앱에서
    * 수동 `?navBarType=game` URL 편집 없이 game 모드로 자동 진입하게 한다.
    *
@@ -323,7 +325,7 @@ const aitDevtoolsPlugin = createUnplugin((options?: AitDevtoolsOptions) => {
     vite: {
       config() {
         // #580: inject the webViewType build constant for every Vite build so
-        // the in-app self-report (@ait-co/devtools/in-app) can read it and post
+        // the in-app self-report (@ait-co/debug-console) can read it and post
         // it to the launcher (env-2 PWA) for game-mode auto-entry. JSON.stringify
         // makes it a string literal at the define substitution site.
         const define = { __WEB_VIEW_TYPE__: JSON.stringify(webViewType) };
@@ -336,7 +338,8 @@ const aitDevtoolsPlugin = createUnplugin((options?: AitDevtoolsOptions) => {
       },
 
       configureServer(server: import('vite').ViteDevServer) {
-        // MCP state endpoint: browser panel POSTs state here, MCP stdio server GETs it.
+        // MCP state endpoint: browser panel POSTs state here, the @ait-co/debugger
+        // MCP stdio daemon GETs it.
         if (shouldMcp) {
           server.middlewares.use(MCP_STATE_PATH, (req, res) => {
             // Allow Claude Code / AI agents (running locally) to read state

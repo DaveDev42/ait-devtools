@@ -13,7 +13,9 @@ playwright-report/
 .claude/*.lock
 .claude.lock
 .claude/worktrees/
-# Machine-local MCP config (points at a local devtools-mcp; never committed)
+# Machine-local MCP config (points at a local @ait-co/debugger build; never
+# committed). Not needed for normal use — agent-plugin's manifest already boots
+# the debugger daemon; this file only exists to override that command locally.
 .mcp.json
 .codegraph/
 # Relay TOTP secret (auto-minted 0600 by the env-2 unplugin; a credential that

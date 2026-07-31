@@ -47,7 +47,8 @@ export type SelfDebugParseResult =
  *
  * `at=<totp-code>` is optional (TOTP disabled if absent). When present it is
  * forwarded into the target.js script URL (TOTP path-prefix transport — same
- * mechanism as {@link deriveTargetScriptUrl} in `src/in-app/attach.ts`).
+ * mechanism as `deriveTargetScriptUrl` in `@ait-co/debug-console`,
+ * `packages/debug-console/src/attach.ts`).
  *
  * Pure function — no DOM, no side effects.
  *
@@ -86,7 +87,8 @@ export function parseSelfDebugParams(searchStr: string): SelfDebugParseResult {
  * Derives the Chii `target.js` script URL from a relay `wss:` URL and an
  * optional TOTP code.
  *
- * Mirrors {@link deriveTargetScriptUrl} from `src/in-app/attach.ts`:
+ * Mirrors `deriveTargetScriptUrl` from `@ait-co/debug-console`
+ * (`packages/debug-console/src/attach.ts`):
  *   - `wss:` → `https:`
  *   - pathname → `/target.js` (or `/at/<code>/target.js` with TOTP)
  *   - search and hash are stripped

@@ -6,6 +6,8 @@
 
 환경 2가 존재하는 이유: 환경 1(로컬 브라우저 + mock SDK)은 desktop Chromium에서 실행되므로 실기기 WebKit 엔진 거동을 구조적으로 재현할 수 없다. 환경 2는 `devtools.aitc.dev/launcher/`에 배포된 installable PWA 셸이 cloudflared 터널을 통해 dev 서버를 iframe으로 띄우는 방식으로, 토스 앱 WebView 없이 실기기 Safari/WebKit 엔진을 타겟으로 삼는다.
 
+패키지 경계: 환경 2에서 `@ait-co/devtools`가 담당하는 것은 unplugin의 cloudflared 터널 기동과 launcher 배선까지다. CDP relay attach와 관측 도구(`list_pages`·`measure_safe_area`·DOM/콘솔/예외 조회)는 optional peer인 [`@ait-co/debugger`](https://github.com/apps-in-toss-community/debugger)가 담당하며, 미설치면 `tunnel: { cdp: true }`는 화면 미리보기 터널로 degrade한다. 아래 acceptance 절차 중 CDP 없이 도는 부분(터널·launcher·safe-area 관측)은 devtools만으로 완주할 수 있다.
+
 설계 정본: umbrella `meta/three-environments-fidelity.md` §1.1–§1.2 환경 2 매트릭스
 
 ---
@@ -101,7 +103,7 @@ Safari 원격 검사를 사용할 수 없는 경우, launcher setup 화면의 pa
 - **`*.private-apps.tossmini.com` host-gated 코드**: 환경 2는 `devtools.aitc.dev`(터널은 `*.trycloudflare.com`) origin에서 뜨므로 토스 host를 흉내낼 수 없다.
 - **검수 통과 번들 거동**: 앱인토스 검수 후 OPENED 상태의 출시 런타임은 현재 지원하는 debug 환경 범위 밖이다(relay-live 제거 #665).
 
-CDP relay는 환경 2에서도 동작한다(`tunnel: { cdp: true }` opt-in) — 같은 QR 한 번으로 화면 미리보기 + on-device CDP가 열려 실기기 WebKit의 DOM·콘솔·예외·`measure_safe_area`를 `source: "relay-*"`로 관측한다. CDP가 못 메우는 것은 위의 mock SDK 천장뿐이다.
+CDP relay는 환경 2에서도 동작한다(`tunnel: { cdp: true }` opt-in + optional peer `@ait-co/debugger` 설치) — 같은 QR 한 번으로 화면 미리보기 + on-device CDP가 열려 실기기 WebKit의 DOM·콘솔·예외·`measure_safe_area`를 `source: "relay-*"`로 관측한다. CDP가 못 메우는 것은 위의 mock SDK 천장뿐이다.
 
 ---
 

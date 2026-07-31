@@ -5,14 +5,14 @@
 
 ## 전제조건
 
-- `devtools-mcp` 실행 후 `start_debug({mode: 'relay-staging'})` 호출 (debug 모드)
-  - MCP 기동: `npx @ait-co/devtools devtools-mcp`
+- `debugger` 실행 후 `start_debug({mode: 'relay-staging'})` 호출 (debug 모드)
+  - MCP 기동: `npx -y -p @ait-co/debugger debugger`
   - 그런 다음 Claude Code에서: `start_debug({mode: 'relay-staging'})`
 - dogfood bundle deploy: `ait build && ait deploy --scheme-only`
 - deep-link: `intoss-private://aitc-sdk-example?_deploymentId=<uuid>&debug=1&relay=<wss>`
 - 진입 경로: QR 스캔 (단일 정식 경로 — `test-push` 폐기됨)
 
-> 참고 — `devtools-mcp` 기동 직후 `start_debug({mode: 'relay-staging'})`를 호출하면 relay connection이 준비된다.
+> 참고 — `debugger` 기동 직후 `start_debug({mode: 'relay-staging'})`를 호출하면 relay connection이 준비된다.
 > `--target=local`로 기동했어도 `start_debug(relay-staging)`으로 relay로 hot-switch 가능하다(#356 DualConnectionRouter 대칭화 — 재시작 불필요).
 
 ## MCP 도구 acceptance 체크리스트
@@ -61,11 +61,11 @@ troubleshooting: QR 스캔했는데 relay가 인증 실패 → `totp.expiresAt` 
 
 ### MCP 서버가 "이미 실행 중" 안내가 뜰 때
 
-`devtools-mcp`가 이미 실행 중인 세션을 감지하면 stderr에 PID + wssUrl + 회복 명령을 출력합니다.
+`debugger`가 이미 실행 중인 세션을 감지하면 stderr에 PID + wssUrl + 회복 명령을 출력합니다.
 `--force` 플래그로 기존 세션을 종료하고 takeover할 수 있습니다:
 
 ```bash
-npx @ait-co/devtools devtools-mcp --force
+npx -y -p @ait-co/debugger debugger --force
 ```
 
 ## get_debug_status — environment 필드

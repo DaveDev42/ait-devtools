@@ -11,8 +11,10 @@
  * When WSS_URL is absent the CLI silently downgrades to mock-only so CI
  * can always run without a real device. See index.ts parseArgs().
  *
- * Design pointer: see umbrella meta/four-environments-fidelity.md §1.1 (환경 3·4)
- * and src/mcp/ for the CDP relay infrastructure.
+ * Design pointer: see umbrella meta/three-environments-fidelity.md §1.1 (환경 3 =
+ * intoss-private relay dev; 환경 2도 `tunnel.cdp` opt-in 시 같은 relay transport를
+ * 쓴다) and `@ait-co/debugger` (packages/debugger/src/mcp/) for the CDP relay
+ * infrastructure.
  *
  * Scenario parity diff whitelist entries for relay-side differences:
  *   - scenario-parity.measureSafeArea.source      → "relay" vs "mock"

@@ -1,7 +1,8 @@
 /**
  * SDK-call trace shape produced by the mock's `observe()` wrapper.
  *
- * These declarations used to live in `src/mcp/ait-source.ts` because the MCP
+ * These declarations used to live in `src/mcp/ait-source.ts` (that module is now
+ * `@ait-co/debugger`'s `packages/debugger/src/mcp/ait-source.ts`) because the MCP
  * `AIT.getSdkCallHistory` tool was their only *consumer*. After the debug
  * surface moved to `@ait-co/debugger` (#818) the producer — `observe()`
  * writing into `aitState.sdkCallLog` — is the only side left in this package,

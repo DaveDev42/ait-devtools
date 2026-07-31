@@ -24,7 +24,8 @@ import type { Probe } from '../types.js';
 /**
  * list_pages mock shape — mirrors AIT_getMockState + mock env defaults.
  * The mock runner doesn't spin up a real MCP server; it reproduces the
- * expected shape that devtools-mcp returns in local/mock mode.
+ * expected shape that the `debugger` bin (@ait-co/debugger) returns in
+ * local/mock mode.
  */
 function buildMockListPagesShape(): unknown {
   return {
@@ -42,7 +43,8 @@ function buildMockListPagesShape(): unknown {
 
 /**
  * measure_safe_area mock shape — source: "mock", sdkInsetsSource: "window.__ait".
- * Mirrors what devtools-mcp returns when running in local/mock mode.
+ * Mirrors what the `debugger` bin (@ait-co/debugger) returns when running in
+ * local/mock mode.
  */
 function buildMockMeasureSafeAreaShape(): unknown {
   return {

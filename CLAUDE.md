@@ -14,7 +14,7 @@
 
 **전환 스텁 (0.2.x 한정, 1.0.0에서 제거)**: 이동한 subpath·bin은 `src/stubs/`가 자리를 지킨다. `/mcp/*`·`/test-runner`는 import 시 **throw**(터미널 전용 진입점이라 즉시 실패가 옳다), `/in-app`·`/in-app/auto`는 **절대 throw하지 않는다** — 그 코드는 이미 출시된 앱 번들 안에 있을 수 있고, 거기서의 throw는 개발도구 사정으로 실사용자의 미니앱을 죽인다. 대신 no-op + `console.error` 1회다. 이 비대칭은 스타일이 아니라 안전 속성이므로 스텁을 고칠 때 유지한다.
 
-내부 문서(`docs/**`)의 분리 전 서술 정리와 이슈 #813(pinned) 마무리는 후속 #819가 맡는다.
+내부 문서 정리와 SPLIT FREEZE 해제도 끝났다(#819 → #813 CLOSED). 이제 `src/{mcp,in-app,test-runner}`를 현재형으로 가리키는 서술은 남아 있지 않다 — 그 표면을 고칠 일이 생기면 `debugger` repo에서 한다.
 
 ## 이 파일의 독자
 

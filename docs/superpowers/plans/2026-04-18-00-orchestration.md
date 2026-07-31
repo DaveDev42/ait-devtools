@@ -10,7 +10,7 @@
 
 | PR | Plan | 파일 수정 대상 | 의존 |
 |---|---|---|---|
-| **A** | [selector audit + E2E green](./2026-04-18-A-e2e-selector-audit.md) | `e2e/panel.test.ts` | 없음 |
+| **A** | [selector audit + E2E green](./2026-04-18-e2e-fixture.md) — *A 계획은 폐기, e2e-fixture가 대체* | `e2e/panel.test.ts` | 없음 |
 | **B** | [PR CI E2E gating](./2026-04-18-B-ci-e2e-gating.md) | `.github/workflows/ci.yml` | A 머지 후 |
 | **C1** | [peer range lock + proxy throw + docs](./2026-04-18-C1-peer-range-and-proxy-throw.md) | `package.json`, `src/mock/proxy.ts`, `src/__tests__/proxy.test.ts`, `README.md`, `CLAUDE.md` | 없음 |
 | **C2** | [SDK compat matrix](./2026-04-18-C2-sdk-compat-matrix.md) | `.github/workflows/ci.yml` | C1 머지 후 |
@@ -24,7 +24,7 @@
 A와 C1은 독립적. `gw` 2번 spawn해서 병렬로 진행.
 
 ```
-gw spawn "PR A: follow docs/superpowers/plans/2026-04-18-A-e2e-selector-audit.md"
+gw spawn "PR A: follow docs/superpowers/plans/2026-04-18-e2e-fixture.md"
 gw spawn "PR C1: follow docs/superpowers/plans/2026-04-18-C1-peer-range-and-proxy-throw.md"
 ```
 

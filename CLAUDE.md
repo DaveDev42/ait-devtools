@@ -1,10 +1,20 @@
 # CLAUDE.md
 
-## SPLIT FREEZE
+## 3-패키지 경계 (분리 완료)
 
-이 repo는 현재 **3 패키지 / 2 repo 분리** 이행 중이다. `src/mcp` · `src/in-app` · `src/test-runner` · `src/shared`는 **freeze** — 변경 PR을 열지 않는다(`src/shared`는 일부만 이동하지만 통째로 얼린다). 얼지 않는 것: `src/mock` · `src/panel` · `src/unplugin` · `src/i18n` · `e2e/fixture` · `scripts/`.
+이 repo는 **3 패키지 / 2 repo 분리**의 devtools 쪽 절반이다. 코드 표면 이동은 끝났다(#818): `src/mcp` + `src/test-runner` → `@ait-co/debugger`, `src/in-app` → `@ait-co/debug-console`. 이 패키지에 남은 것은 **mock · panel · unplugin** 셋뿐이고, 그게 이 패키지의 정의다.
 
-이동 대상: `src/mcp` + `src/test-runner` → `@ait-co/debugger`, `src/in-app` → `@ait-co/debug-console`. 상세와 해제 조건은 이슈 #813(pinned)이 정본. devtools V2(표면 제거 + 0.2.0) 머지 후 이 배너를 제거한다.
+| 패키지 | 정체성 | 소비자 설치 위치 |
+|---|---|---|
+| `@ait-co/devtools` | mock SDK + DevTools 패널 + unplugin | `devDependencies` |
+| `@ait-co/debugger` | MCP 디버그 데몬(bin `debugger`) + 실기기 테스트 러너(bin `debugger-test`) + env-2 dev-bridge | `devDependencies` / `npx` 전용 |
+| `@ait-co/debug-console` | on-device attach + 인앱 eruda 콘솔 | **`dependencies`** — 앱 번들에 들어갈 수 있는 유일한 패키지 |
+
+뒤의 둘은 devtools의 **optional peer**다(#817, `src/unplugin/optional-peers.ts`). 미설치면 게이트가 닫히며 degrade한다 — `tunnel.cdp`는 CDP 배선을 건너뛰고 화면 미리보기 터널로, in-app attach는 아예 주입되지 않는다. 후자가 디버그 표면의 기술적 경계다: `@ait-co/debug-console`이 없으면 attach 코드는 번들에 **구조적으로** 들어갈 수 없다.
+
+**전환 스텁 (0.2.x 한정, 1.0.0에서 제거)**: 이동한 subpath·bin은 `src/stubs/`가 자리를 지킨다. `/mcp/*`·`/test-runner`는 import 시 **throw**(터미널 전용 진입점이라 즉시 실패가 옳다), `/in-app`·`/in-app/auto`는 **절대 throw하지 않는다** — 그 코드는 이미 출시된 앱 번들 안에 있을 수 있고, 거기서의 throw는 개발도구 사정으로 실사용자의 미니앱을 죽인다. 대신 no-op + `console.error` 1회다. 이 비대칭은 스타일이 아니라 안전 속성이므로 스텁을 고칠 때 유지한다.
+
+내부 문서(`docs/**`)의 분리 전 서술 정리와 이슈 #813(pinned) 마무리는 후속 #819가 맡는다.
 
 ## 이 파일의 독자
 
@@ -54,12 +64,14 @@ git config core.hooksPath .githooks
 
 - **tsdown** — 빌드 (ESM + CJS for unplugin)
 - **vitest** — 테스트 (jsdom 환경, 아래 "jsdom 제약" 섹션 주의)
-- **unplugin** — 모든 번들러 지원. runtime dependency는 unplugin 외에 `chii`·`ws`·`cloudflared`·`qrcode`·`qrcode-terminal`·`ajv`·`@modelcontextprotocol/sdk` (in-app debug MCP surface가 쓴다)
+- **unplugin** — 모든 번들러 지원. runtime dependency는 `unplugin`·`cloudflared`·`qrcode-terminal` 셋뿐이다(뒤의 둘은 env-2 터널 경로가 동적 import로만 로드). 분리 전의 `chii`·`ws`·`qrcode`·`ajv`·`@modelcontextprotocol/sdk`는 디버그 표면과 함께 `@ait-co/debugger`로 갔다 — 여기로 되돌아오면 안 된다
 - ESM only (`"type": "module"`)
 
 ## 배포
 
-이 repo는 **npm 패키지** 배포 타입 — Changesets 풀스택 (`@ait-co/devtools` 자동 publish). 버전은 `0.1.x` patch 단계 유지, 다음 minor는 곧바로 `1.0.0`.
+이 repo는 **npm 패키지** 배포 타입 — Changesets 풀스택 (`@ait-co/devtools` 자동 publish).
+
+버전은 `0.1.x` patch 단계였고, **`0.2.0`이 그 단계의 유일한 minor 예외다**(#818, Dave 명시 결정). 공개 export 5개와 bin 2개가 `@ait-co/debugger`·`@ait-co/debug-console`로 빠져나가는 릴리즈라 patch로 내보내면 소비자가 `pnpm up` 한 번에 깨진다. 예외는 이 한 번뿐이고, 이후 minor는 다시 없다 — 다음 minor 이벤트는 곧바로 `1.0.0`이며 그때 `src/stubs/`의 전환 스텁이 함께 사라진다. Claude는 여전히 changeset에서 **patch만 자율 생성**한다(minor/major는 Dave 명시 지시 시만).
 
 같은 코드에서 두 개의 dist-tag를 동시에 운영한다 (`.github/workflows/release.yml`):
 
@@ -78,6 +90,7 @@ pnpm build          # tsdown으로 dist/ 빌드
 pnpm typecheck      # tsc --noEmit (원본 SDK 시그니처 호환성 검증 포함)
 pnpm test           # vitest
 pnpm test:e2e       # Playwright E2E (자동 빌드 + preview)
+pnpm check:footprint-absent  # 프로덕션 번들 기여 0 bytes 가드 (build 후 실행, positive control 포함)
 pnpm check-sdk-update  # 새 SDK 버전 감지 (수동 트리거, 매주 월요일 CI도 동일)
 ```
 
@@ -106,7 +119,7 @@ src/
 ## 코딩 컨벤션
 
 - **사용자 대면 표면은 React + ko/en i18n**: panel·qr-http-server 대시보드·e2e fixture·launcher PWA는 모두 React로 렌더하고 `navigator.language`/`Accept-Language` 기반 ko/en i18n을 지원한다. i18n core는 `src/i18n`(ko.ts가 `StringKey` 정본, en.ts는 typecheck-강제 `Record<StringKey,string>` 미러), React 반응 레이어는 `src/i18n/react.ts`(`useLocale`/`useT`, `LOCALE_CHANGE_EVENT` 위 `useSyncExternalStore`). panel은 chrome(toggle/header/badge/tab bar/body)만 React이고 12개 탭 body는 `renderXTab(): HTMLElement` 명령형 렌더러를 `<TabHost>`로 마운트하는 hybrid다(position은 React state가 아니라 ref+localStorage `__ait_btn_pos`).
-- **install-graph 불변식 — react/react-dom은 `devDependencies`만, `dependencies` 절대 금지**: MCP-only 소비자(`npx -y @ait-co/devtools devtools-mcp`)는 React를 install 그래프로 끌어오면 안 된다. 따라서 MCP 데몬 번들(`dist/mcp/cli.js`·`dist/mcp/server.js`)은 react/react-dom을 import하지 않는다 — `scripts/check-mcp-react-free.sh`(ci.yml 배선)가 강제한다. qr-http-server 대시보드는 이 불변식을 지키려 빌드타임 precompile을 쓴다: JSX 템플릿(`scripts/dashboard/*.tsx`) → `scripts/build-dashboard-html.ts`가 `renderToStaticMarkup`으로 커밋된 `src/mcp/dashboard.generated.ts` 문자열 모듈 생성 → 런타임 `qr-http-server.ts`는 그 문자열만 import(`check:dashboard-html-fresh`가 freshness 강제). 런타임에 React를 import하는 표면은 데몬 그래프 밖(panel/fixture/launcher는 소비자 빌드, 대시보드는 precompiled string)이라야 한다.
+- **footprint 불변식 — 프로덕션 번들 기여는 0 bytes**: 이 패키지는 devDependency이고, 소비자의 production 빌드에 mock·panel 그래프가 한 조각도 남으면 안 된다. unplugin은 빌드 host 쪽에서만 돌고(alias·주입·터널 배선), panel은 `import.meta.env.DEV` 뒤에서 소비되므로 production 빌드가 그래프 전체를 DCE한다. `scripts/check-devtools-footprint-absent.sh`(ci.yml 배선, `pnpm check:footprint-absent`)가 이걸 기계적으로 증명한다 — ① `dist/`에 이동한 구현이 되돌아오지 않았는지, ② `scripts/footprint-fixture/`를 release로 빌드해 mock/panel sentinel 0건인지, ③ **positive control**로 `AIT_FOOTPRINT_FORCE=1` 빌드엔 sentinel이 존재하는지. ③이 없으면 fixture가 조용히 아무것도 import하지 않게 되어도 ②가 영원히 green이라 무의미해진다. release 빌드는 **반드시 minify ON** — minify를 끄면 죽은 `if(false){…}` 껍데기가 텍스트로 남아 식별자가 false-positive를 낸다. 분리 전 4개 가드(`check:mcp-react-free`·`check:test-runner-dist`·`check:debug-surface-absent`·`check:dashboard-html-fresh`)는 각자 지키던 표면과 함께 제거됐고 이 가드 하나가 대체한다.
 - **모든 mock은 원본 SDK 시그니처와 호환**: `src/__typecheck.ts`의 `Assert<Mock, Original>`로 검증.
 - **권한 함수**: `withPermission(fn, permissionName)`으로 감싸 `.getPermission()`, `.openPermissionDialog()` 부착.
 - **이벤트**: `window.dispatchEvent(new CustomEvent('__ait:eventName'))`. `aitState.trigger('backEvent')` 사용.
@@ -127,7 +140,7 @@ devtools는 `@apps-in-toss/web-framework` **3.0.0-beta** 프리릴리즈를 추�
 **GA Flip 상태:** beta 채택 wave는 머지 완료, GA flip(exact pin→`^3.0.0`, `latest` peer를 3.0 라인으로, dist-tag flip)은 **미착수** — GA ETA 미정으로 대기. 트래킹 #370. GA용으로 비워뒀던 `0.1.54` 슬롯은 무관한 maintenance Version PR이 선점했고 이후 추가 maintenance로 `latest`가 더 올라갔다(현 `latest`는 `npm view @ait-co/devtools dist-tags.latest`로 확인, peer `>=2.6.0 <3.0.0`) → flip은 그 시점 `latest` 다음 patch를 쓴다. `beta` dist-tag 자동 publish는 GA flip의 부분 선행이다(3.0 peer artifact를 미리 검증된 상태로 올려둠) — GA flip 시 그 검증된 peer를 `latest`로 승격하고 `release-beta` job은 정리 대상이 된다.
 
 - peer는 `peerDependenciesMeta.optional: true`. devDep은 고정.
-  - **이유**: 이 패키지는 두 사용자 그룹을 함께 다룬다 — (a) mock SDK 사용자(번들러 alias로 unplugin), (b) MCP-only 사용자(`.mcp.json`의 `npx -y @ait-co/devtools devtools-mcp` 진입). (b)는 mock SDK를 절대 import하지 않으므로 peer를 required로 두면 SDK + 그 RN/Babel/Metro 트랜지티브 거대 트리(~분 단위 install)가 강제 설치되어 MCP server spawn이 timeout. (a)는 본인 프로젝트에서 SDK를 직접 import하므로 누락은 빌드 단계에서 명시적으로 깨진다 (vite/webpack resolve fail) — npm missing peer warning에 의존할 필요가 없다. optional로 두어도 (a)의 신뢰성은 손상되지 않는다.
+  - **이유**: 소비자는 본인 프로젝트에서 SDK를 직접 import하므로 누락은 빌드 단계에서 명시적으로 깨진다(vite/webpack resolve fail) — npm missing peer warning에 의존할 필요가 없다. 반대로 required로 두면 SDK + 그 RN/Babel/Metro 트랜지티브 거대 트리(~분 단위 install)가 강제로 딸려 온다. optional로 둬도 신뢰성은 손상되지 않고 설치만 가벼워진다. (분리 전에는 "MCP-only 소비자는 mock SDK를 아예 import하지 않는다"가 더 강한 근거였는데, 그 소비자군은 `@ait-co/debugger`로 옮겨 갔다 — 근거 하나가 빠졌을 뿐 결론은 그대로다.)
 - `src/__typecheck.ts`가 컴파일 타임에 시그니처 불일치 감지.
 - `src/mock/proxy.ts`의 `createMockProxy`는 미구현 API 접근 시 **throw** — "잘 되는 척" 방지.
 - `.github/workflows/check-sdk-update.yml`이 매주 월요일 새 버전 감지 → 이슈 생성.
@@ -145,37 +158,31 @@ devtools는 `@apps-in-toss/web-framework` **3.0.0-beta** 프리릴리즈를 추�
 
 같은 devtools 안에서 SDK 라인별 런타임 분기는 하지 않는다 (mock 본체가 두 벌이 되어 비용이 큼). 동시 지원 윈도우가 정말 필요해지면 그때 별도 결정.
 
-## MCP tool surface — 환경 감지 + Tier 매트릭스 (RFC #277)
+## MCP tool surface — 이 repo 밖이다
 
-debug-mode MCP 서버(`devtools-mcp`)는 env를 **저장하지 않고 매 요청마다 `connection.kind`에서 파생**한다(`deriveEnvironment(kind, relayOrigin)`, `src/mcp/environment.ts`). #348 이전의 `getEnvironment()` 5-step precedence 체인(`MCP_ENV` → CDP URL 패턴 sniffing → `defaultEnv` → baked-in mock)은 **삭제됐다** — env enum이 두 직교 신호로 붕괴했기 때문이다:
-
-- **mock vs relay-\* = `connection.kind`에서 무료 파생.** `CdpConnection` 인터페이스의 `readonly kind: 'relay' | 'local'`이 권위 있는 자기서술 신호다(`ChiiCdpConnection.kind='relay'`, `LocalCdpConnection.kind='local'`). connection이 자기 kind를 알므로 target attach 전에도 정확 → URL 패턴 sniffing·`defaultEnv` intent-passing이 불필요해졌다.
-- (env 2는 relay이되 `relayOrigin='external-pwa'` → `relay-mobile`로 파생. #378.)
-
-issue #309의 dead-lock(빈 세션 첫 `tools/list`에서 Tier B `start_attach`이 안 보여 env 3 진입을 포기)은 이 모델에서 구조적으로 소멸한다 — relay-kind connection이면 attach 전에도 kind를 알아 진입 도구가 첫 `tools/list`부터 정확히 노출된다(`BOOTSTRAP_TOOL_NAMES`). `connection.kind`는 비-sticky(각 active connection이 자기 kind 보고) — `start_debug`는 `DualConnectionRouter.active`를 flip해 세션 안에서 family를 전환한다(예전 "env는 sticky, 전환 없음" 모델을 의도적으로 초과).
-
-도구는 RFC #277(closed — 구현 완료) Tier 분류를 따른다. 각 descriptor에 `availableIn: 'mock' | 'relay' | 'both'`(`ToolAvailability`)가 박혀 있고, `filterToolsByEnvironment`가 `tools/list`를 env에 맞춰 필터한다 — Tier B(`relay` only, 예: `start_attach`)는 local에서 hidden, 환경 불일치 호출은 `tierRejectionError`(한국어 "원인+다음 행동" + 영문 compat 라인을 담은 tool-result error)로 거부된다. Tier A(`mock` only, mock state dial)는 **현재 0개 노출** — webViewType/orientation 등 dial은 패널 UI 전용이고 MCP 표면엔 안 올라와 있다. Tier C(`both`, 평행 15개)에는 `list_console_messages`, `list_network_requests`, `list_pages`, `get_dom_document`, `take_snapshot`, `take_screenshot`, `measure_safe_area`, `evaluate`, `list_exceptions`, `call_sdk`, `AIT.getSdkCallHistory`, `AIT.getMockState`, `AIT.getOperationalEnvironment`, `start_debug`, `get_debug_status`가 든다. `measure_safe_area`는 양쪽에서 같은 `Runtime.evaluate` probe(`SAFE_AREA_PROBE_EXPRESSION`)를 돌리고 결과에 `source: 'mock' | 'relay-dev'`를 attach해 provenance를 노출한다. mock↔relay 결과 평행은 `scripts/fidelity-qa/`가 정량 diff(`whitelist.json`이 EXPECTED_MISMATCH 등재)로 강제한다.
-
-**MCP 도구 명명 규칙**: 동사+명사(verb-first), 군더더기 prefix 금지. 도메인 prefix(`session_`/`observe_` 등)는 한 클러스터가 도구 3개 이상에 도달할 때만 도입한다 — MCP 서버키(`ait-devtools`)가 이미 1차 네임스페이스를 제공하므로 그 전엔 prefix가 거짓 신호다.
+debug MCP 서버·tier 매트릭스·환경 파생(`connection.kind`) 설계는 전부 `@ait-co/debugger`로 갔다(#818). 이 repo에서 그 표면을 고치지 않는다 — MCP 도구를 추가·개명·재분류하려면 `debugger` repo에서 한다. 여기 남은 접점은 하나뿐이다: unplugin의 `tunnel.cdp` 경로가 optional peer `@ait-co/debugger/dev-bridge`에 위임한다(아래 환경 2 섹션).
 
 ## 패키지 export 구조
+
+이 패키지가 실제로 출하하는 진입점은 넷이다:
 
 | Import path | 용도 |
 |---|---|
 | `@ait-co/devtools` (= `/mock`) | 번들러 alias 대상, 모든 mock export |
 | `@ait-co/devtools/panel` | Floating DevTools Panel (import 시 자동 마운트) |
 | `@ait-co/devtools/unplugin` | 번들러 플러그인 (.vite/.webpack/.rspack/.esbuild/.rollup) |
-| `@ait-co/devtools/mcp/server` | dev-mode MCP stdio server 함수 (Node.js) |
-| `@ait-co/devtools/mcp/cli` | `devtools-mcp` bin 진입점 (debug / dev 모드, Node.js) |
-| `@ait-co/devtools/in-app` | In-app debug attach — 런타임 gate(layer B·C) + Chii target.js 주입 + eruda 인-페이지 콘솔. 소비자가 `if (__DEBUG_BUILD__)`로 import를 감싸 release 빌드에서 DCE — dogfood 빌드 전용 |
 
-### in-app eruda 콘솔 + 빌드타임 부재 불변식 (#647)
+나머지 subpath는 **전환 스텁**이다 — 0.2.x에만 존재하고 1.0.0에서 제거된다. 소스는 `src/stubs/`, dist 매핑은 `tsdown.config.ts`의 transition-stubs 블록이 정본(스텁 소스는 구 dist 경로로 emit되므로 `exports` 항목을 바꾸지 않고 소스만 지웠다).
 
-`maybeAttach()`는 gate 통과(`gateResult.attach`) 직후 Chii `target.js` `<script>` 주입과 **나란히** `mountEruda()`(`src/in-app/eruda-overlay.ts`)를 호출해 [eruda](https://github.com/liriliri/eruda) 인-페이지 콘솔을 폰 화면에 띄운다. Chii는 **원격 CDP transport**(폰→relay→PC frontend), eruda는 **폰 화면 로컬 view**라 직교한다 — eruda는 WS를 안 열고(Shadow DOM `#eruda` 격리) chii는 DOM 미마운트라 충돌 없이 공존한다. env 1(데스크톱)은 host allowlist 미통과로 자연 제외(F12 사용), env 2(`*.trycloudflare.com`)·env 3(`*.private-apps.tossmini.com`)만 마운트된다 — eruda용 새 host 분기 코드는 없고 `evaluateDebugGate` 결과를 그대로 탄다.
+| Import path | 이동처 | import 시 |
+|---|---|---|
+| `/mcp/server`, `/mcp/cli` | `@ait-co/debugger/mcp/*` | **throw** |
+| `/test-runner` | `@ait-co/debugger/test-runner` | **throw** |
+| `/in-app`, `/in-app/auto` | `@ait-co/debug-console`(+`/auto`) | no-op + `console.error` 1회 |
 
-- **`eruda`는 `dependencies`** (devDep/optionalDep 아님): 소비자가 `__DEBUG_BUILD__` 디버그 빌드 시 eruda를 번들에 넣으므로 resolve할 수 있어야 한다. install 그래프엔 있되 release 번들엔 0 bytes(아래) — cloudflared/qrcode-terminal과 같은 "런타임 코드 경로 필요" 예외. `import('eruda')`는 **dynamic import**라 dead branch에서 청크 자체가 emit 안 됨.
-- **빌드타임 부재 (zero bytes)**: in-app 디버그 표면(Chii 주입 + eruda)은 release 빌드에 **물리적으로 존재하지 않아야** 한다. 소비자가 `if (__DEBUG_BUILD__) { import('@ait-co/devtools/in-app')... }`로 감싸고 release가 `__DEBUG_BUILD__:false`로 define하면 in-app 그래프 전체가 DCE된다(Vite 8/rolldown 검증). 런타임 gate는 코드가 번들에 남아 추출·재주입 여지가 있지만, 빌드 부재는 표면이 0. `/in-app/auto`는 런타임 self-gate라 dormant chunk가 잔존하므로 "빌드 부재"가 필요하면 쓰지 않는다(deprecated 주석).
-- **CI 강제**: `check:debug-surface-absent`(`scripts/check-debug-surface-absent.sh`, ci.yml 배선)가 ① MCP 데몬 번들(`dist/mcp/*.js`)에 eruda 0건(브라우저 UI 미렌더), ② release 모드 fixture 빌드(minify ON — minify 끄면 `if(false){}` husk 식별자 false-positive)에 디버그 표면 0건, ③ positive control(`AIT_DEBUG_BUILD=1` 빌드엔 존재 → 토글 사망 방지)을 강제한다. `e2e/fixture/main.tsx`가 빌드 가드 패턴의 reference다.
+bin도 같다: `devtools-mcp`·`devtools-test`는 stderr에 이동 안내를 찍고 exit 1 한다(각각 `@ait-co/debugger`의 `debugger`·`debugger-test`로). bin 이름을 바꿔 옮긴 게 스텁을 남길 수 있게 한 전제다 — 이름이 같았다면 두 패키지가 같은 `node_modules/.bin` 심볼릭 링크를 두고 다퉜을 것이다.
+
+throw/no-op 비대칭은 안전 속성이다(§3-패키지 경계). 스텁을 손볼 때 뒤집지 말 것.
 
 ## 실기기 미리보기 — 환경 2 (AITC Sandbox App (PWA), tunnel + launcher)
 
@@ -183,13 +190,13 @@ issue #309의 dead-lock(빈 세션 첫 `tools/list`에서 Tier B `start_attach`�
 
 unplugin `tunnel` 옵션(Vite dev 전용, `src/unplugin/index.ts`의 `vite.configureServer` 분기 + `src/unplugin/tunnel.ts`)이 dev 서버가 listen하면 `cloudflared` quick tunnel(`*.trycloudflare.com`, 계정 불필요)을 띄우고 터미널에 URL + ASCII QR을 출력한다. production은 `forceEnable`이어도 터널을 안 띄운다 (의도치 않은 노출 방지). `cloudflared`/`qrcode-terminal`는 **동적 import**로만 로드 → 터널 미사용 시 그래프에 안 들어옴. 이 둘은 `dependencies`에 들어가는데, "외부 의존성 최소화" 원칙의 의도적 예외다 (런타임 코드 경로에서 필요, 동적 import로 비용 격리). `tunnel.ts`의 `parseTrycloudflareUrl`/`printTunnelBanner`는 순수 함수로 빼서 vitest로 검증하고, cloudflared spawn 자체는 jsdom 범위 밖이라 e2e/수동 검증 ("web 모드는 e2e"와 같은 정신).
 
-`tunnel: { cdp: true }`(opt-in, default false)를 주면 위 HTTP 터널과 **별도로** Chii relay(`src/mcp/chii-relay.ts`의 `startChiiRelay({port:0})`)와 그 relay에 붙는 두 번째 quick tunnel을 띄워 환경 2 PWA에 CDP 디버깅을 배선한다 — launcher QR deep-link가 `&debug=1&relay=<wss>`를 추가로 실어, 폰 PWA iframe이 in-app debug gate(`src/in-app/gate.ts`)를 통과하고 target.js가 주입된다. host-gate는 "완화"가 아니라 host별 분기다: `*.trycloudflare.com` host는 Layer B1을 우회(+B2 `_deploymentId` skip)하되 C1 `debug=1`/C2 relay wss/C3 TOTP는 그대로 적용된다(`isTrycloudflareHost`). 토스 host(`*.private-apps.tossmini.com`) 경로는 positive-allowlist kill-switch(#665)로 보호된다. `chii-relay`는 동적 import이므로 MCP-only 소비자(`npx … devtools-mcp`)의 install 그래프에 정적으로 끌려오지 않는다. 단, `call_sdk`는 환경 2에서 여전히 mock을 친다 — CDP가 메우는 건 실기기 WebKit의 DOM·콘솔·예외·`measure_safe_area` 관측이고, SDK fidelity가 필요하면 환경 3로 올라간다(devtools #377).
+`tunnel: { cdp: true }`(opt-in, default false)를 주면 위 HTTP 터널과 **별도로** relay + 두 번째 quick tunnel + QR 대시보드를 띄워 환경 2 PWA에 CDP 디버깅을 배선한다 — launcher QR deep-link가 `&debug=1&relay=<wss>`를 추가로 실어, 폰 PWA iframe이 debug gate를 통과하고 target.js가 주입된다. **그 relay 부트스트랩 전체가 optional peer `@ait-co/debugger/dev-bridge`의 `startDevServerCdpRelay`에 위임된다**(#817·#818) — 이 repo에는 relay·gate·대시보드 구현이 없다. 미설치면 CDP 배선을 건너뛰고 화면 미리보기 터널로 degrade하며 설치 힌트를 한 번 출력한다(`optional-peers.ts`의 `hasDebugger()` 게이트). `call_sdk`는 환경 2에서 여전히 mock을 친다 — CDP가 메우는 건 실기기 WebKit의 DOM·콘솔·예외 관측이고, SDK fidelity가 필요하면 환경 3로 올라간다(devtools #377).
 
-CDP 배선(`cdp:true`) + GUI 감지 시, `printTunnelBanner`의 ASCII QR과 **별도로** env 3(`start_attach`)와 동일한 `127.0.0.1` HTML 대시보드(QR 이미지 + 연결 방법 + FAQ)를 띄우고 브라우저를 자동으로 연다 — env 3 UX 패리티(devtools #408, `tunnel.ts`의 `startTunnelDashboard`가 `src/mcp/qr-http-server.ts`·`devtools-opener.ts`를 그 lazy `import('./tunnel.js')` 경로 안에서만 동적 import). 대시보드 QR은 `buildLauncherAttachUrl(tunnelUrl, wssUrl, totpCode)`로 TOTP `at=` 코드를 캡슐화하는데, `getDashboardState` 클로저가 매 호출(SSE push·재로드)마다 `generateTotp(secret, Date.now())`로 **새 코드**를 굽기 때문에 폰이 스캔하는 코드는 항상 30초 창 안이다(정적 HTML에 만료 코드 박힘 없음). `tunnel:{qr:false}`·headless(`canOpenBrowser=false`)·`AIT_AUTO_DEVTOOLS=0`이면 대시보드를 띄우지 않고 ASCII QR fallback만 남긴다(회귀 없음). SECRET-HANDLING: tunnel host·relay wss·TOTP 코드는 HTML 본문/`/qr.png` query에만 — 브라우저로 여는 URL은 `http://127.0.0.1:<port>`(로컬)만 로그/오픈한다.
+SECRET-HANDLING(위임 후에도 이 repo가 지킨다): tunnel host·relay wss·TOTP 시크릿/코드는 stdout·stderr·로그에 절대 싣지 않는다. `tunnel.ts`가 여는 브라우저 URL은 로컬 대시보드 주소(`http://127.0.0.1:<port>`)뿐이다.
 
 폰 쪽은 고정 URL(`https://devtools.aitc.dev/launcher/`)에 배포된 launcher PWA(`e2e/fixture/launcher/`)를 한 번 홈 화면에 추가하고, 그 안의 풀뷰포트 `<iframe>`으로 그날의 tunnel URL을 띄운다 (quick tunnel URL은 매 실행마다 바뀌어서 URL 자체를 PWA로 설치하면 죽은 링크가 되고, cross-origin 전환은 standalone이 깨짐 → launcher가 same-origin 크롬리스 셸 역할). launcher는 카메라 QR 스캔(`qr-scanner`, **devDependency** — launcher SPA에서만 쓰이고 npm 패키지엔 안 실림) + URL 붙여넣기 fallback + "Rescan" 버튼. 신규 오픈(쿼리 없음)은 항상 스캔 화면 — localStorage 마지막 URL 자동 로드는 #459에서 제거됐다(quick-tunnel host는 세션마다 바뀌고 TOTP `at=` 코드는 30초로 만료 → 저장된 debug deep-link는 항상 stale). live 진입 경로는 `?url=` QR deep-link 단일 경로만. PWA 정적 파일(`manifest.webmanifest`/`sw.js`/아이콘)은 `e2e/fixture/public/launcher/`에 두면 vite가 `dist/launcher/`로 복사. `e2e/fixture/vite.config.ts`는 이 launcher 페이지 때문에 MPA(`rollupOptions.input`에 `index.html` + `launcher/index.html`)이고, 같은 config의 unplugin 호출에 `tunnel: process.env.AIT_TUNNEL_CDP ? { cdp: true } : !!process.env.AIT_TUNNEL`이 있어 `AIT_TUNNEL=1 pnpm exec vite --config e2e/fixture/vite.config.ts`(스크린 미리보기) 또는 `AIT_TUNNEL_CDP=1 pnpm exec vite --config e2e/fixture/vite.config.ts`(CDP relay 포함)로 수동 QA 가능. (named tunnel로 고정 hostname 받는 방식은 추후 `tunnel: { hostname }` 옵션으로 확장 여지.)
 
-**환경 2 MCP-attach 절반** (issue #378, PR-2): MCP server가 `relay-mobile` env로 `start_attach`을 호출하면 `AIT_TUNNEL_BASE_URL` + relay `wssUrl`을 조합해 `buildLauncherAttachUrl(tunnelUrl, wssUrl)`로 launcher QR deep-link를 생성한다 (`src/mcp/deeplink.ts`). 이 경로는 intoss-private scheme URL을 쓰지 않고 `scheme_url` 인자도 요구하지 않는다. `AIT_TUNNEL_BASE_URL`은 relay/tunnel host와 같은 민감도 — 절대 stdout/log에 출력하지 않는다. `e2e/fixture/main.tsx`는 `?debug=1&relay=` 파라미터 존재 시 `@ait-co/devtools/in-app`을 dynamic import해 `maybeAttach()`를 호출한다 — localhost에서는 Layer B1 gate가 차단하므로 실 환경(trycloudflare.com 터널)에서만 target.js가 주입된다. 로컬 PC 검증은 `e2e/launcher-cdp.test.ts`가 node-side relay 기동 + launcher 파라미터 포워딩을 자동화하고, browser-side target.js 주입의 수동 잔여를 주석으로 명시한다.
+**환경 2 MCP-attach 절반**(issue #378)의 서버 쪽 — `start_attach`이 launcher QR deep-link를 합성하는 경로 — 도 `@ait-co/debugger`로 갔다. 소비자 쪽 배선만 여기 남는다: 미니앱 entry가 `@ait-co/debug-console/auto`를 import하거나(수동), unplugin이 `hasDebugConsole()` 게이트를 통과할 때 같은 동작의 스니펫을 주입한다(`optional-peers.ts`의 `buildInAppSnippet`). 이미 손으로 배선한 소비자에게 중복 주입하지 않도록 `hasInAppWiring`이 현행·분리 전 두 specifier를 모두 인식한다.
 
 pnpm 10+ 소비자에 대한 안내는 README에 있다: 프로젝트 `package.json`에 `"pnpm": { "onlyBuiltDependencies": ["cloudflared"] }`. pnpm이 기본으로 third-party build script를 차단해 `cloudflared` postinstall(바이너리 ~38 MB 다운로드)이 스킵되면 `pnpm install` 시 'Ignored build scripts' 경고가 남고 바이너리 캐싱이 첫 dev 기동까지 미뤄진다 — 동작은 됨 (`tunnel.ts`가 `cloudflared.install()`을 lazy로 호출). 참조: [sdk-example#60](https://github.com/apps-in-toss-community/sdk-example/pull/60).
 
@@ -205,13 +212,7 @@ pnpm 10+ 소비자에 대한 안내는 README에 있다: 프로젝트 `package.j
 
 **testid 규약** (`e2e/fixture/components.tsx`): `section-<id>` 루트, `<id>-btn` 버튼, `<id>-result` 결과, `<id>-input` 입력, `<id>-value` 즉시 값, `<id>-log`/`<id>-empty` 이벤트 로그.
 
-**온디바이스 테스트 러너 (`devtools-test`)** — 위 Playwright fixture E2E와는 별개의 실행 경로다. env 3 온디바이스 러너(`devtools-test` bin, `src/test-runner/`)는 실 토스 앱 WebView에 CDP를 직접 attach해 `*.ait.test.ts` 파일을 구동한다. 호출 형태:
-
-```
-devtools-test <glob> --scheme-url <intoss-private URL> [--manual-blocking] --cell-sdk-line <2.x|3.x> --cell-platform <ios|android>
-```
-
-`main()`(`src/test-runner/cli.ts`)이 자체적으로 Chii relay + cloudflared 터널 + QR 대시보드(기본 포트 `DEFAULT_DASHBOARD_PORT`=8317, `src/mcp/qr-http-server.ts`)를 띄운다. **폰은 반드시 이 대시보드 QR을 스캔해야 한다** — relay wss + 회전하는 TOTP(`at=`)가 scheme URL에 함께 실려 있어, 스캔 한 번으로 앱을 cold-load하면서 동시에 CDP를 attach한다. `ait deploy --scheme-only`가 출력하는 맨 `intoss-private://` scheme URL만 스캔하면 앱은 cold-load되지만 디버거는 붙지 않는다. 실행은 run-then-exit이다 — 테스트 파일이 다 끝나면 디버거가 detach되어(폰 화면에 "디버거 연결 끊김" 표시) 앱 자체는 켜진 채로 남는다. `--manual-blocking`을 주면 `*.manual.ait.test.ts` 파일들을 맨 마지막에, 사람이 네이티브 시트(사진 선택기·권한 다이얼로그·전면 광고 등)를 직접 조작하며 실행한다. 플래그 전체 레퍼런스는 `devtools-test --help`가 정본.
+**온디바이스 테스트 러너는 이 repo에 없다.** env 3 러너는 `@ait-co/debugger`의 `debugger-test` bin이다(분리 전 `devtools-test`, `src/test-runner/`). 호출 형태·플래그·리포트 규약은 그 패키지가 정본이고, 여기 Playwright fixture E2E와는 애초에 별개의 실행 경로다. 다만 진입 규칙 하나는 이 repo 문서에도 반복해 둔다 — **폰이 스캔할 QR은 도구가 발급한 대시보드/attach QR**이고, `ait deploy --scheme-only`가 출력하는 맨 `intoss-private://` URL을 스캔하면 앱은 cold-load되지만 디버거는 붙지 않는다.
 
 ## jsdom 환경의 제약
 

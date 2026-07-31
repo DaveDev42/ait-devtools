@@ -55,10 +55,10 @@ pnpm dev:phone          # AIT_TUNNEL=1 pnpm dev 와 동일
 
 **환경 3 — intoss-private** (토스 WebView, HMR X, debug 전용)
 
-실기기 토스 앱 WebView에서 dog-food 번들을 로드하고 MCP relay로 디버깅합니다.
+실기기 토스 앱 WebView에서 dog-food 번들을 로드하고 MCP relay로 디버깅합니다. `@ait-co/debugger` 설치가 필요합니다 — 아래 [디버깅 패키지](#디버깅-패키지-환경-23) 참고.
 
 ```bash
-devtools-mcp              # MCP 서버 시작 → QR 출력
+npx -y -p @ait-co/debugger debugger   # MCP 서버 시작 → QR 출력 (devDep이면 pnpm exec debugger)
 # ait build && ait deploy --scheme-only
 # start_attach(scheme_url) 호출 한 번으로 QR 생성 + 폰 attach까지 — QR 스캔하면 토스 앱 로드 + relay attach
 ```
@@ -73,7 +73,7 @@ HMR 없음(토스 WebView cold-load만). 상세: [`docs/scenarios/env-3.md`](./d
 
 ```ts
 // main.tsx (또는 미니앱 entry 최상단)
-import '@ait-co/devtools/in-app/auto';
+import '@ait-co/debug-console/auto';
 ```
 
 이 한 줄이 하는 일:
@@ -85,7 +85,9 @@ import '@ait-co/devtools/in-app/auto';
 
 환경 3(intoss-private relay) 빌드는 relay QR deep-link가 `?debug=1&relay=<wss>` 파라미터를 실어 보내므로, 이 한 줄만 있으면 별도 게이트 코드가 필요 없습니다. 환경 2(PWA, `tunnel: { cdp: true }`)도 동일하게 동작합니다.
 
-> TOTP 인증이 필요한 dog-food 빌드는 빌드 define으로 `__DEBUG_TOTP_SECRET__`을 주입하고 `@ait-co/devtools/in-app`을 직접 import해 `evaluateDebugGate({ verifyTotpCode })` + `maybeAttach()`를 사용하세요. `in-app/auto`는 TOTP verifier를 주입하지 않으므로 C3 레이어가 비활성화됩니다.
+옛 경로 `@ait-co/devtools/in-app/auto`는 0.2.x에서도 계속 resolve되지만 inert한 no-op 스텁이며 1.0.0에서 제거됩니다 — import를 위 새 경로로 옮기세요.
+
+> TOTP 인증이 필요한 dog-food 빌드는 빌드 define으로 `__DEBUG_TOTP_SECRET__`을 주입하고 `@ait-co/debug-console`을 직접 import해 `evaluateDebugGate({ verifyTotpCode })` + `maybeAttach()`를 사용하세요. `in-app/auto`는 TOTP verifier를 주입하지 않으므로 C3 레이어가 비활성화됩니다.
 
 ## 자주 겪는 문제 5가지
 
@@ -99,7 +101,7 @@ relay에 붙은 페이지가 없는 상태입니다. `start_attach` → QR 스�
 
 **"tunnel down" — 터널 응답 없음 또는 timeout**
 
-cloudflared quick tunnel은 수 시간 후 drop될 수 있습니다. `devtools-mcp` 프로세스를 재시작하면 새 tunnel URL이 발급됩니다. 재발급 후 QR을 다시 스캔하세요. (관련: [#290](https://github.com/apps-in-toss-community/devtools/issues/290))
+cloudflared quick tunnel은 수 시간 후 drop될 수 있습니다. `debugger` 프로세스를 재시작하면 새 tunnel URL이 발급됩니다. 재발급 후 QR을 다시 스캔하세요. (관련: [#290](https://github.com/apps-in-toss-community/devtools/issues/290))
 
 **"page crash" — list_pages에 crashDetectedAt이 찍힘**
 
@@ -107,7 +109,7 @@ cloudflared quick tunnel은 수 시간 후 drop될 수 있습니다. `devtools-m
 
 **"SDK 부재" — window.__sdkCall 미주입**
 
-`call_sdk` 호출 시 `ok: false, error: "window.__sdkCall is not available"` 에러가 뜨면 SDK 브리지가 아직 설치되지 않은 상태입니다. 아래 "on-device 디버깅 한 줄 설정" 섹션을 참고해 `import '@ait-co/devtools/in-app/auto'`가 미니앱 entry에 추가돼 있는지 확인하세요. 환경 2(PWA)에서는 이 에러가 예상 결과입니다. (관련: [#285](https://github.com/apps-in-toss-community/devtools/issues/285))
+`call_sdk` 호출 시 `ok: false, error: "window.__sdkCall is not available"` 에러가 뜨면 SDK 브리지가 아직 설치되지 않은 상태입니다. 아래 "on-device 디버깅 한 줄 설정" 섹션을 참고해 `import '@ait-co/debug-console/auto'`가 미니앱 entry에 추가돼 있는지 확인하세요. 환경 2(PWA)에서는 이 에러가 예상 결과입니다. (관련: [#285](https://github.com/apps-in-toss-community/devtools/issues/285))
 
 **"QR 스캔했는데 인증 실패" — TOTP 만료**
 
@@ -300,7 +302,7 @@ aitDevtools.vite({ tunnel: { cdp: true } }); // 실기기 미리보기 + on-devi
 
 ## Production 빌드
 
-기본적으로 devtools 플러그인은 **production 빌드에서 자동 비활성화**됩니다 (`NODE_ENV === 'production'`이면 alias 변환과 Panel 주입이 모두 스킵). 별도의 조건부 설정 없이도 안전합니다.
+기본적으로 devtools 플러그인은 **production 빌드에서 자동 비활성화**됩니다 (`NODE_ENV === 'production'`이면 alias 변환과 Panel 주입이 모두 스킵). 별도의 조건부 설정 없이도 안전합니다. `@ait-co/devtools`는 devDependency이고 production 번들에 기여하는 바이트 수는 0입니다. CI가 실제 소비자 fixture를 빌드해 결과물을 grep하는 방식으로 이를 강제합니다.
 
 스테이징 환경 등에서 production 빌드에서도 devtools를 사용하려면 `forceEnable` 옵션을 사용하세요:
 
@@ -876,68 +878,18 @@ it('Storage에 값을 저장하고 읽을 수 있다', async () => {
 });
 ```
 
-## 실기기 테스트 러너 (`devtools-test`)
+## 실기기 테스트 러너 (`debugger-test`)
 
-위 "테스트에서의 활용"이 데스크톱 jsdom에서 mock을 검증하는 경로라면, `devtools-test`는 같은 스타일의 테스트를 **실기기 토스 앱 WebView(환경 3)에서 실 SDK로** 돌리는 별도 실행 파일입니다. 패키지를 설치하면 `devtools-test` bin이 함께 들어옵니다.
+위 "테스트에서의 활용"이 데스크톱 jsdom에서 mock을 검증하는 경로라면, 같은 스타일의 테스트를 **실기기 토스 앱 WebView(환경 3)에서 실 SDK로** 돌리는 러너는 `@ait-co/debugger`로 이동했습니다(#818) — bin도 `devtools-test`에서 `debugger-test`로 바뀌었습니다.
 
 ```bash
-# 형태
-devtools-test <glob> --scheme-url <intoss-private URL> [--manual-blocking] \
-  --cell-sdk-line <2.x|3.x> --cell-platform <ios|android> [--report-dir <dir>]
-
-# 예시
-pnpm exec devtools-test 'src/**/*.ait.test.ts' \
+pnpm add -D @ait-co/debugger
+pnpm exec debugger-test 'src/**/*.ait.test.ts' \
   --scheme-url "intoss-private://my-mini-app?_deploymentId=<uuid>" \
   --cell-sdk-line 3.x --cell-platform ios --report-dir .ait-report
 ```
 
-| 플래그 | 의미 |
-|---|---|
-| `<glob>` | 테스트 파일 glob (여러 개 지정 가능) |
-| `--scheme-url` | `ait deploy --scheme-only`가 출력한 `intoss-private://` URL. 환경 3 attach에 필수 |
-| `--cell-sdk-line` | 리포트에 박히는 SDK 라인 축 (`2.x` / `3.x`, 생략 시 `2.x`) |
-| `--cell-platform` | 플랫폼 축 (`mock` / `ios` / `android` / `ios-pwa`). 해석 순서: 플래그 → `AIT_CELL_PLATFORM` env → `mock` |
-| `--manual-blocking` | `*.manual.ait.test.ts`를 사람이 조작하며 맨 마지막에 실행 |
-| `--report-dir` | 리포트·capture 저장 디렉토리. 생략하면 아무것도 저장하지 않습니다 |
-
-준비물은 네 가지입니다:
-
-| 항목 | 내용 |
-|---|---|
-| relay TOTP 시크릿 | 러너가 relay를 띄우기 전에 필수로 검사하며, 없으면 QR이 뜨기도 전에 exit 1 합니다. `pnpm dev:phone:cdp`(unplugin `tunnel.cdp` 옵션)를 한 번 띄우면 프로젝트 루트에 `.ait_relay`가 자동 생성되고, 없으면 `AIT_DEBUG_TOTP_SECRET`을 직접 설정하세요 (`openssl rand -hex 32`). `.ait_relay`를 찾는 디렉토리는 `--project-root`(생략 시 cwd)가 정합니다 |
-| dog-food 번들 | `ait build && ait deploy --scheme-only` → 출력된 `intoss-private://…?_deploymentId=…` URL이 `--scheme-url` 값 |
-| 미니앱 entry 한 줄 | `import '@ait-co/devtools/in-app/auto'` — attach + `window.__sdk` 브리지 설치 ([위 섹션](#on-device-디버깅-한-줄-설정)) |
-| 테스트 파일 | `*.ait.test.ts`. `describe`/`it`/`test`/`expect`는 러너가 글로벌로 주입하므로 import가 필요 없고, `@apps-in-toss/web-framework` import는 번들 시 `window.__sdk`로 리다이렉트됩니다 |
-
-### 스캔할 QR은 대시보드 QR입니다
-
-실행하면 러너가 자체적으로 Chii relay + cloudflared 터널 + 로컬 QR 대시보드를 띄우고 그 주소를 stderr에 출력합니다 (기본 `http://127.0.0.1:8317/` — 포트가 점유돼 있으면 +1씩 최대 20개 포트를 훑고 그래도 안 되면 임의 포트. `--dashboard-port` 또는 `AIT_DEBUG_HTTP_PORT`로 변경).
-
-**폰으로 스캔할 QR은 이 대시보드의 QR입니다.** 이 QR만 scheme URL + relay wss + 항상 실리는 회전 코드 `at=`을 한 캡슐에 담고 있어서, 한 번 스캔하면 토스 앱이 번들을 cold-load하면서 동시에 CDP가 attach됩니다. attach에 성공하면 폰 화면 좌하단에 `Debugger Connected` 배지가 뜨고 러너가 곧바로 테스트를 실행합니다.
-
-> `ait deploy --scheme-only`가 출력한 맨 `intoss-private://` URL을 그대로 QR로 만들어 스캔하면 앱은 열리지만 **디버거는 붙지 않습니다** — `debug=1`·`relay=`가 없어 in-app gate가 attach를 막습니다. 러너는 스캔이 올 때까지 무한 대기하며(`--attach-timeout`으로 상한을 줄 수 있습니다) 그 사이 테스트는 한 줄도 실행되지 않습니다.
-
-### 끝나면 "디버거 연결 끊김"이 뜹니다 (정상)
-
-run-then-exit 모델입니다. 마지막 테스트 파일이 끝나면 러너는 요약을 출력하고 relay·터널·대시보드를 정리한 뒤 종료하며(실패한 테스트가 있으면 exit code 1), 그 순간 폰의 배지가 "디버거 연결 끊김"으로 바뀌었다가 잠시 후 사라집니다. 디버그 세션이 닫힌 것이지 앱이 죽은 게 아니라서 미니앱 자체는 계속 떠 있습니다. 다시 돌리려면 러너를 재실행하고 새 대시보드 QR을 스캔하세요.
-
-### 네이티브 시트가 뜨는 테스트 (`--manual-blocking`)
-
-사진 선택기·권한 다이얼로그·전면 광고처럼 사람이 직접 눌러야 넘어가는 테스트는 파일명을 `*.manual.ait.test.ts`로 둡니다. 이 파일들은 기본 실행에서 **제외**되고 `--manual-blocking`을 줄 때만 포함되며, 일반 파일이 전부 끝난 뒤 **맨 마지막에** 실행됩니다. 각 수동 파일 직전에 대시보드와 stdout에 파일명 + 진행도(k/n) 안내가 뜨고, 파일당 타임아웃도 5분으로 늘어납니다.
-
-### 산출물 (`--report-dir`)
-
-| 경로 | 내용 |
-|---|---|
-| `<dir>/<sdkLine>.<platform>.json` | 러너 중립 리포트. 파일 경로는 프로젝트 루트 기준 상대 경로이고 relay·scheme·TOTP 값은 담기지 않습니다 |
-| `<dir>/<sdkLine>.<platform>.manual.json` | `--manual-blocking` 실행에 포함된 수동 파일들 — 표준 리포트를 대체하지 않고 나란히 기록됩니다 |
-| `<dir>/.ait-capture/<category>.<sdkLine>.<platform>.json` | 테스트가 남긴 `__AIT_CAPTURE__` 라인 (2.x↔3.0 오프라인 비교용) |
-
-`<sdkLine>`·`<platform>`은 `--cell-sdk-line`·`--cell-platform` 값이 그대로 들어갑니다. `--report-dir`을 생략하면 리포트도 capture도 수집하지 않습니다.
-
-### 나머지 플래그
-
-전체 플래그 레퍼런스는 `devtools-test --help`가 정본입니다. attach/실행 타임아웃, 브리지 호출 pacing, 환경 2(launcher PWA)에 붙는 `--attach-launcher --app-url` 모드처럼 위에 없는 것은 그쪽에서 확인하세요.
+전체 플래그·QR 스캔 절차·산출물 레퍼런스는 이제 `@ait-co/debugger` 패키지가 정본입니다 — `debugger-test --help`를 참고하세요. 미니앱 entry에 필요한 한 줄만 이 패키지 쪽에 남아 있습니다: `import '@ait-co/debug-console/auto'` ([위 섹션](#on-device-디버깅-한-줄-설정)).
 
 ## SDK 업데이트 대응
 
@@ -1051,207 +1003,42 @@ Turbopack은 unplugin을 지원하지 않으므로, `next.config.js`에서 `reso
 import '@ait-co/devtools/panel';
 ```
 
-### `devtools-mcp` — 이미 실행 중인 세션이 있을 때
-
-두 번째 `devtools-mcp` 실행 시 "기존 debug-mode 세션이 이미 실행 중" 메시지가 stderr에 출력됩니다. 기존 PID와 wssUrl이 함께 표시됩니다.
-
-회복 방법:
-
-```bash
-# 기존 세션을 직접 종료
-kill <PID>
-
-# 또는 --force 플래그로 기존 세션을 종료하고 takeover
-npx @ait-co/devtools devtools-mcp --force
-# local 모드라면:
-npx @ait-co/devtools devtools-mcp --target=local --force
-```
-
-`--takeover`도 `--force`의 alias로 동일하게 동작합니다.
-
 ## MCP Server
 
-AI 코딩 에이전트(Claude Code, Cursor 등)가 [MCP(Model Context Protocol)](https://modelcontextprotocol.io/)를
-통해 실행 중인 미니앱을 직접 관측할 수 있습니다. 단일 `devtools-mcp` bin이 두 모드를 제공합니다.
-
-로컬 브라우저(환경 1)와 폰 토스 앱 WebView(환경 2·3)는 둘 다 CDP를 말하므로 모든 tool이 두 환경에서 동일하게 동작합니다 — 갈라지는 건 attach 전략(`--target=relay` vs `--target=local`)뿐입니다.
-
-| 모드 + 타깃 | 호출 | 환경 변수 | 대상 | tool |
-|---|---|---|---|---|
-| `--target=mobile` (env 2) | `devtools-mcp` → `start_debug({mode:'relay-sandbox'})` | `AIT_RELAY_BASE_URL`, `AIT_TUNNEL_BASE_URL` | 실기기 Safari/WebKit PWA (외부 Chii relay + cloudflared 터널, 환경 2) | console/network/page + DOM/snapshot/screenshot |
-| `--mode=debug --target=relay` (기본값, env 3) | `devtools-mcp` → `start_debug({mode: 'relay-staging'})` | — | 폰 안 dog-food 번들 (CDP/Chii relay + cloudflared 터널, 환경 3) | 동일 + `AIT.*` |
-| `--mode=debug --target=local` (env 1) | `devtools-mcp --target=local` | `MCP_ENV=mock` (자동) | MCP가 직접 기동한 로컬 Chromium (CDP direct-attach, relay 불필요, 환경 1) | 동일 |
-| `--mode=dev` | `devtools-mcp --mode=dev` | `MCP_ENV=mock` (자동) | 실행 중인 Vite dev server의 mock state (AIT.* 전용, CDP 없음) | `AIT.*` (+ `devtools_get_mock_state` alias) |
-
-`--target=local`은 `AIT_DEVTOOLS_URL`(기본 `http://localhost:5173`)을 열고 로컬 Chromium에 CDP direct-attach합니다 — relay나 터널이 필요하지 않습니다. `--mode=dev`는 Vite dev server의 mock-state HTTP endpoint를 읽으며 CDP tool은 제공하지 않습니다. 세션 내 환경 전환은 `start_debug(mode)` 한 번으로 처리됩니다: `relay-sandbox`(env 2 PWA), `relay-staging`(env 3 dogfood), `local-browser`(env 1).
-
-#### 환경 2 (실기기 PWA CDP) — `--target=mobile`
-
-토스 검수 없이 실기기 WebKit 엔진에서 CDP 디버깅이 가능한 모드입니다. [`tunnel:{cdp:true}`](#tunnel-옵션)를 켠 Vite dev server가 앱 HTTP 터널과 Chii relay 터널을 두 개 띄우고, MCP는 그 relay에 붙어 `start_attach` → launcher QR을 제공합니다.
-
-**진입 절차:**
-
-1. Vite dev server를 CDP 터널 모드로 기동:
-   ```bash
-   AIT_TUNNEL_CDP=1 pnpm exec vite --config e2e/fixture/vite.config.ts
-   ```
-   터미널 배너에 두 URL이 출력됩니다:
-   - **앱 HTTP 터널** `https://<A>.trycloudflare.com` → `AIT_TUNNEL_BASE_URL`로 설정
-   - **relay wss 터널** `wss://<B>.trycloudflare.com` → `AIT_RELAY_BASE_URL`의 `https://` 형으로 설정
-
-2. MCP server를 mobile 모드로 기동 (별도 터미널):
-   ```json
-   {
-     "mcpServers": {
-       "ait-debug": {
-         "command": "npx",
-         "args": ["-y", "@ait-co/devtools", "devtools-mcp"],
-         "env": {
-           "AIT_RELAY_BASE_URL": "https://<B>.trycloudflare.com",
-           "AIT_TUNNEL_BASE_URL": "https://<A>.trycloudflare.com"
-         }
-       }
-     }
-   }
-   ```
-
-3. Claude Code 세션에서 진입:
-   ```
-   start_debug({mode: 'relay-sandbox'})
-   start_attach()
-   ```
-   QR을 폰 카메라로 스캔하면 launcher PWA가 앱을 프레임에 열고 Chii target.js를 주입합니다.
-
-4. `list_pages()` → 페이지 1개 확인. `take_screenshot()` 등 CDP tool을 사용합니다.
-
-**env 2의 fidelity 경계**: SDK mock을 씁니다 (실 SDK 호출 불가) — `call_sdk`는 환경 2에서 mock을 칩니다. 실 SDK fidelity가 필요하면 환경 3으로 올라가세요. CDP는 실 WebKit 엔진 위에서 동작하므로 DOM·console·screenshot은 실기기 화면을 그대로 반영합니다.
-
-**로컬 PC 검증**: `e2e/launcher-cdp.test.ts`가 node-side relay 기동(`startChiiRelay({port:0})`)과 launcher 파라미터 포워딩(Playwright)을 자동 검증합니다. browser-side Chii target.js 주입은 localhost 호스트 게이트(Layer B1)와 ws:// vs wss:// 제약으로 CI에서 검증 불가 — 위 수동 절차(실기기 trycloudflare.com 호스트)에서 완성됩니다.
-
-### Debug 모드 (CDP via Chii)
-
-실기기 relay 디버깅 루프(dog-food 빌드 → QR 스캔 → relay attach)의 단계별 절차와 복구 방법은 **[`docs/dogfood-relay-loop.md`](./docs/dogfood-relay-loop.md)** 를 참고하세요. crash가 발생한 경우 — `list_pages.crashDetectedAt`, iOS Console.app `.ips` 분석, redact 절차를 포함한 원인 추적 절차는 **[`docs/crash-triage.md`](./docs/crash-triage.md)** 를 참고하세요.
-
-read-only tool만 노출합니다. 도구는 attach 상태에 따라 2단계로 등록됩니다 — attach 전에는 bootstrap
-도구(`start_attach`·`list_pages`)만 보이고, 릴레이/로컬 페이지가 attach되면 `notifications/tools/list_changed`로
-attach 의존 도구가 같은 세션에서 동적 등록됩니다(세션 재시작 불필요). 폰 attach 라운드트립은 fully wired
-상태이며 남은 것은 실기기 acceptance 한 번뿐입니다. tool 계층은 주입 가능한 CDP 연결 / AIT 소스를 mock해
-CI에서 검증됩니다.
-
-`devtools-mcp`를 stdio로 실행하면 로컬 Chii 릴레이를 OS가 할당한 포트에 띄우고 cloudflared quick
-tunnel로 공개 `wss://*.trycloudflare.com` URL을 발급한 뒤 QR을 터미널에 출력합니다(시크릿/인증
-코드는 출력하지 않습니다). 폰이 dog-food 진입 시 in-app attach UI가 그 URL로 릴레이에 붙으면,
-에이전트가 `chrome-devtools-mcp` 호환 tool로 console/network/page 상태를 read합니다. 사람이 폰을
-지켜볼 필요 없이 회귀를 단독 진단하는 것이 목표입니다.
-
-환경 3 (intoss-private relay) — `devtools-mcp`를 그대로 기동한 뒤 `start_debug(mode)`로 진입합니다:
+MCP 표면(데몬 · attach · CDP tool)은 `@ait-co/debugger`로 이동했습니다(#818). 에이전트 등록도 이제 devtools가 아니라 debugger를 가리킵니다:
 
 ```json
 {
   "mcpServers": {
     "ait-debug": {
-      "command": "pnpm",
-      "args": ["exec", "devtools-mcp"]
+      "command": "npx",
+      "args": ["-y", "-p", "@ait-co/debugger", "debugger"]
     }
   }
 }
 ```
 
-- 환경 3 (dog-food relay): `start_debug({mode: 'relay-staging'})`
-**세션 내 환경 전환은 `start_debug(mode)`가 단일 진입 경로**입니다.
-
-| Tool | CDP / AIT 백킹 | 설명 |
-|---|---|---|
-| `list_console_messages` | `Runtime.consoleAPICalled` | 최근 console.log/warn/error 메시지 (level, text, timestamp, args) |
-| `list_network_requests` | `Network.requestWillBeSent` + `responseReceived` | 최근 XHR/fetch 요청 (url, method, status, timing) |
-| `list_pages` | Chii 릴레이 target 목록 | attach된 페이지 + tunnel 상태 + wss URL |
-| `start_attach` | (순수 합성 + attach 대기) | `ait deploy --scheme-only` URL에 `debug=1`+릴레이 URL을 끼워 self-attach deep-link를 합성하고 QR을 출력한 뒤, 폰이 attach될 때까지 같은 호출 안에서 대기한다(QR 생성·attach가 한 호출). `mode`로 세션 환경을 함께 전환할 수 있고, 대기 중 TOTP 코드를 자동 재발행한다. 환경 2·3 진입 도구(bootstrap) — `list_pages` 선행 불필요 |
-| `get_dom_document` | `DOM.getDocument` | DOM 트리 read (구조/레이아웃 회귀 진단) |
-| `take_snapshot` | `DOMSnapshot.captureSnapshot` | 페이지 스냅샷 (documents + interned strings, 시각 회귀 진단) |
-| `take_screenshot` | `Page.captureScreenshot` | 페이지 PNG 스크린샷 (MCP image content block 반환) |
-| `measure_safe_area` | `Runtime.evaluate` | attach된 페이지에서 safe-area 프로브 실행 → 정규화된 safe-area inset·뷰포트 geometry·DPR·User-Agent 반환. read-only. relay 세션(폰 attach)에서 viewport preset을 extrapolated/placeholder→measured로 승급할 ground truth 수집용. attach 필요 (`list_pages` 먼저) |
-| `evaluate` | `Runtime.evaluate` | attach된 페이지에서 임의 JS 표현식 평가(returnByValue) → 결과 반환. **read-only 아님** — 표현식이 부작용(DOM 변경·SDK 호출·상태 변경)을 일으킬 수 있음. attach 필요 |
-| `call_sdk` | `window.__sdkCall` 브리지 (`Runtime.evaluate` 경유) | dog-food SDK 메서드를 `window.__sdkCall` 브리지로 호출 (`@apps-in-toss/web-framework`가 `__DEBUG_BUILD__` 번들에서만 export). **read-only 아님** — SDK 호출은 부작용(내비게이션·결제·권한 등). 환경 3(실기기 relay)에선 실 SDK, 환경 1(로컬 mock)에선 mock SDK. 환경 2(PWA)는 SDK 미주입으로 사용 불가. attach 필요. `{ok,value}` / `{ok,error}` 반환 |
-| `AIT.getSdkCallHistory` | AIT 도메인 | SDK 호출 trace (method, args, result/error, timestamp) |
-| `AIT.getMockState` | AIT 도메인 | mock state 스냅샷 (`window.__ait`) |
-| `AIT.getOperationalEnvironment` | AIT 도메인 | `getOperationalEnvironment()` + SDK 버전 |
-
-`AIT.*`는 raw CDP가 못 잡는 영역으로, 같은 MCP server가 CDP와 함께 forward합니다. debug 모드에서는
-in-app 측이 Chii 채널로 응답합니다.
-
-### Dev 모드 (mock state)
-
-`devtools-mcp --mode=dev`는 실행 중인 브라우저의 mock state를 읽습니다. debug 모드와 같은 `AIT.*`
-tool surface를 공유합니다.
-
-#### 구조
-
-```
-브라우저 (aitState)
-  └─ POST /api/ait-devtools/state (panel이 state 변경 시 자동 push)
-       └─ Vite dev server (unplugin mcp: true 로 등록)
-            └─ GET /api/ait-devtools/state
-                 └─ MCP stdio server (dist/mcp/server.js)
-                      └─ AI 에이전트 (AIT.getMockState tool)
-```
-
-#### 설정
-
-**1. Vite 플러그인에 `mcp: true` 추가**
-
-```ts
-// vite.config.ts
-import aitDevtools from '@ait-co/devtools/unplugin';
-
-export default {
-  plugins: [aitDevtools.vite({ mcp: true })],
-};
-```
-
-**2. MCP 클라이언트 설정 (예: Claude Code `.claude/settings.json`)**
-
-```json
-{
-  "mcpServers": {
-    "ait-devtools": {
-      "command": "pnpm",
-      "args": ["exec", "devtools-mcp", "--mode=dev"],
-      "env": {
-        "AIT_DEVTOOLS_URL": "http://localhost:5173"
-      }
-    }
-  }
-}
-```
-
-`AIT_DEVTOOLS_URL`은 기본값이 `http://localhost:5173`이므로 기본 포트를 쓰면 생략 가능합니다.
-
-**3. 앱을 브라우저에서 열고, AI 에이전트에서 tool 호출**
-
-```
-> AIT.getMockState
-```
-
-현재 mock state 전체(권한, 위치, 인증, 네트워크, IAP 등)를 JSON으로 반환합니다.
-
-| Tool | 설명 |
-|---|---|
-| `AIT.getMockState` | 현재 `AitDevtoolsState` 스냅샷 반환 (read-only) |
-| `AIT.getOperationalEnvironment` | mock state의 `environment` + `appVersion` 기반 환경/버전 |
-| `AIT.getSdkCallHistory` | dev 모드에서는 빈 목록 (HTTP endpoint가 trace를 기록하지 않음) |
-| `devtools_get_mock_state` | `AIT.getMockState`의 하위호환 alias (신규 설정은 `AIT.getMockState` 권장) |
+이 서버가 주는 것: 로컬 브라우저(환경 1)·PWA(환경 2)·intoss-private WebView(환경 3)에서 실행 중인 미니앱을 CDP로 관측 — console, network, DOM, snapshot, screenshot — 그리고 환경 2·3 on-device 진입용 `start_attach`. 전체 tool 목록·모드/타깃 매트릭스·환경별 설정은 [`@ait-co/debugger`](https://www.npmjs.com/package/@ait-co/debugger) 패키지 문서가 정본입니다.
 
 ## 패키지 Export 구조
 
+이 패키지가 실제로 출하하는 진입점입니다:
+
 | Import path | 용도 |
 |---|---|
-| `@ait-co/devtools` 또는 `@ait-co/devtools/mock` | 모든 mock export (번들러 alias 대상) |
+| `@ait-co/devtools` (= `/mock`) | 번들러 alias 대상, 모든 mock export |
 | `@ait-co/devtools/panel` | Floating DevTools Panel (import 시 자동 마운트) |
 | `@ait-co/devtools/unplugin` | 번들러 플러그인 (.vite, .webpack, .rspack, .esbuild, .rollup) |
-| `@ait-co/devtools/mcp/server` | dev-mode MCP stdio server 함수 (Node.js) |
-| `@ait-co/devtools/mcp/cli` | `devtools-mcp` bin 진입점 (debug / dev 모드, Node.js) |
-| `@ait-co/devtools/in-app` | In-app debug attach — 런타임 gate(layer B·C) + Chii target.js 주입. 소비자가 `if (__DEBUG_BUILD__)`로 import를 감싸 release 빌드에서 DCE — dog-food 빌드 전용 |
-| `@ait-co/devtools/in-app/auto` | Self-gating side-effect entry — `import '@ait-co/devtools/in-app/auto'` 한 줄로 attach + SDK 브리지 설치. URL 파라미터(`?debug=1` / `?relay=`) 또는 DEV 빌드에서만 활성화, 일반 프로덕션 로드는 dormant. [위 섹션](#on-device-디버깅-한-줄-설정) 참고 |
+
+아래는 **전환 스텁**입니다 — 0.2.x에만 존재하고 1.0.0에서 제거됩니다(#818). 새 패키지로 마이그레이션하세요.
+
+| Import path | 이동처 | import 시 |
+|---|---|---|
+| `@ait-co/devtools/mcp/server` | `@ait-co/debugger/mcp/server` | throw |
+| `@ait-co/devtools/mcp/cli` | `@ait-co/debugger/mcp/cli` | throw |
+| `@ait-co/devtools/test-runner` | `@ait-co/debugger/test-runner` | throw |
+| `@ait-co/devtools/in-app` | `@ait-co/debug-console` | no-op + `console.error` 1회 |
+| `@ait-co/devtools/in-app/auto` | `@ait-co/debug-console/auto` | no-op + `console.error` 1회 |
 
 ## 라이센스
 

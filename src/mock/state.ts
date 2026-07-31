@@ -3,8 +3,8 @@
  * DevTools Panel과 mock 구현체가 이 상태를 공유한다.
  */
 
-import type { AitSdkCall } from '../mcp/ait-source.js';
 import type { NativeErrorCode } from './native-error.js';
+import type { AitSdkCall } from './sdk-call.js';
 import type {
   AnalyticsLogEntry,
   ConsentedUserData,
@@ -24,8 +24,8 @@ import type {
   ViewportState,
 } from './types.js';
 
-export type { AitSdkCall, AitSdkCallFidelity } from '../mcp/ait-source.js';
 export type { NativeErrorCode, NativeErrorEnvelope } from './native-error.js';
+export type { AitSdkCall, AitSdkCallFidelity } from './sdk-call.js';
 export type {
   AitNavBarType,
   AnalyticsLogEntry,

@@ -55,10 +55,10 @@ One-time prerequisite: add `https://devtools.aitc.dev/launcher/` to your phone's
 
 **Environment 3 — intoss-private** (Toss WebView, HMR off, debug only)
 
-Load a dog-food bundle in the real Toss app WebView and debug it via the MCP relay.
+Load a dog-food bundle in the real Toss app WebView and debug it via the MCP relay. Requires `@ait-co/debugger` — see [Debugging packages](#debugging-packages-environments-2-and-3) below.
 
 ```bash
-devtools-mcp              # start MCP server → QR printed in terminal
+npx -y -p @ait-co/debugger debugger   # start MCP server → QR printed in terminal (or `pnpm exec debugger` if it's a devDependency)
 # ait build && ait deploy --scheme-only
 # one start_attach(scheme_url) call generates the QR and waits for the phone to attach — scan it and the Toss app loads the bundle + relay attaches
 ```
@@ -73,7 +73,7 @@ To enable on-device CDP debugging in environments 2 and 3, add **one line** to y
 
 ```ts
 // main.tsx (or the top of your mini-app entry)
-import '@ait-co/devtools/in-app/auto';
+import '@ait-co/debug-console/auto';
 ```
 
 What this single line does:
@@ -85,7 +85,9 @@ What this single line does:
 
 For environment 3 (intoss-private relay), the relay QR deep-link carries `?debug=1&relay=<wss>` query params, so this one line is all the wiring you need. Environment 2 (PWA, `tunnel: { cdp: true }`) works the same way.
 
-> For dog-food builds with TOTP authentication, inject `__DEBUG_TOTP_SECRET__` via your build define and use `@ait-co/devtools/in-app` directly with `evaluateDebugGate({ verifyTotpCode })` + `maybeAttach()`. `in-app/auto` does not inject a TOTP verifier, so Layer C3 is disabled.
+The old `@ait-co/devtools/in-app/auto` path still resolves in 0.2.x as an inert no-op stub and is removed in 1.0.0 — migrate the import to the path above.
+
+> For dog-food builds with TOTP authentication, inject `__DEBUG_TOTP_SECRET__` via your build define and use `@ait-co/debug-console` directly with `evaluateDebugGate({ verifyTotpCode })` + `maybeAttach()`. `in-app/auto` does not inject a TOTP verifier, so Layer C3 is disabled.
 
 ## Five common problems
 
@@ -99,7 +101,7 @@ No page has joined the relay yet. Re-enter via `start_attach` → QR scan on you
 
 **"Tunnel down" — no response or timeout**
 
-A cloudflared quick tunnel can drop after a few hours. Restart the `devtools-mcp` process to get a new tunnel URL, then scan the new QR. (Related: [#290](https://github.com/apps-in-toss-community/devtools/issues/290))
+A cloudflared quick tunnel can drop after a few hours. Restart the `debugger` process to get a new tunnel URL, then scan the new QR. (Related: [#290](https://github.com/apps-in-toss-community/devtools/issues/290))
 
 **"Page crash" — list_pages shows a non-null crashDetectedAt**
 
@@ -107,7 +109,7 @@ The page on the phone died (OOM, JS exception, or native bridge crash). Relaunch
 
 **"SDK not available" — window.__sdkCall not injected**
 
-When `call_sdk` returns `ok: false, error: "window.__sdkCall is not available"`, the SDK bridge has not been installed. Check that `import '@ait-co/devtools/in-app/auto'` is present at the top of your mini-app entry — see the "On-device debugging in one line" section above. This error is the expected result in environment 2 (PWA). (Related: [#285](https://github.com/apps-in-toss-community/devtools/issues/285))
+When `call_sdk` returns `ok: false, error: "window.__sdkCall is not available"`, the SDK bridge has not been installed. Check that `import '@ait-co/debug-console/auto'` is present at the top of your mini-app entry — see the "On-device debugging in one line" section above. This error is the expected result in environment 2 (PWA). (Related: [#285](https://github.com/apps-in-toss-community/devtools/issues/285))
 
 **"QR scanned but auth rejected" — TOTP code expired**
 
@@ -300,7 +302,7 @@ aitDevtools.vite({ tunnel: { cdp: true } }); // real-device preview + on-device 
 
 ## Production builds
 
-By default, the devtools plugin **automatically disables itself in production** (`NODE_ENV === 'production'` causes both the alias transform and the Panel injection to be skipped). No conditional configuration is needed to keep it safe.
+By default, the devtools plugin **automatically disables itself in production** (`NODE_ENV === 'production'` causes both the alias transform and the Panel injection to be skipped). No conditional configuration is needed to keep it safe. `@ait-co/devtools` is a devDependency, and its contribution to a production bundle is zero bytes. CI enforces this by building a real consumer fixture and grepping the output.
 
 To use devtools in a production build — for example in a staging environment — use the `forceEnable` option:
 
@@ -865,68 +867,18 @@ it('can write and read from Storage', async () => {
 });
 ```
 
-## On-device test runner (`devtools-test`)
+## On-device test runner (`debugger-test`)
 
-"Using in tests" above verifies mocks in desktop jsdom. `devtools-test` is a separate executable that runs tests written in the same style **against the real SDK inside the Toss app WebView on a real phone (environment 3)**. Installing the package also installs the `devtools-test` bin.
+"Using in tests" above verifies mocks in desktop jsdom. The runner that runs the same style of tests **against the real SDK inside the Toss app WebView on a real phone (environment 3)** moved to `@ait-co/debugger` (#818) — the bin is now `debugger-test`, renamed from `devtools-test`.
 
 ```bash
-# shape
-devtools-test <glob> --scheme-url <intoss-private URL> [--manual-blocking] \
-  --cell-sdk-line <2.x|3.x> --cell-platform <ios|android> [--report-dir <dir>]
-
-# example
-pnpm exec devtools-test 'src/**/*.ait.test.ts' \
+pnpm add -D @ait-co/debugger
+pnpm exec debugger-test 'src/**/*.ait.test.ts' \
   --scheme-url "intoss-private://my-mini-app?_deploymentId=<uuid>" \
   --cell-sdk-line 3.x --cell-platform ios --report-dir .ait-report
 ```
 
-| Flag | Meaning |
-|---|---|
-| `<glob>` | Test file glob (more than one may be given) |
-| `--scheme-url` | The `intoss-private://` URL printed by `ait deploy --scheme-only`. Required for environment 3 attach |
-| `--cell-sdk-line` | SDK line axis stamped into the report (`2.x` / `3.x`, defaults to `2.x`) |
-| `--cell-platform` | Platform axis (`mock` / `ios` / `android` / `ios-pwa`). Resolution order: flag → `AIT_CELL_PLATFORM` env → `mock` |
-| `--manual-blocking` | Run `*.manual.ait.test.ts` last, with a human driving the native sheets |
-| `--report-dir` | Directory for the report + captures. Omitted means nothing is written |
-
-Four things need to be in place:
-
-| Item | Detail |
-|---|---|
-| A relay TOTP secret | The runner requires this before it boots the relay — without it, it exits 1 before the QR ever appears. Booting `pnpm dev:phone:cdp` once (unplugin's `tunnel.cdp` option) auto-generates `.ait_relay` in the project root; otherwise set `AIT_DEBUG_TOTP_SECRET` yourself (`openssl rand -hex 32`). Which directory the runner looks for `.ait_relay` in is decided by `--project-root` (defaults to cwd) |
-| Dog-food bundle | `ait build && ait deploy --scheme-only` → the printed `intoss-private://…?_deploymentId=…` URL is your `--scheme-url` value |
-| One line in the mini-app entry | `import '@ait-co/devtools/in-app/auto'` — wires attach + the `window.__sdk` bridge ([section above](#on-device-debugging-in-one-line)) |
-| Test files | `*.ait.test.ts`. `describe`/`it`/`test`/`expect` are installed as globals by the runner (no import needed), and `@apps-in-toss/web-framework` imports are redirected to `window.__sdk` at bundle time |
-
-### Scan the dashboard QR, not the raw scheme URL
-
-On start, the runner boots its own Chii relay + cloudflared tunnel + a local QR dashboard, and prints the dashboard address to stderr (`http://127.0.0.1:8317/` by default — if that port is taken it scans up to 20 ports, incrementing by 1, then falls back to an ephemeral port; override with `--dashboard-port` or `AIT_DEBUG_HTTP_PORT`).
-
-**The QR you scan with the phone is the one on that dashboard.** Only that QR carries the scheme URL, the relay wss URL, and the always-present rotating `at=` code in a single capsule, so one scan cold-loads the bundle in the Toss app and attaches CDP at the same time. Once the attach succeeds a `Debugger Connected` badge appears in the phone's bottom-left corner and the runner starts executing tests.
-
-> Turning the bare `intoss-private://` URL from `ait deploy --scheme-only` into a QR and scanning that opens the app but **does not attach the debugger** — without `debug=1` and `relay=` the in-app gate blocks the attach. The runner waits indefinitely for a scan (`--attach-timeout` bounds the wait) and runs no tests until one arrives.
-
-### The debugger disconnects when the run ends (this is normal)
-
-The runner is run-then-exit. Once the last test file finishes it prints the summary, tears down the relay, tunnel, and dashboard, and exits (exit code 1 if any test failed) — at that moment the badge on the phone flips to a disconnected notice and then dismisses itself. The debug session closed; the app did not crash, and the mini-app stays open. To run again, restart the runner and scan the new dashboard QR.
-
-### Tests that open native sheets (`--manual-blocking`)
-
-Tests that need a human to tap through a native sheet — photo picker, permission dialog, fullscreen ad — go in files named `*.manual.ait.test.ts`. Those files are **excluded** from a default run and are only included with `--manual-blocking`, where they run **last**, after every regular file. Before each manual file the dashboard and stdout show its filename plus progress (k/n), and the per-file timeout is raised to 5 minutes.
-
-### Artifacts (`--report-dir`)
-
-| Path | Contents |
-|---|---|
-| `<dir>/<sdkLine>.<platform>.json` | Runner-agnostic report. File paths are relative to the project root, and no relay / scheme / TOTP values are stored |
-| `<dir>/<sdkLine>.<platform>.manual.json` | The manual files included in a `--manual-blocking` run — written alongside the standard report, never replacing it |
-| `<dir>/.ait-capture/<category>.<sdkLine>.<platform>.json` | `__AIT_CAPTURE__` lines emitted by the tests (for offline 2.x↔3.0 comparison) |
-
-`<sdkLine>` and `<platform>` are the `--cell-sdk-line` / `--cell-platform` values verbatim. Without `--report-dir`, neither the report nor the captures are collected.
-
-### Everything else
-
-`devtools-test --help` is the source of truth for the full flag reference. Attach/run timeouts, bridge-call pacing, and the `--attach-launcher --app-url` mode that attaches to the environment 2 launcher PWA all live there.
+The full flag reference, QR-scan procedure, and artifact layout are now documented in `@ait-co/debugger` — see `debugger-test --help`. The one line this package still owns is the mini-app entry point: `import '@ait-co/debug-console/auto'` ([section above](#on-device-debugging-in-one-line)).
 
 ## SDK update tracking
 
@@ -1042,176 +994,40 @@ import '@ait-co/devtools/panel';
 
 ## MCP Server
 
-AI coding agents (Claude Code, Cursor, etc.) can observe a running mini-app directly via [MCP (Model Context Protocol)](https://modelcontextprotocol.io/). A single `devtools-mcp` binary provides two modes.
-
-A local browser (env 1) and a phone Toss WebView (env 2/3) both speak CDP, so every tool works identically in both environments — the only difference is the attach strategy (`--target=relay` vs `--target=local`).
-
-| Mode + target | Invocation | Env vars | Target | Tools |
-|---|---|---|---|---|
-| `--target=mobile` (env 2) | `devtools-mcp` → `start_debug({mode:'relay-sandbox'})` | `AIT_RELAY_BASE_URL`, `AIT_TUNNEL_BASE_URL` | Real-device Safari/WebKit PWA (external Chii relay + cloudflared tunnel, env 2) | console/network/page + DOM/snapshot/screenshot |
-| `--mode=debug --target=relay` (default, env 3) | `devtools-mcp` → `start_debug({mode: 'relay-staging'})` | — | Dog-food bundle on a phone (CDP/Chii relay + cloudflared tunnel, env 3) | same + `AIT.*` |
-| `--mode=debug --target=local` (env 1) | `devtools-mcp --target=local` | `MCP_ENV=mock` (auto) | Local Chromium launched by the MCP server (CDP direct-attach, no relay needed, env 1) | same |
-| `--mode=dev` | `devtools-mcp --mode=dev` | `MCP_ENV=mock` (auto) | Mock state from a running Vite dev server (AIT.* only, no CDP) | `AIT.*` (+ `devtools_get_mock_state` alias) |
-
-`--target=local` opens `AIT_DEVTOOLS_URL` (default `http://localhost:5173`) and attaches directly to a local Chromium — no relay or tunnel required. `--mode=dev` reads the mock-state HTTP endpoint of the Vite dev server and does not provide CDP tools. Switch environments in-session with `start_debug(mode)`: `relay-sandbox` (env 2 PWA), `relay-staging` (env 3 dogfood), `local-browser` (env 1).
-
-#### Environment 2 (real-device PWA CDP) — `--target=mobile`
-
-Debug on a real phone using Safari/WebKit without Toss review. The Vite dev server with [`tunnel:{cdp:true}`](#tunnel-option) brings up both an app HTTP tunnel and a Chii relay tunnel. The MCP server attaches to that relay and provides `start_attach` → launcher QR.
-
-**Setup procedure:**
-
-1. Start the Vite dev server in CDP tunnel mode:
-   ```bash
-   AIT_TUNNEL_CDP=1 pnpm exec vite --config e2e/fixture/vite.config.ts
-   ```
-   The terminal banner prints two URLs:
-   - **App HTTP tunnel** `https://<A>.trycloudflare.com` → set as `AIT_TUNNEL_BASE_URL`
-   - **Relay wss tunnel** `wss://<B>.trycloudflare.com` → set `AIT_RELAY_BASE_URL` to its `https://` form
-
-2. Start the MCP server in mobile mode (separate terminal):
-   ```json
-   {
-     "mcpServers": {
-       "ait-debug": {
-         "command": "npx",
-         "args": ["-y", "@ait-co/devtools", "devtools-mcp"],
-         "env": {
-           "AIT_RELAY_BASE_URL": "https://<B>.trycloudflare.com",
-           "AIT_TUNNEL_BASE_URL": "https://<A>.trycloudflare.com"
-         }
-       }
-     }
-   }
-   ```
-
-3. In a Claude Code session:
-   ```
-   start_debug({mode: 'relay-sandbox'})
-   start_attach()
-   ```
-   Scan the QR with your phone camera. The launcher PWA opens the app in a frame and injects Chii target.js.
-
-4. `list_pages()` → expect one page. Use `take_screenshot()` and other CDP tools.
-
-**Env 2 fidelity boundary**: uses the mock SDK (`call_sdk` hits the mock). For real SDK fidelity, move to env 3. CDP runs on the real WebKit engine, so DOM, console, and screenshot reflect the real device screen.
-
-**Local-PC verification**: `e2e/launcher-cdp.test.ts` automates node-side relay startup (`startChiiRelay({port:0})`) and launcher param forwarding (Playwright). Browser-side Chii target.js injection is not automated in CI due to the localhost host gate (Layer B1) and ws:// vs wss:// constraints — completed by the manual procedure above on a real device with a trycloudflare.com hostname.
-
-### Debug mode (CDP via Chii)
-
-For a step-by-step walkthrough of the on-device relay debug loop (dog-food build → QR scan → relay attach) including common failure recovery, see **[`docs/dogfood-relay-loop.md`](./docs/dogfood-relay-loop.md)** (Korean). For crash triage — `list_pages.crashDetectedAt`, iOS Console.app `.ips` analysis, and the redact procedure — see **[`docs/crash-triage.md`](./docs/crash-triage.md)** (Korean).
-
-Read-only tools only. Tools are registered in two tiers based on attach state — before attach, only the bootstrap tools (`start_attach`, `list_pages`) are visible; once a relay/local page attaches, the attach-dependent tools are registered dynamically in the same session via `notifications/tools/list_changed` (no session restart needed). The phone attach roundtrip is fully wired; all that remains is a single on-device acceptance run. The tool layer is CI-verified via a mockable injectable CDP connection / AIT source.
-
-Running `devtools-mcp` as a stdio server starts a local Chii relay on an OS-assigned port and opens a cloudflared quick tunnel, printing a public `wss://*.trycloudflare.com` URL and a QR code in the terminal (secrets/auth codes are never printed). When the phone enters the dog-food entry point, the in-app attach UI connects to the relay with that URL, and the agent reads console/network/page state via `chrome-devtools-mcp`-compatible tools — diagnosing regressions without anyone watching the phone.
-
-Environment 3 (intoss-private relay) — start `devtools-mcp` as-is, then enter via `start_debug(mode)`:
+The MCP surface (daemon, attach, CDP tools) moved to `@ait-co/debugger` (#818). Point your agent's registration at debugger, not devtools:
 
 ```json
 {
   "mcpServers": {
     "ait-debug": {
-      "command": "pnpm",
-      "args": ["exec", "devtools-mcp"]
+      "command": "npx",
+      "args": ["-y", "-p", "@ait-co/debugger", "debugger"]
     }
   }
 }
 ```
 
-- Environment 3 (dog-food relay): `start_debug({mode: 'relay-staging'})`
-**`start_debug(mode)` is the single in-session entry path.**
-
-| Tool | CDP / AIT backing | Description |
-|---|---|---|
-| `list_console_messages` | `Runtime.consoleAPICalled` | Recent console.log/warn/error messages (level, text, timestamp, args) |
-| `list_network_requests` | `Network.requestWillBeSent` + `responseReceived` | Recent XHR/fetch requests (url, method, status, timing) |
-| `list_pages` | Chii relay target list | Attached pages + tunnel status + wss URL |
-| `start_attach` | (pure synthesis + attach wait) | Splices `debug=1` + the relay URL into an `ait deploy --scheme-only` URL, prints a QR, then waits in the same call until the phone attaches (QR generation and attach in one call). A `mode` arg can switch the session environment too, and the TOTP code is re-minted automatically during the wait. Entry tool for env 2 and 3 (bootstrap) — no `list_pages` needed first |
-| `get_dom_document` | `DOM.getDocument` | DOM tree read (structural/layout regression diagnosis) |
-| `take_snapshot` | `DOMSnapshot.captureSnapshot` | Page snapshot (documents + interned strings, visual regression) |
-| `take_screenshot` | `Page.captureScreenshot` | Page PNG screenshot (returned as an MCP image content block) |
-| `measure_safe_area` | `Runtime.evaluate` | Runs a safe-area probe on the attached page → returns normalized safe-area insets, viewport geometry, DPR, and User-Agent. Read-only. Use in a relay session to get ground-truth values for upgrading a viewport preset from extrapolated/placeholder to measured. Requires attach (`list_pages` first) |
-| `evaluate` | `Runtime.evaluate` | Evaluates an arbitrary JS expression on the attached page (returnByValue) and returns the result. **Not read-only** — the expression can have side effects (DOM mutations, SDK calls, state changes). Requires attach |
-| `call_sdk` | `window.__sdkCall` bridge (via `Runtime.evaluate`) | Calls a dog-food SDK method via the `window.__sdkCall` bridge (exported by `@apps-in-toss/web-framework` in `__DEBUG_BUILD__` bundles only). **Not read-only** — SDK calls have side effects (navigation, payments, permissions, etc.). Hits the real SDK on env 3, mock SDK on env 1. Env 2 (PWA) does not inject the SDK — not available there. Requires attach. Returns `{ok,value}` / `{ok,error}` |
-| `AIT.getSdkCallHistory` | AIT domain | SDK call trace (method, args, result/error, timestamp) |
-| `AIT.getMockState` | AIT domain | Mock state snapshot (`window.__ait`) |
-| `AIT.getOperationalEnvironment` | AIT domain | `getOperationalEnvironment()` + SDK version |
-
-`AIT.*` covers what raw CDP cannot; the same MCP server forwards it alongside CDP. In debug mode the in-app side answers over the Chii channel.
-
-### Dev mode (mock state)
-
-`devtools-mcp --mode=dev` reads the mock state from a running browser. It shares the same `AIT.*` tool surface as debug mode.
-
-#### Architecture
-
-```
-Browser (aitState)
-  └─ POST /api/ait-devtools/state (auto-pushed by the panel on every state change)
-       └─ Vite dev server (unplugin with mcp: true)
-            └─ GET /api/ait-devtools/state
-                 └─ MCP stdio server (dist/mcp/server.js)
-                      └─ AI agent (AIT.getMockState tool)
-```
-
-#### Setup
-
-**1. Add `mcp: true` to the Vite plugin**
-
-```ts
-// vite.config.ts
-import aitDevtools from '@ait-co/devtools/unplugin';
-
-export default {
-  plugins: [aitDevtools.vite({ mcp: true })],
-};
-```
-
-**2. Configure your MCP client (e.g. Claude Code `.claude/settings.json`)**
-
-```json
-{
-  "mcpServers": {
-    "ait-devtools": {
-      "command": "pnpm",
-      "args": ["exec", "devtools-mcp", "--mode=dev"],
-      "env": {
-        "AIT_DEVTOOLS_URL": "http://localhost:5173"
-      }
-    }
-  }
-}
-```
-
-`AIT_DEVTOOLS_URL` defaults to `http://localhost:5173` — you can omit it if you're using the default port.
-
-**3. Open the app in your browser, then call the tool from your AI agent**
-
-```
-> AIT.getMockState
-```
-
-Returns the full current mock state (permissions, location, auth, network, IAP, etc.) as JSON.
-
-| Tool | Description |
-|---|---|
-| `AIT.getMockState` | Returns the current `AitDevtoolsState` snapshot (read-only) |
-| `AIT.getOperationalEnvironment` | Environment + version derived from the mock state's `environment` + `appVersion` |
-| `AIT.getSdkCallHistory` | Empty in dev mode (the HTTP endpoint records no trace) |
-| `devtools_get_mock_state` | Backward-compatible alias of `AIT.getMockState` (prefer `AIT.getMockState` in new configs) |
+What this gives you: CDP observation of a running mini-app across environments 1 (local browser), 2 (PWA), and 3 (intoss-private WebView) — console, network, DOM, snapshot, screenshot — plus `start_attach` for on-device entry in environments 2/3. The full tool list, mode/target matrix, and per-environment config live in the [`@ait-co/debugger`](https://www.npmjs.com/package/@ait-co/debugger) package docs.
 
 ## Package export structure
 
+The entry points this package actually ships:
+
 | Import path | Purpose |
 |---|---|
-| `@ait-co/devtools` or `@ait-co/devtools/mock` | All mock exports (bundler alias target) |
+| `@ait-co/devtools` (= `/mock`) | Bundler alias target, all mock exports |
 | `@ait-co/devtools/panel` | Floating DevTools Panel (auto-mounts on import) |
 | `@ait-co/devtools/unplugin` | Bundler plugin (.vite, .webpack, .rspack, .esbuild, .rollup) |
-| `@ait-co/devtools/mcp/server` | Dev-mode MCP stdio server function (Node.js) |
-| `@ait-co/devtools/mcp/cli` | `devtools-mcp` bin entry point (debug / dev mode, Node.js) |
-| `@ait-co/devtools/in-app` | In-app debug attach — runtime gate (layers B/C) + Chii target.js injection. The consumer wraps the import in `if (__DEBUG_BUILD__)` so it is DCE'd from release builds — dog-food builds only |
-| `@ait-co/devtools/in-app/auto` | Self-gating side-effect entry — a single `import '@ait-co/devtools/in-app/auto'` line wires attach + SDK bridge. Active only when `?debug=1` / `?relay=` are in the URL or it is a DEV build; stays dormant on normal production loads. See the [section above](#on-device-debugging-in-one-line) |
+
+Everything below is a **transition stub** — it exists only in 0.2.x and is removed in 1.0.0 (#818). Migrate to the new package.
+
+| Import path | New home | On import |
+|---|---|---|
+| `@ait-co/devtools/mcp/server` | `@ait-co/debugger/mcp/server` | throws |
+| `@ait-co/devtools/mcp/cli` | `@ait-co/debugger/mcp/cli` | throws |
+| `@ait-co/devtools/test-runner` | `@ait-co/debugger/test-runner` | throws |
+| `@ait-co/devtools/in-app` | `@ait-co/debug-console` | no-op + one `console.error` |
+| `@ait-co/devtools/in-app/auto` | `@ait-co/debug-console/auto` | no-op + one `console.error` |
 
 ## License
 

@@ -9,7 +9,7 @@
  * 원본과 동일한 타입을 가진다.
  */
 
-import type { AitSdkCallFidelity } from '../mcp/ait-source.js';
+import type { AitSdkCallFidelity } from './sdk-call.js';
 import { aitState } from './state.js';
 
 /**

@@ -6,5 +6,5 @@ allowBuilds:
   protobufjs: false
   sharp: false
 minimumReleaseAgeExclude:
-  - '@ait-co/debug-console@0.1.1'
-  - '@ait-co/debugger@0.1.1'
+  - '@ait-co/debug-console'
+  - '@ait-co/debugger'

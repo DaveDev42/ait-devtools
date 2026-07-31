@@ -32,24 +32,17 @@ jobs:
 
       - run: pnpm build
 
-      # Install-graph invariant: react/react-dom are devDeps only; the MCP
-      # daemon bundles must never import them (see scripts/check-mcp-react-free.sh).
-      - run: pnpm check:mcp-react-free
-
-      # Build-artifact presence guard: dist/test-runner/runtime.js must exist
-      # after build so bundleTestFile can resolve it at runtime (#676).
-      - run: pnpm check:test-runner-dist
-
-      # Build-time absence invariant (#647): the in-app debug surface (Chii
-      # injection + eruda console) must DCE to 0 bytes in a release consumer
-      # build and never leak into the MCP daemon bundles. Builds the fixture in
-      # release + debug modes and greps (see scripts/check-debug-surface-absent.sh).
-      - run: pnpm check:debug-surface-absent
-
-      # The dashboard/attach HTML is precompiled from scripts/dashboard/*.tsx to
-      # src/mcp/dashboard.generated.ts at build time. This guard fails if a JSX
-      # template was edited without regenerating the committed string module.
-      - run: pnpm check:dashboard-html-fresh
+      # Footprint invariant (#818): this package is a devDependency whose
+      # contribution to a production mini-app bundle must be zero bytes. Also
+      # asserts the moved debug surface has not crept back into dist/. Builds
+      # the fixture in release + forced modes and greps
+      # (see scripts/check-devtools-footprint-absent.sh).
+      #
+      # Replaces the four guards the split removed with the surfaces they
+      # watched: check:mcp-react-free, check:test-runner-dist,
+      # check:debug-surface-absent and check:dashboard-html-fresh all guarded
+      # code that now lives in @ait-co/debugger / @ait-co/debug-console.
+      - run: pnpm check:footprint-absent
 
       # Alias-presence guard: the dual-line typecheck verifies the mock against
       # both 3.0-beta (bare devDep) and the 2.x stable line (web-framework-2x

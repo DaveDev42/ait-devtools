@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { en } from './en.js';
 import { parseAcceptLanguage, resolveLocaleStrings } from './index.js';
 import { ko } from './ko.js';
 
@@ -59,5 +60,30 @@ describe('resolveLocaleStrings', () => {
       expect(trKo(key)).not.toBe('');
       expect(trEn(key)).not.toBe('');
     }
+  });
+});
+
+describe('catalog symmetry', () => {
+  // `en` is declared as `Record<StringKey, string>` with `StringKey` derived
+  // from `ko`, so `tsc` already rejects a key present in one table and absent
+  // from the other. This asserts the same invariant at runtime so a bulk edit
+  // (e.g. the #818 removal of the 51 dashboard/attach/inspector keys) cannot
+  // desynchronise the catalogs in a way that only a typecheck would catch.
+  it('ko and en declare exactly the same key set', () => {
+    expect(Object.keys(en).sort()).toEqual(Object.keys(ko).sort());
+  });
+
+  it('every value in both catalogs is a non-empty string', () => {
+    for (const [key, value] of [...Object.entries(ko), ...Object.entries(en)]) {
+      expect(typeof value, key).toBe('string');
+      expect(value.trim(), key).not.toBe('');
+    }
+  });
+
+  it('carries no leftover key from the moved debug surface (#818)', () => {
+    // dashboard.* / attach.* / inspector.* belonged to the MCP daemon's
+    // qr-http-server pages, which moved to `@ait-co/debugger`.
+    const moved = Object.keys(ko).filter((k) => /^(dashboard|attach|inspector)\./.test(k));
+    expect(moved).toEqual([]);
   });
 });

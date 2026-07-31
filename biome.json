@@ -15,8 +15,7 @@
       "!playwright-report",
       "!test-results",
       "!.changeset",
-      "!.claude",
-      "!src/mcp/dashboard.generated.ts"
+      "!.claude"
     ]
   },
   "formatter": {
@@ -49,27 +48,5 @@
         "organizeImports": "on"
       }
     }
-  },
-  "overrides": [
-    {
-      "includes": ["scripts/dashboard/**"],
-      "linter": {
-        "rules": {
-          "security": {
-            "noDangerouslySetInnerHtml": "off"
-          }
-        }
-      }
-    },
-    {
-      "includes": ["src/__tests__/test-runner-runtime.test.ts"],
-      "linter": {
-        "rules": {
-          "suspicious": {
-            "noDuplicateTestHooks": "off"
-          }
-        }
-      }
-    }
-  ]
+  }
 }

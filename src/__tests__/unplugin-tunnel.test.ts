@@ -1,3 +1,4 @@
+import { createHmac } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -21,6 +22,35 @@ vi.mock('qrcode-terminal', () => ({
     },
   },
 }));
+
+/**
+ * Independent RFC 6238 / RFC 4226 reference implementation, used only by the
+ * dashboard tests below to check the `at=` code the QR carries.
+ *
+ * The generator itself moved to `@ait-co/debugger` with the rest of the relay
+ * (#818) and is not part of its public exports. Rather than reaching into that
+ * package's internals, this recomputes the code straight from the spec —
+ * hex-encoded secret, HMAC-SHA1, 30-second step, 6 digits. That is a stronger
+ * assertion than the previous one: it verifies the served code against the
+ * standard, not against the same implementation that produced it.
+ *
+ * SECRET-HANDLING: the secret and derived codes stay inside the assertions;
+ * nothing here logs them.
+ */
+function totpFromSpec(secretHex: string, whenMs: number): string {
+  const counter = Math.max(0, Math.floor(whenMs / 1000 / 30));
+  const counterBuf = Buffer.alloc(8);
+  counterBuf.writeUInt32BE(Math.floor(counter / 0x100000000), 0);
+  counterBuf.writeUInt32BE(counter >>> 0, 4);
+  const mac = createHmac('sha1', Buffer.from(secretHex, 'hex')).update(counterBuf).digest();
+  const offset = mac[19] & 0x0f;
+  const binCode =
+    ((mac[offset] & 0x7f) << 24) |
+    ((mac[offset + 1] & 0xff) << 16) |
+    ((mac[offset + 2] & 0xff) << 8) |
+    (mac[offset + 3] & 0xff);
+  return (binCode % 10 ** 6).toString().padStart(6, '0');
+}
 
 describe('parseTrycloudflareUrl', () => {
   it('extracts the URL from a typical cloudflared log line', () => {
@@ -438,12 +468,12 @@ describe('startTunnelDashboard', () => {
       expect(atMatch).not.toBeNull();
       const code = atMatch?.[1] ?? '';
       // It is a real RFC-6238 code for the secret at "now", not a placeholder.
-      const { generateTotp } = await import('../mcp/totp.js');
-      const { verifyTotp } = await import('../mcp/totp.js');
       expect(/^\d{6}$/.test(code)).toBe(true);
-      expect(verifyTotp(SECRET, code)).toBe(true);
-      // Sanity: regenerating at the same step reproduces the code.
-      expect(generateTotp(SECRET, Date.now())).toBe(code);
+      // Recomputed straight from the spec. Accept the current step or the one
+      // before it: the dashboard mints its code slightly before this assertion
+      // runs, so a request that straddles a 30-second boundary is legitimate.
+      const now = Date.now();
+      expect([totpFromSpec(SECRET, now), totpFromSpec(SECRET, now - 30_000)]).toContain(code);
     } finally {
       await handle.close();
     }
@@ -468,8 +498,7 @@ describe('startTunnelDashboard', () => {
       expect(joined).not.toContain('trycloudflare.com');
       expect(joined).not.toContain(SECRET);
       // No TOTP code in the log (any 6-digit run derived from the secret).
-      const { generateTotp } = await import('../mcp/totp.js');
-      expect(joined).not.toContain(generateTotp(SECRET, Date.now()));
+      expect(joined).not.toContain(totpFromSpec(SECRET, Date.now()));
     } finally {
       await handle.close();
     }

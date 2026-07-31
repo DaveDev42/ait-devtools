@@ -28,11 +28,39 @@ import { createUnplugin } from 'unplugin';
 import { startParentWatcher } from '../shared/parent-watcher.js';
 import {
   buildInAppSnippet,
+  DEBUGGER_DEV_BRIDGE_ID,
   hasDebugConsole,
   hasDebugger,
   hasInAppWiring,
   INSTALL_HINT,
 } from './optional-peers.js';
+
+/**
+ * The slice of `startQuickTunnel`'s handle that `@ait-co/debugger`'s relay
+ * bootstrap consumes. Declared structurally rather than imported from the peer
+ * so this module never type-depends on an OPTIONAL peer being installed.
+ */
+interface QuickTunnelLike {
+  /** Public `https://` base URL. SECRET-HANDLING: carries the tunnel host — never log. */
+  url: string;
+  /** Idempotent teardown. */
+  stop: () => void;
+}
+
+/**
+ * The slice of `@ait-co/debugger/dev-bridge`'s `startDevServerCdpRelay` handle
+ * this plugin uses. Structural for the same reason as {@link QuickTunnelLike}.
+ */
+interface DevServerCdpRelayLike {
+  /** `http://127.0.0.1:<port>` — loopback, safe to surface (issue #530). */
+  localHttpUrl: string;
+  /** Public `https://` relay base. SECRET-HANDLING: never log. */
+  httpUrl: string;
+  /** Public `wss://` relay URL the launcher QR carries. SECRET-HANDLING: never log. */
+  wssUrl: string;
+  /** Tears down the relay tunnel and then the relay. Idempotent, never rejects. */
+  close: () => Promise<void>;
+}
 
 /**
  * Resolve `@ait-co/devtools/mock` to its real file path at plugin-load time.
@@ -364,9 +392,10 @@ const aitDevtoolsPlugin = createUnplugin((options?: AitDevtoolsOptions) => {
         // Tunnel: start a Cloudflare quick tunnel once the dev server is listening.
         if (shouldTunnel) {
           let tunnel: { stop: () => void } | null = null;
-          // env-2 CDP wiring (tunnel.cdp): a second tunnel + Chii relay, torn
-          // down alongside the HTTP tunnel. Fire-and-forget close on teardown.
-          let relayTunnel: { stop: () => void } | null = null;
+          // env-2 CDP wiring (tunnel.cdp): the relay handle returned by
+          // `@ait-co/debugger`'s bootstrap. Its `close()` owns BOTH the relay
+          // tunnel and the relay, so no second handle is tracked here.
+          // Fire-and-forget close on teardown.
           let relay: { close: () => Promise<void> } | null = null;
           // env-2 HTML dashboard (issue #408): local 127.0.0.1 HTTP server that
           // serves the QR + connect-steps + FAQ page (env 3/4 UX parity), opened
@@ -419,48 +448,43 @@ const aitDevtoolsPlugin = createUnplugin((options?: AitDevtoolsOptions) => {
                   );
                 } else if (tunnelConfig.cdp) {
                   try {
-                    // NOTE (#817): the relay BOOTSTRAP below still calls this
-                    // package's local `../mcp/*` modules. `@ait-co/debugger@0.1.1`
-                    // publishes only `startTunnelDashboard` from `/dev-bridge` —
-                    // there is no published entry for the secret store / TOTP /
-                    // chii relay / URL store yet, so those four steps cannot be
-                    // delegated. The GATE above is nonetheless the real contract:
-                    // env-2 CDP requires `@ait-co/debugger`, matching the shape
-                    // this path takes once V2 removes the local copies.
+                    // #818: the whole relay bootstrap is now `@ait-co/debugger`'s.
+                    // Its `/dev-bridge` entry performs, in one call and in a fixed
+                    // order, the four steps this file used to run against local
+                    // `../mcp/*` modules: mint/load the project-local `.ait_relay`
+                    // TOTP secret, fail fast if relay auth is unconfigured, start
+                    // the Chii relay behind the TOTP upgrade gate, then open a
+                    // tunnel to the port it bound.
                     //
                     // Relay-auth baseline (issue #250): the env-2 CDP relay is
                     // reachable over a public `*.trycloudflare.com` tunnel, so a
                     // configured TOTP secret is MANDATORY and the relay enforces
-                    // it on every WS upgrade.
+                    // it on every WS upgrade. The secret file is anchored at the
+                    // nearest package.json above `server.config.root` — the same
+                    // anchor the MCP daemon resolves read-only, which is why the
+                    // dev server's root is what gets passed here (issues #394/#396).
                     //
-                    // First-run auto-mint (issue #394, project-local #396): if
-                    // AIT_DEBUG_TOTP_SECRET is not yet set, ensureRelaySecret()
-                    // mints a 256-bit random secret, persists it to the project-
-                    // local file <project>/.ait_relay (0600, anchored at the
-                    // nearest package.json directory above server.config.root),
-                    // and injects it into process.env so the following
-                    // assertRelayAuthConfigured() call succeeds. On subsequent
-                    // runs the persisted value is loaded silently — no manual
-                    // export needed. The MCP daemon reads the SAME file read-only
-                    // via loadRelaySecretReadOnly() when switching to a relay env.
-                    // SECRET-HANDLING: neither ensureRelaySecret nor the
-                    // guard/predicate log the secret value.
-                    const { ensureRelaySecret } = await import('../mcp/relay-secret-store.js');
-                    await ensureRelaySecret({ projectRoot: server.config.root });
-                    const { assertRelayAuthConfigured, buildRelayVerifyAuth } = await import(
-                      '../mcp/totp.js'
-                    );
-                    assertRelayAuthConfigured();
-                    const verifyAuth = buildRelayVerifyAuth();
-                    const { startChiiRelay } = await import('../mcp/chii-relay.js');
+                    // `cloudflared` stays on THIS side: `openTunnel` is injected
+                    // so the spawner (and its sanitising error handling) remains
+                    // the dev-server plugin's, not the daemon's.
+                    //
+                    // SECRET-HANDLING: nothing in this block logs the secret, the
+                    // TOTP code, the tunnel host, or the relay URL.
+                    const { startDevServerCdpRelay } = (await import(DEBUGGER_DEV_BRIDGE_ID)) as {
+                      startDevServerCdpRelay: (opts: {
+                        projectRoot: string;
+                        openTunnel: (localPort: number) => Promise<QuickTunnelLike>;
+                        onAuthReject?: (event: { kind: string }) => void;
+                      }) => Promise<DevServerCdpRelayLike>;
+                    };
                     // Issue #467: this relay lives in the vite process, so the
                     // MCP daemon's get_debug_status counter cannot see its 401s.
                     // Surface a throttled hint in the vite terminal instead.
                     // SECRET-HANDLING: fixed message only — no URL, code, host.
                     let lastAuthRejectWarnAt = 0;
-                    const r = await startChiiRelay({
-                      port: 0,
-                      verifyAuth,
+                    const r = await startDevServerCdpRelay({
+                      projectRoot: server.config.root,
+                      openTunnel: (localPort: number) => startQuickTunnel(localPort),
                       onAuthReject: () => {
                         const nowMs = Date.now();
                         if (nowMs - lastAuthRejectWarnAt < 10_000) return;
@@ -470,19 +494,19 @@ const aitDevtoolsPlugin = createUnplugin((options?: AitDevtoolsOptions) => {
                         );
                       },
                     });
+                    // r.close() tears down the relay tunnel AND the relay, in that
+                    // order — there is no separate handle to keep here any more.
                     relay = r;
-                    const rt = await startQuickTunnel(r.port);
-                    relayTunnel = rt;
-                    // SECRET-HANDLING: rt.url is the https relay base — stored in
-                    // relayHttpUrl for .ait_urls write below; never logged.
-                    relayHttpUrl = rt.url;
-                    relayWssUrl = rt.url.replace(/^https:/, 'wss:');
+                    // SECRET-HANDLING: httpUrl/wssUrl carry the relay host — stored
+                    // for the .ait_urls write and the QR below; never logged.
+                    relayHttpUrl = r.httpUrl;
+                    relayWssUrl = r.wssUrl;
                     // LOCAL relay base for MCP inspector URL assembly (issue #530):
                     // the relay process runs on this machine, so the inspector
                     // front_end + client WS can use the loopback address directly —
                     // no tunnel round-trip for the developer's browser.
                     // Safe to surface: loopback URL contains no tunnel host.
-                    relayLocalHttpUrl = `http://127.0.0.1:${r.port}`;
+                    relayLocalHttpUrl = r.localHttpUrl;
                   } catch (err: unknown) {
                     console.warn(
                       `[@ait-co/devtools] tunnel: CDP relay not started — screen preview works without on-device debugging: ${
@@ -523,9 +547,7 @@ const aitDevtoolsPlugin = createUnplugin((options?: AitDevtoolsOptions) => {
                 // var copy-paste. SECRET-HANDLING: URL values are never logged.
                 // Capture deleteRelayUrls in the outer-scope fn so cleanup() can
                 // call it without re-importing (no async in signal handlers).
-                const { writeRelayUrls, deleteRelayUrls } = await import(
-                  '../mcp/relay-url-store.js'
-                );
+                const { writeRelayUrls, deleteRelayUrls } = await import('./relay-url-store.js');
                 await writeRelayUrls({
                   projectRoot: server.config.root,
                   tunnelBaseUrl: t.url,
@@ -570,7 +592,6 @@ const aitDevtoolsPlugin = createUnplugin((options?: AitDevtoolsOptions) => {
           const cleanup = () => {
             parentWatcher?.stop();
             tunnel?.stop();
-            relayTunnel?.stop();
             void relay?.close();
             void qrDashboard?.close();
             // env-2 URL file cleanup (#424): remove .ait_urls on teardown so a

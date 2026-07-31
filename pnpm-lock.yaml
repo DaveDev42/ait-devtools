@@ -8,49 +8,22 @@ importers:
 
   .:
     dependencies:
-      '@modelcontextprotocol/sdk':
-        specifier: ^1.29.0
-        version: 1.29.0(supports-color@8.1.1)(zod@4.3.6)
-      '@vitest/expect':
-        specifier: ^4.1.9
-        version: 4.1.9
-      '@vitest/runner':
-        specifier: ^4.1.9
-        version: 4.1.9
-      ajv:
-        specifier: ^8.20.0
-        version: 8.20.0
-      chii:
-        specifier: ^1.15.5
-        version: 1.15.5(supports-color@8.1.1)
       cloudflared:
         specifier: ^0.7.1
         version: 0.7.1
-      eruda:
-        specifier: ^3.4.3
-        version: 3.4.3
-      esbuild:
-        specifier: ^0.28.1
-        version: 0.28.1
-      qrcode:
-        specifier: ^1.5.4
-        version: 1.5.4
       qrcode-terminal:
         specifier: ^0.12.0
         version: 0.12.0
       unplugin:
         specifier: ^3.2.0
         version: 3.2.0(esbuild@0.28.1)(rolldown@1.0.0-rc.12(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1))(rollup@4.62.0)(vite@8.0.16(@types/node@25.6.0)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.46.1)(tsx@4.22.4)(yaml@2.8.3))
-      ws:
-        specifier: ^8.21.0
-        version: 8.21.0
     devDependencies:
       '@ait-co/debug-console':
-        specifier: ^0.1.1
-        version: 0.1.1
+        specifier: ^0.1.3
+        version: 0.1.3
       '@ait-co/debugger':
-        specifier: ^0.1.1
-        version: 0.1.1(supports-color@8.1.1)(zod@4.3.6)
+        specifier: ^0.1.3
+        version: 0.1.3(supports-color@8.1.1)(zod@4.3.6)
       '@ait-co/polyfill':
         specifier: ^0.1.17
         version: 0.1.17(@apps-in-toss/web-framework@3.0.0-beta.3051978(@babel/preset-env@7.28.5(@babel/core@7.29.0(supports-color@8.1.1))(supports-color@8.1.1))(@types/node@25.6.0)(supports-color@8.1.1)(typanion@3.14.0)(typescript@6.0.3))
@@ -78,9 +51,6 @@ importers:
       '@testing-library/react':
         specifier: ^16.3.0
         version: 16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
-      '@types/qrcode':
-        specifier: ^1.5.6
-        version: 1.5.6
       '@types/qrcode-terminal':
         specifier: ^0.12.2
         version: 0.12.2
@@ -90,9 +60,6 @@ importers:
       '@types/react-dom':
         specifier: ^19.2.3
         version: 19.2.3(@types/react@19.2.17)
-      '@types/ws':
-        specifier: ^8.18.0
-        version: 8.18.1
       '@vitejs/plugin-react':
         specifier: ^6.0.3
         version: 6.0.3(vite@8.0.16(@types/node@25.6.0)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.46.1)(tsx@4.22.4)(yaml@2.8.3))
@@ -132,12 +99,12 @@ importers:
 
 packages:
 
-  '@ait-co/debug-console@0.1.1':
-    resolution: {integrity: sha512-9W7GVXe8HwhAxx2jQKEu7nr5agUqrRPn/AR+CecuMf+FJWhbhQxF4xbYYP08MeW2FbMwwX5SaCK7nuVarBbLXQ==}
+  '@ait-co/debug-console@0.1.3':
+    resolution: {integrity: sha512-77U4sNEyXPO+At4OZS5z0p9vmWye0ke9PjRwucZi4SVz18TMSkD2+66vvcgdpQTsDCUDmDRt/QtUwX6y83VQSw==}
     engines: {node: '>=24'}
 
-  '@ait-co/debugger@0.1.1':
-    resolution: {integrity: sha512-YB+LedwZEr9SSOuo42P+ZLf+j7SB/jMg2j4BIfx4eRcXrw4TScViQEWl4wCXrkTWL6dXnYtT8XZdyfsMGxoQkA==}
+  '@ait-co/debugger@0.1.3':
+    resolution: {integrity: sha512-Ij1yt+lNJeJfJIYEuzYF6gag7wMwhd1zKGsXFfelW+GM7qGiNB3b6mUSWXHhyJVBkzIyZ7nDZozD25hieYwt2Q==}
     engines: {node: '>=24'}
     hasBin: true
 
@@ -3665,9 +3632,6 @@ packages:
 
   '@types/qrcode-terminal@0.12.2':
     resolution: {integrity: sha512-v+RcIEJ+Uhd6ygSQ0u5YYY7ZM+la7GgPbs0V/7l/kFs2uO4S8BcIUEMoP7za4DNIqNnUD5npf0A/7kBhrCKG5Q==}
-
-  '@types/qrcode@1.5.6':
-    resolution: {integrity: sha512-te7NQcV2BOvdj2b1hCAHzAoMNuj65kNBMz0KBaxM6c3VGBOhU0dURQKOtH8CFNI/dsKkwlv32p26qYQTWoB5bw==}
 
   '@types/react-dom@19.2.3':
     resolution: {integrity: sha512-jp2L/eY6fn+KgVVQAOqYItbF0VY/YApe5Mz2F0aykSO8gx31bYCZyvSeYxCHKvzHG5eZjc+zyaS5BrBWya2+kQ==}
@@ -8155,11 +8119,11 @@ packages:
 
 snapshots:
 
-  '@ait-co/debug-console@0.1.1':
+  '@ait-co/debug-console@0.1.3':
     dependencies:
       eruda: 3.4.3
 
-  '@ait-co/debugger@0.1.1(supports-color@8.1.1)(zod@4.3.6)':
+  '@ait-co/debugger@0.1.3(supports-color@8.1.1)(zod@4.3.6)':
     dependencies:
       '@modelcontextprotocol/sdk': 1.29.0(supports-color@8.1.1)(zod@4.3.6)
       '@vitest/runner': 4.1.9
@@ -13306,10 +13270,6 @@ snapshots:
   '@types/parse-json@4.0.2': {}
 
   '@types/qrcode-terminal@0.12.2': {}
-
-  '@types/qrcode@1.5.6':
-    dependencies:
-      '@types/node': 25.6.0
 
   '@types/react-dom@19.2.3(@types/react@19.2.17)':
     dependencies:

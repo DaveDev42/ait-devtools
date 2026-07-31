@@ -1,6 +1,6 @@
 {
   "name": "@ait-co/devtools",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Browser development tools for Apps in Toss mini-apps — mock SDK, floating devtools panel, and universal bundler plugin. devDependency only; contributes nothing to a production bundle",
   "type": "module",
   "engines": {

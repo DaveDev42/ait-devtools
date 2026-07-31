@@ -175,4 +175,38 @@ describe('THROTTLED 다이얼 (devtools#834)', () => {
       'loadFullScreenAd',
     ]);
   });
+
+  it('methods를 빠뜨린 다이얼은 throw가 아니라 no-op이다 (#836)', async () => {
+    // __ait.patch는 콘솔에서 손으로 치는 무타입 표면이라 이런 값이 실제로 들어온다.
+    aitState.patch('failureModes', {
+      throttled: { intervalMs: 1_000 } as unknown as { methods: string[]; intervalMs: number },
+    });
+
+    await expect(setClipboardText('a')).resolves.toBeDefined();
+    await expect(setClipboardText('b')).resolves.toBeDefined();
+  });
+
+  /**
+   * tsdown이 mock/panel/unplugin entry를 각각 self-contained로 빌드하므로 소비자가 두
+   * entry를 동시에 import하면 이 모듈이 entry당 하나씩 복제된다. `vi.resetModules()` +
+   * 재-import로 그 복제를 재현해, globalThis 싱글턴 가드가 Map을 공유시키는지 본다 (#836).
+   */
+  it('entry가 복제돼도 레지스트리 Map을 공유한다 (#836)', async () => {
+    const first = await import('../mock/throttle-registry.js');
+    vi.resetModules();
+    const second = await import('../mock/throttle-registry.js');
+
+    // 복제를 실제로 재현했는지 먼저 확인한다 — 모듈 인스턴스는 서로 달라야 한다.
+    expect(second).not.toBe(first);
+    // 그런데 Map은 같은 인스턴스여야 한다.
+    expect(second.lastAllowedAt).toBe(first.lastAllowedAt);
+
+    first.lastAllowedAt.set('probe', 123);
+    expect(second.lastAllowedAt.get('probe')).toBe(123);
+
+    // 한쪽에서 reset하면 다른 쪽에서도 비워진다 — aitState.reset()이 어느 번들의
+    // resetThrottleRegistry를 붙잡고 있든 결과가 같아야 한다.
+    second.resetThrottleRegistry();
+    expect(first.lastAllowedAt.size).toBe(0);
+  });
 });

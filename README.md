@@ -655,6 +655,9 @@ __ait.patch('permissions', { camera: 'denied' });
 __ait.patch('deviceModes', { location: 'web' });
 __ait.patch('iap', { nextResult: 'USER_CANCELED' });
 __ait.patch('failureModes', { loadAdMob: 'PLACEMENT_ID_FETCH_FAILED' }); // 실기기 광고 지면 조회 실패 재현
+// 네이티브 브리지의 per-method rate limit 재현 — 아래 메서드를 1초 안에 재호출하면 APP_BRIDGE_THROTTLED로 거부된다.
+// 훅이 삽입된 메서드: getClipboardText · setClipboardText · getCurrentLocation · loadAppsInTossAdMob · loadFullScreenAd
+__ait.patch('failureModes', { throttled: { methods: ['getCurrentLocation'], intervalMs: 1000 } });
 
 // 이벤트 트리거
 __ait.trigger('backEvent');

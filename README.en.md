@@ -654,6 +654,9 @@ __ait.patch('permissions', { camera: 'denied' });
 __ait.patch('deviceModes', { location: 'web' });
 __ait.patch('iap', { nextResult: 'USER_CANCELED' });
 __ait.patch('failureModes', { loadAdMob: 'PLACEMENT_ID_FETCH_FAILED' }); // reproduce a real-device ad placement lookup failure
+// Reproduce the native bridge's per-method rate limit — calling a listed method again within 1s rejects with APP_BRIDGE_THROTTLED.
+// Instrumented methods: getClipboardText · setClipboardText · getCurrentLocation · loadAppsInTossAdMob · loadFullScreenAd
+__ait.patch('failureModes', { throttled: { methods: ['getCurrentLocation'], intervalMs: 1000 } });
 
 // Trigger events
 __ait.trigger('backEvent');

@@ -5,9 +5,11 @@
 
 import { checkPermission, withPermission } from '../permissions.js';
 import { aitState } from '../state.js';
+import { checkThrottle } from '../throttle.js';
 
 const _getClipboardText = async (): Promise<string> => {
   checkPermission('clipboard', 'getClipboardText');
+  checkThrottle('getClipboardText');
   const mode = aitState.state.deviceModes.clipboard;
   if (mode === 'mock') return aitState.state.mockData.clipboardText;
   // web mode (default)
@@ -25,6 +27,7 @@ export const getClipboardText = withPermission(_getClipboardText, 'clipboard');
 // `Promise<void>`이므로 시그니처는 그대로 두고, 런타임 반환값만 실측과 동치시킨다.
 const _setClipboardText = async (text: string): Promise<void> => {
   checkPermission('clipboard', 'setClipboardText');
+  checkThrottle('setClipboardText');
   const mode = aitState.state.deviceModes.clipboard;
   if (mode === 'mock') {
     aitState.patch('mockData', { clipboardText: text });

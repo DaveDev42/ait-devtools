@@ -5,6 +5,7 @@
 
 import type { NativeErrorCode } from './native-error.js';
 import type { AitSdkCall } from './sdk-call.js';
+import { resetThrottleRegistry } from './throttle-registry.js';
 import type {
   AnalyticsLogEntry,
   ConsentedUserData,
@@ -223,6 +224,17 @@ export interface FailureModes {
    * 설정된 이름만 reject, 나머지는 기존대로 resolve.
    */
   getPermission?: Partial<Record<PermissionName, NativeErrorCode>>;
+
+  /**
+   * THROTTLED 다이얼 (#834) — 실기기 네이티브 브리지의 per-method rate limit을
+   * 재현한다. `methods`에 적힌 메서드를 `intervalMs` 안에 재호출하면
+   * `APP_BRIDGE_THROTTLED`로 거부된다(2.x envelope / 3.x 맨 Error는 `sdkLine`을 따름).
+   * 미설정이 기본 = zero behavior change.
+   *
+   * 훅이 실제로 삽입된 메서드는 `throttle.ts`의 `THROTTLE_INSTRUMENTED_METHODS`가
+   * 정본이다 — 목록 밖 이름을 넣어도 효과가 없다. 거부된 호출은 창을 갱신하지 않는다.
+   */
+  throttled?: { methods: string[]; intervalMs: number };
 
   /**
    * soft-resolve 다이얼 (#789) — reject가 아니라 "다른 shape로 resolve"하는 env3
@@ -507,6 +519,9 @@ export class AitStateManager {
   reset() {
     const deviceId = this._state.deviceId;
     this._state = { ...structuredClone(DEFAULT_STATE), deviceId };
+    // throttle 창은 상태가 아니라 모듈 레지스트리에 있다 — 같이 비우지 않으면
+    // 리셋 직후 첫 호출이 직전 세션의 시각 때문에 거부된다 (#834).
+    resetThrottleRegistry();
     this._notify();
   }
 

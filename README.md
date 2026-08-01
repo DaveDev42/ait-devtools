@@ -10,13 +10,15 @@
 
 앱인토스(Apps in Toss) 미니앱을 **일반 브라우저**에서 개발하고 테스트할 수 있게 해줍니다. 토스 앱 없이도 SDK의 모든 기능을 시뮬레이션하여 빠른 개발 사이클을 지원합니다.
 
+이 프로젝트는 더 이상 유지보수되지 않습니다. repo는 archive되어 read-only가 되며, 소스와 이슈 기록은 GitHub에 그대로 남습니다. npm에 올라간 패키지는 계속 설치할 수 있지만 더 이상 업데이트되지 않습니다. `aitc.dev` 도메인과 그 위에서 서비스하던 사이트도 함께 종료되므로, 문서와 예제는 GitHub 소스를 보세요. 이 패키지에서 그 도메인에 의존하는 부분은 환경 2(실기기 PWA 미리보기)입니다 — 진입점인 launcher PWA가 `https://devtools.aitc.dev/launcher/`에 배포돼 있고, 터널 QR/deep-link도 그 주소로 만들어집니다. 이미 배포된 버전과 폰에 이미 설치된 launcher에는 이 사실을 소급 적용할 수 없습니다. 환경 1(로컬 브라우저 + mock SDK + DevTools 패널)은 외부 호스트에 의존하지 않습니다.
+
 - **60+ SDK API mock** — 인증, 결제, IAP, 위치, 카메라, 스토리지 등
 - **Device API 모드 시스템** — mock / web / prompt 세 가지 모드로 디바이스 API 동작 전환
 - **Device simulation** — iPhone/Galaxy 프리셋 + orientation 토글로 데스크탑 브라우저에서 모바일 뷰포트 시뮬레이션
 - **Floating DevTools Panel** — 브라우저에서 SDK 상태를 실시간으로 제어 (12개 탭, mock state preset library 포함)
 - **모든 번들러 지원** — [unplugin](https://github.com/unjs/unplugin) 기반 Vite, Webpack, Rspack, esbuild, Rollup 통합
 
-라이브 데모: <https://devtools.aitc.dev/> (이 repo의 `e2e/fixture/`를 GitHub Pages에 그대로 배포한 self-contained 데모).
+데모 소스: [`e2e/fixture/`](https://github.com/apps-in-toss-community/devtools/tree/main/e2e/fixture) (self-contained 데모 앱. GitHub Pages 호스팅은 도메인 종료와 함께 내려갑니다 — 로컬에서 `pnpm e2e:build`로 빌드해 볼 수 있습니다).
 
 ## 15초 quickstart — 내 상황에 맞는 환경 고르기
 
@@ -49,7 +51,7 @@ pnpm dev:phone          # AIT_TUNNEL=1 pnpm dev 와 동일
 
 `tunnel: { cdp: true }`를 켜면 같은 QR 한 번으로 화면 미리보기 + on-device CDP가 함께 열려 실기기 WebKit의 DOM·콘솔·예외를 MCP로 관측합니다 (`call_sdk`는 환경 2에서 mock — 실 SDK는 환경 3). CDP를 쓰려면 디버깅 패키지 두 개를 추가로 설치하세요 — 아래 [디버깅 패키지](#디버깅-패키지-환경-23) 참고.
 
-사전: 폰에 `https://devtools.aitc.dev/launcher/` 를 홈 화면에 한 번 추가. 상세: [`docs/scenarios/env-2.md`](./docs/scenarios/env-2.md)
+사전: 폰에 `https://devtools.aitc.dev/launcher/` 를 홈 화면에 한 번 추가. 이 호스트는 `aitc.dev` 도메인 정리와 함께 사라집니다. 상세: [`docs/scenarios/env-2.md`](./docs/scenarios/env-2.md)
 
 ---
 
@@ -162,7 +164,7 @@ pnpm add -D @ait-co/debugger @ait-co/debug-console
 
 ## Reference consumer
 
-[`sdk-example`](https://github.com/apps-in-toss-community/sdk-example)이 devtools의 reference consumer다. 모든 SDK API를 인터랙티브하게 실행해볼 수 있는 카탈로그 앱으로, 웹 데모는 <https://sdk-example.aitc.dev/>에서 바로 확인할 수 있다. 새 mock을 추가하면 sdk-example의 카드에서 그대로 동작하는 게 1차 sanity check. 단, 이 repo의 E2E suite는 sdk-example을 clone하지 않고 **내부 자기완결 fixture(`e2e/fixture/`)** 로 운영한다 — sdk-example이 깨져도 devtools CI는 영향받지 않는다.
+[`sdk-example`](https://github.com/apps-in-toss-community/sdk-example)이 devtools의 reference consumer다. 모든 SDK API를 인터랙티브하게 실행해볼 수 있는 카탈로그 앱이다 — 웹 데모 호스팅은 도메인 종료와 함께 내려가므로 위 GitHub 소스를 보면 된다. 새 mock을 추가하면 sdk-example의 카드에서 그대로 동작하는 게 1차 sanity check. 단, 이 repo의 E2E suite는 sdk-example을 clone하지 않고 **내부 자기완결 fixture(`e2e/fixture/`)** 로 운영한다 — sdk-example이 깨져도 devtools CI는 영향받지 않는다.
 
 ## 번들러 설정
 
@@ -393,7 +395,7 @@ export default defineConfig({
 
 ### 2. 폰당 1회 셋업 (필수)
 
-폰에서 `https://devtools.aitc.dev/launcher/`를 열고 **홈 화면에 추가**합니다. launcher는 페이지 상단에 "Install launcher to your phone" 버튼을 띄우는데, 누르면 플랫폼별 네이티브 설치 흐름이 자동으로 안내됩니다 — Android Chrome은 인앱 설치 프롬프트, iOS Safari는 "공유 → 홈 화면에 추가" 일러스트, Firefox/Samsung Internet 등은 수동 안내 카드. launcher URL은 매번 동일하므로 폰당 한 번만 하면 됩니다.
+폰에서 `https://devtools.aitc.dev/launcher/`를 열고 **홈 화면에 추가**합니다. (이 호스트는 `aitc.dev` 도메인 정리와 함께 사라지며, 대체 호스트는 없습니다.) launcher는 페이지 상단에 "Install launcher to your phone" 버튼을 띄우는데, 누르면 플랫폼별 네이티브 설치 흐름이 자동으로 안내됩니다 — Android Chrome은 인앱 설치 프롬프트, iOS Safari는 "공유 → 홈 화면에 추가" 일러스트, Firefox/Samsung Internet 등은 수동 안내 카드. launcher URL은 매번 동일하므로 폰당 한 번만 하면 됩니다.
 
 launcher는 **PWA(홈 화면 앱)로 실행할 때만 동작**합니다. 일반 브라우저 탭에서 열면 설치 안내만 노출되고 입력/스캐너 UI는 숨겨집니다 — 크롬리스 standalone 디스플레이가 PWA 셸의 본질이라, 일반 탭에서의 동작은 의도적으로 막아둡니다.
 

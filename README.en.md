@@ -10,13 +10,15 @@ A mock library for the `@apps-in-toss/web-framework` SDK. Imports of `@apps-in-t
 
 Lets you develop and test Apps in Toss mini-apps in a **regular browser** — without the Toss app. All SDK features are simulated so you can move fast.
 
+This project is no longer maintained. The repo is being archived and becomes read-only; the source and issue history stay on GitHub. The published npm package remains installable but will not be updated. The `aitc.dev` domain and the sites served on it are being shut down, so read the docs and examples from the GitHub source. The part of this package that depends on that domain is environment 2 (real-device PWA preview) — its entry point, the launcher PWA, is hosted at `https://devtools.aitc.dev/launcher/`, and the tunnel QR / deep-link is built against that address. Already-published versions and launchers already installed on a phone cannot be updated retroactively. Environment 1 (local browser + mock SDK + DevTools panel) depends on no external host.
+
 - **60+ SDK API mocks** — auth, payments, IAP, location, camera, storage, and more
 - **Device API mode system** — switch between mock / web / prompt modes for device APIs
 - **Device simulation** — iPhone/Galaxy presets + orientation toggle to simulate a mobile viewport in your desktop browser
 - **Floating DevTools Panel** — control SDK state in real time from the browser (12 tabs, mock state preset library included)
 - **All bundlers supported** — [unplugin](https://github.com/unjs/unplugin)-based Vite, Webpack, Rspack, esbuild, and Rollup integration
 
-Live demo: <https://devtools.aitc.dev/> (the `e2e/fixture/` from this repo deployed to GitHub Pages as a self-contained demo).
+Demo source: [`e2e/fixture/`](https://github.com/apps-in-toss-community/devtools/tree/main/e2e/fixture) (a self-contained demo app. The GitHub Pages hosting goes away with the domain — build it locally with `pnpm e2e:build`).
 
 ## 15-second quickstart — pick your environment
 
@@ -49,7 +51,7 @@ pnpm dev:phone          # same as AIT_TUNNEL=1 pnpm dev
 
 With `tunnel: { cdp: true }`, a single QR scan opens both the screen preview and on-device CDP — inspect the real WebKit DOM, console, and exceptions from your MCP host (`call_sdk` still hits the mock on environment 2; the real SDK lives on environment 3). CDP needs two extra packages — see [Debugging packages](#debugging-packages-environments-2-and-3) below.
 
-One-time prerequisite: add `https://devtools.aitc.dev/launcher/` to your phone's home screen. Details: [`docs/scenarios/env-2.md`](./docs/scenarios/env-2.md)
+One-time prerequisite: add `https://devtools.aitc.dev/launcher/` to your phone's home screen. This host goes away with the `aitc.dev` domain cleanup. Details: [`docs/scenarios/env-2.md`](./docs/scenarios/env-2.md)
 
 ---
 
@@ -162,7 +164,7 @@ Both are **optional peers** of devtools.
 
 ## Reference consumer
 
-[`sdk-example`](https://github.com/apps-in-toss-community/sdk-example) is the reference consumer of devtools. It's a catalog app where every SDK API can be run interactively, and the web demo is live at <https://sdk-example.aitc.dev/>. When you add a new mock, confirming that it works on the sdk-example card is the first sanity check. That said, this repo's E2E suite runs against an **internal self-contained fixture (`e2e/fixture/`)** without cloning sdk-example — so a broken sdk-example won't affect devtools CI.
+[`sdk-example`](https://github.com/apps-in-toss-community/sdk-example) is the reference consumer of devtools. It's a catalog app where every SDK API can be run interactively — its web demo hosting goes away with the domain, so read the GitHub source linked above. When you add a new mock, confirming that it works on the sdk-example card is the first sanity check. That said, this repo's E2E suite runs against an **internal self-contained fixture (`e2e/fixture/`)** without cloning sdk-example — so a broken sdk-example won't affect devtools CI.
 
 ## Bundler setup
 
@@ -393,7 +395,7 @@ export default defineConfig({
 
 ### 2. Per-phone setup (required)
 
-Open `https://devtools.aitc.dev/launcher/` on your phone and **add it to your home screen**. The launcher shows an "Install launcher to your phone" button that triggers the platform-native install flow automatically — Android Chrome gets the in-app install prompt, iOS Safari gets a Share → Add to Home Screen illustration, and Firefox / Samsung Internet get a manual instruction card. The launcher URL never changes, so this is a one-time step per phone.
+Open `https://devtools.aitc.dev/launcher/` on your phone and **add it to your home screen**. (This host goes away with the `aitc.dev` domain cleanup; there is no replacement host.) The launcher shows an "Install launcher to your phone" button that triggers the platform-native install flow automatically — Android Chrome gets the in-app install prompt, iOS Safari gets a Share → Add to Home Screen illustration, and Firefox / Samsung Internet get a manual instruction card. The launcher URL never changes, so this is a one-time step per phone.
 
 The launcher **only works when launched as an installed PWA from the home screen**. Opening it in a regular browser tab shows only the install hint — the URL input and scanner are hidden. The chrome-less standalone display is the whole point of the launcher shell, and a regular tab can't provide that.
 

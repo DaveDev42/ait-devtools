@@ -142,7 +142,7 @@
     "type": "git",
     "url": "https://github.com/apps-in-toss-community/devtools"
   },
-  "homepage": "https://devtools.aitc.dev/",
+  "homepage": "https://github.com/apps-in-toss-community/devtools",
   "bugs": {
     "url": "https://github.com/apps-in-toss-community/devtools/issues"
   }

@@ -70,6 +70,10 @@ export interface PrintTunnelBannerOptions {
   navBarTheme?: 'light' | 'dark';
 }
 
+// EOL note: this host is decommissioned along with the `aitc.dev` domain, and
+// there is no replacement. The constant is left as-is on purpose — changing it
+// cannot help versions already published or launchers already installed on a
+// phone, and env-2 has no other entry point.
 const LAUNCHER_URL = 'https://devtools.aitc.dev/launcher/';
 
 /**

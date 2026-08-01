@@ -16,8 +16,8 @@ AITC DevTools (`@ait-co/devtools`) is a community open-source library that lets 
 
 - npm: https://www.npmjs.com/package/@ait-co/devtools
 - GitHub: https://github.com/apps-in-toss-community/devtools
-- Reference consumer (sdk-example): https://sdk-example.aitc.dev/
-- Org: https://aitc.dev/
+- Reference consumer (sdk-example): https://github.com/apps-in-toss-community/sdk-example
+- Org: https://github.com/apps-in-toss-community
 
 ## Notes
 

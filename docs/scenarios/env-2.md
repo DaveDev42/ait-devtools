@@ -3,6 +3,8 @@
 > 대상: 실기기 Safari/WebKit + installable PWA(`devtools.aitc.dev/launcher/`) + cloudflared 터널.
 > HMR O (cloudflared quick tunnel). CDP relay는 opt-in(`tunnel: { cdp: true }`) — 켜면 실기기 WebKit 위에서 DOM·콘솔·예외·`measure_safe_area` 관측이 열린다. `call_sdk`는 환경 2에서 mock을 친다(실 SDK는 환경 3).
 
+이 시나리오의 진입점인 launcher PWA는 `devtools.aitc.dev`에 배포돼 있고, 이 호스트는 `aitc.dev` 도메인 정리와 함께 사라진다. 대체 호스트는 없다.
+
 ## 전제조건
 
 - 폰 홈 화면에 launcher PWA 설치 (`devtools.aitc.dev/launcher/`)

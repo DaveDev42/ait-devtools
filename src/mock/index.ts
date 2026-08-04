@@ -23,9 +23,11 @@ export {
   appsInTossSignTossCert,
   getAnonymousKey,
   getConsentedUserData,
+  getDeclaredAgeRange,
   getIsTossLoginIntegratedService,
   getUserKeyForGame,
 } from './auth/index.js';
+export { createAsyncBridge, createConstantBridge, createEventBridge } from './bridge-factories.js';
 // --- 디바이스 기능 ---
 export {
   Accuracy,
@@ -138,6 +140,7 @@ export type {
   AnalyticsLogEntry,
   ConsentedUserData,
   ConsentedUserDataKey,
+  DeclaredAgeRange,
   DeviceApiMode,
   DeviceModes,
   HapticFeedbackType,

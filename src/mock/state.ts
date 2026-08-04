@@ -9,6 +9,7 @@ import { resetThrottleRegistry } from './throttle-registry.js';
 import type {
   AnalyticsLogEntry,
   ConsentedUserData,
+  DeclaredAgeRange,
   DeviceModes,
   IapNextResult,
   MockContact,
@@ -133,6 +134,8 @@ export interface AitDevtoolsState {
      * 무관하게 이 상태값을 그대로 반환한다.
      */
     consentedUserData: ConsentedUserData;
+    /** `getDeclaredAgeRange`/`User.getDeclaredAgeRange`가 반환할 테스트 값. */
+    declaredAgeRange: DeclaredAgeRange;
   };
 
   // 알림
@@ -350,6 +353,7 @@ const DEFAULT_STATE: AitDevtoolsState = {
     userKeyHash: 'mock-user-hash-abc123',
     anonymousKeyHash: 'mock-anon-hash-xyz789',
     consentedUserData: { USER_NAME: 'mock-user-name' },
+    declaredAgeRange: { status: 'NOT_AVAILABLE', activeParentalControls: [] },
   },
 
   notification: {

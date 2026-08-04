@@ -73,12 +73,7 @@ git config core.hooksPath .githooks
 
 버전은 `0.1.x` patch 단계였고, **`0.2.0`이 그 단계의 유일한 minor 예외다**(#818, Dave 명시 결정). 공개 export 5개와 bin 2개가 `@ait-co/debugger`·`@ait-co/debug-console`로 빠져나가는 릴리즈라 patch로 내보내면 소비자가 `pnpm up` 한 번에 깨진다. 예외는 이 한 번뿐이고, 이후 minor는 다시 없다 — 다음 minor 이벤트는 곧바로 `1.0.0`이며 그때 `src/stubs/`의 전환 스텁이 함께 사라진다. Claude는 여전히 changeset에서 **patch만 자율 생성**한다(minor/major는 Dave 명시 지시 시만).
 
-같은 코드에서 두 개의 dist-tag를 동시에 운영한다 (`.github/workflows/release.yml`):
-
-- **stable = `latest`** — peer `>=2.6.0 <3.0.0` (web-framework 2.x), 기존 Changesets Version-PR 흐름, `0.1.x` patch. `release` job이 담당하며 무변경.
-- **beta = `beta`** — peer `>=3.0.0-beta <4.0.0` (3.0 라인), Changesets **스냅샷**. main push마다 `release-beta` job이 pending changeset이 있을 때만 `0.0.0-beta-<datetime>-<sha>` 버전으로 자동 publish한다. peer range만 job-local로 3.0으로 덮어쓰고 같은 커밋을 publish한다 — `latest`는 2.x로 유지된다(GA flip 아님, #370).
-
-`release-beta`가 ship-safe한 핵심 불변식: ① 버전 base가 `0.0.0`이라 어떤 stable range도 만족하지 않음(`latest`로 새어나갈 수 없음), ② `--tag beta` 명시 + on-disk artifact를 publish 직전 assert(version/peer/optional), ③ pending changeset 없으면 clean no-op, ④ 같은 커밋 재실행은 SHA-동일 버전 → skip-if-exists로 idempotent. peer rewrite는 job-local ephemeral checkout에서만 일어나므로 3.0 peer가 `latest` artifact에 닿지 않는다. 스냅샷 템플릿(`{tag}-{datetime}-{commit}`)은 `.changeset/config.json`의 `snapshot.prereleaseTemplate`이 정본. AUTH는 npm OIDC trusted publishing (NPM_TOKEN 없음, #29에서 제거) — beta job이 release.yml 안에 있어야 trusted-publisher grant(workflow 파일명 바인딩)가 적용된다.
+web-framework 3.0 GA 이후에는 `latest` 단일 채널을 운영한다. peer는 `>=2.6.0 <3.0.0 || >=3.0.1 <4.0.0`; unplugin이 소비자 SDK major를 감지해 `mock/2x` 또는 `mock/3x`를 선택한다. 수동 alias 사용자는 해당 서브패스를 명시한다. 과거 `beta` snapshot job은 제거됐다. 배포는 npm OIDC trusted publishing(NPM_TOKEN 없음)을 사용한다.
 
 ## 명령어
 
@@ -128,16 +123,14 @@ src/
 ## 새 API mock 추가 절차
 
 1. 카테고리 디렉토리에 함수 구현 (예: `src/mock/device/`)
-2. `src/mock/index.ts`에 export
-3. **두 typecheck 파일 모두 갱신**: `src/__typecheck.ts`(3.0-beta 라인)와 `src/__typecheck-2x.ts`(2.x stable 라인 — `web-framework-2x` alias)에 각각 `type _NewApi = Assert<typeof Mock.newApi, typeof Original.newApi>;`. 두 라인에 존재 유무가 갈리는 심볼만 `AssertIfPresent`로 capability-gate한다 (현재 skip 대상은 base `PermissionError` 1개뿐).
+2. 공통 API는 `src/mock/index.ts`, SDK별 계약은 `src/mock/index-2x.ts` 또는 `src/mock/index-3x.ts` facade에 export
+3. **두 typecheck 파일 모두 갱신**: `src/__typecheck.ts`(3.0.1 + `mock/index-3x`)와 `src/__typecheck-2x.ts`(2.10.8 + `mock/index-2x`)에 각각 `AssertCompat`을 추가한다. `scripts/check-sdk-exports.ts`가 양쪽 런타임 export 누락도 전수 검사한다.
 4. `pnpm typecheck` (두 라인 tsc 모두 통과해야 한다)
 5. 테스트 작성
 
 ## SDK 업데이트 대응
 
-devtools는 `@apps-in-toss/web-framework` **3.0.0-beta** 프리릴리즈를 추적. devDep은 `3.0.0-beta.3051978` exact pin. published `latest` 태그의 peer range는 `>=2.6.0 <3.0.0` (2.x 소비자 보호용 유지)이고, 3.0 라인 peer는 **`beta` dist-tag로 별도 자동 publish**한다 — `release-beta` job이 main push마다 같은 커밋을 job-local 3.0 peer로 덮어써 `0.0.0-beta-<datetime>-<sha>` 스냅샷으로 올린다(메커니즘 정본은 위 §배포). 3.0-beta를 쓰는 소비자는 `@ait-co/devtools@beta`로 설치한다. (후속 PR에서 CI matrix `compat-check`로 버전 typecheck 자동화 예정.)
-
-**GA Flip 상태:** beta 채택 wave는 머지 완료, GA flip(exact pin→`^3.0.0`, `latest` peer를 3.0 라인으로, dist-tag flip)은 **미착수** — GA ETA 미정으로 대기. 트래킹 #370. GA용으로 비워뒀던 `0.1.54` 슬롯은 무관한 maintenance Version PR이 선점했고 이후 추가 maintenance로 `latest`가 더 올라갔다(현 `latest`는 `npm view @ait-co/devtools dist-tags.latest`로 확인, peer `>=2.6.0 <3.0.0`) → flip은 그 시점 `latest` 다음 patch를 쓴다. `beta` dist-tag 자동 publish는 GA flip의 부분 선행이다(3.0 peer artifact를 미리 검증된 상태로 올려둠) — GA flip 시 그 검증된 peer를 `latest`로 승격하고 `release-beta` job은 정리 대상이 된다.
+devtools는 `@apps-in-toss/web-framework` **3.0.1 GA**와 최신 2.x를 함께 추적한다. bare devDep은 `3.0.1`, `web-framework-2x` alias는 `2.10.8` exact pin이다. 기본 `/mock`은 3.x facade이며 `/mock/2x`, `/mock/3x`가 명시적 진입점이다.
 
 - peer는 `peerDependenciesMeta.optional: true`. devDep은 고정.
   - **이유**: 소비자는 본인 프로젝트에서 SDK를 직접 import하므로 누락은 빌드 단계에서 명시적으로 깨진다(vite/webpack resolve fail) — npm missing peer warning에 의존할 필요가 없다. 반대로 required로 두면 SDK + 그 RN/Babel/Metro 트랜지티브 거대 트리(~분 단위 install)가 강제로 딸려 온다. optional로 둬도 신뢰성은 손상되지 않고 설치만 가벼워진다. (분리 전에는 "MCP-only 소비자는 mock SDK를 아예 import하지 않는다"가 더 강한 근거였는데, 그 소비자군은 `@ait-co/debugger`로 옮겨 갔다 — 근거 하나가 빠졌을 뿐 결론은 그대로다.)
@@ -145,18 +138,11 @@ devtools는 `@apps-in-toss/web-framework` **3.0.0-beta** 프리릴리즈를 추�
 - `src/mock/proxy.ts`의 `createMockProxy`는 미구현 API 접근 시 **throw** — "잘 되는 척" 방지.
 - `.github/workflows/check-sdk-update.yml`이 매주 월요일 새 버전 감지 → 이슈 생성.
 
-**지원 범위 확장:** `pnpm add -D @apps-in-toss/web-framework@<version>` → `pnpm typecheck`로 시그니처 변경 확인 → `package.json` devDep pin 갱신 → 단일 PR로 일관된 상태 유지. (3.0 GA 시 peer range도 `>=3.0.0 <4.0.0`으로 교체.)
+**지원 범위 확장:** 해당 exact devDep/alias를 갱신 → `pnpm typecheck`로 시그니처·runtime export 전수 검사 → 양 facade fixture 검증 → peer claim을 갱신한다.
 
-**web-framework-2x alias pin 정책:** `@apps-in-toss/web-framework-2x` devDep은 최신 2.x 중 `tsc -p tsconfig.2x.json`이 clean한 버전으로 exact pin한다. 현재 `npm:@apps-in-toss/web-framework@2.10.7`(2.10.x 최신). 2.10.1은 upstream type regression(`@apps-in-toss/web-bridge@2.10.1`이 `@apps-in-toss/native-modules`의 미빌드 raw `.ts` subpath를 import → `tsc`가 RN 0.72.6에 없는 `CodegenTypes` export로 실패)이 있었으나 **2.10.2에서 이미 해소**됐다(2.10.2~2.10.7 재검증 clean). 새 2.x minors/patches를 올릴 때는 반드시 `tsc -p tsconfig.2x.json`을 실행하고 clean을 확인한 후 pin을 갱신한다 — exact pin이라 자동 drift는 없고, 매번 PR로 재검증한다.
+**web-framework-2x alias pin 정책:** `@apps-in-toss/web-framework-2x`는 최신 검증 2.x에 exact pin한다. 현재 `npm:@apps-in-toss/web-framework@2.10.8`. 2.10.1의 upstream type regression은 2.10.2에서 해소됐으며 2.10.2~2.10.8을 clean 확인했다.
 
-**SDK breaking change 대응:** 한 devtools 패키지가 호환되지 않는 SDK를 동시 지원하지 않는다 — devtools도 함께 bump한다.
-
-1. 새 SDK 대응은 `main`에서 진행. peer range를 새 SDK 라인 한 줄로 교체, 이전 라인은 제거.
-2. 직전 라인은 `release/<prev>.x` maintenance 브랜치로 분기. patch만 cherry-pick으로 백포팅.
-3. `__typecheck.ts`의 `import * as Original`을 새 SDK로 바꾸고 깨진 시그니처를 mock에 맞춰 수정. `unplugin/index.ts`의 패키지명 상수(`FRAMEWORK_ID` 등)도 SDK가 rename된 경우 함께 갱신.
-4. devtools 자체도 호환성 끊김에 맞춰 bump (Changesets). 사용자는 SDK 업그레이드와 함께 devtools도 같은 라인으로 올린다.
-
-같은 devtools 안에서 SDK 라인별 런타임 분기는 하지 않는다 (mock 본체가 두 벌이 되어 비용이 큼). 동시 지원 윈도우가 정말 필요해지면 그때 별도 결정.
+**SDK breaking change 대응:** 공통 동작은 `src/mock/index.ts` 아래 구현에 두고, 타입·동기성처럼 함께 만족시킬 수 없는 계약만 `index-2x.ts`/`index-3x.ts` facade에서 분기한다. unplugin의 `sdkVersion: auto|2|3`가 런타임 진입점을 고른다. 새 major를 추가할 때는 facade·exact pin·typecheck·export 완전성 검사·E2E를 한 PR에서 함께 갱신한다.
 
 ## MCP tool surface — 이 repo 밖이다
 
@@ -164,11 +150,13 @@ debug MCP 서버·tier 매트릭스·환경 파생(`connection.kind`) 설계는 
 
 ## 패키지 export 구조
 
-이 패키지가 실제로 출하하는 진입점은 넷이다:
+이 패키지가 실제로 출하하는 mock·panel·plugin 진입점은 다음과 같다:
 
 | Import path | 용도 |
 |---|---|
-| `@ait-co/devtools` (= `/mock`) | 번들러 alias 대상, 모든 mock export |
+| `@ait-co/devtools` (= `/mock`) | 3.x 기본 mock facade |
+| `@ait-co/devtools/mock/2x` | 2.x 명시적 mock facade |
+| `@ait-co/devtools/mock/3x` | 3.x 명시적 mock facade |
 | `@ait-co/devtools/panel` | Floating DevTools Panel (import 시 자동 마운트) |
 | `@ait-co/devtools/unplugin` | 번들러 플러그인 (.vite/.webpack/.rspack/.esbuild/.rollup) |
 

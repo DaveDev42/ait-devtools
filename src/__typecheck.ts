@@ -8,7 +8,7 @@
 
 import type * as Original from '@apps-in-toss/web-framework';
 import type { AssertCompat, AssertIfPresent, Expect } from './__typecheck-shared.js';
-import type * as Mock from './mock/index.js';
+import type * as Mock from './mock/index-3x.js';
 
 // --- Storage ---
 type _StorageGetItem = Expect<
@@ -39,12 +39,15 @@ type _AppsInTossSignTossCert = Expect<
   AssertCompat<typeof Mock.appsInTossSignTossCert, typeof Original.appsInTossSignTossCert>
 >;
 
-// getConsentedUserData는 web-framework 2.x stable 라인에만 존재한다(devtools#798,
-// `@apps-in-toss/web-bridge` 경유). 3.0-beta 표면엔 이 API 자체가 없다 — PermissionError
-// (3.0 신규, 2.x 부재)의 반대 방향 비대칭. AssertIfPresent로 capability-gate: 2.x에선
-// 존재→엄격 검증(__typecheck-2x.ts), 이 3.0-beta 라인에선 skip(true).
+// 3.0 GA에서 다시 노출된 v2 호환 API. 두 facade 모두 엄격 검증한다.
 type _GetConsentedUserData = Expect<
   AssertIfPresent<typeof Mock, typeof Original, 'getConsentedUserData'>
+>;
+type _GetAnonymousKey = Expect<
+  AssertCompat<typeof Mock.getAnonymousKey, typeof Original.getAnonymousKey>
+>;
+type _GetDeclaredAgeRange = Expect<
+  AssertCompat<typeof Mock.getDeclaredAgeRange, typeof Original.getDeclaredAgeRange>
 >;
 
 // --- 화면/네비게이션 ---
@@ -227,7 +230,12 @@ type _TdsEvent = Expect<AssertCompat<typeof Mock.tdsEvent, typeof Original.tdsEv
 type _AppsInTossEvent = Expect<
   AssertCompat<typeof Mock.appsInTossEvent, typeof Original.appsInTossEvent>
 >;
-// onVisibilityChangedByTransparentServiceWeb is removed in web-framework 3.0 — no Assert.
+type _OnVisibilityChanged = Expect<
+  AssertCompat<
+    typeof Mock.onVisibilityChangedByTransparentServiceWeb,
+    typeof Original.onVisibilityChangedByTransparentServiceWeb
+  >
+>;
 
 // --- 게임/프로모션 ---
 type _GrantPromotionReward = Expect<
@@ -356,8 +364,30 @@ type _RequestNotificationAgreement = Expect<
   >
 >;
 
-// --- 추가 mock (web-framework 메인 export에는 없음, native-modules/web-bridge 개별 d.ts 기준) ---
-// getAnonymousKey, requestTossPayPaysBilling은 @apps-in-toss/web-framework 메인
-// 표면에서 노출되지 않는다 (web-bridge index.d.ts에서 re-export 안 됨). 사용자가
-// 깊은 경로로 import하거나 SDK가 향후 메인에 노출했을 때를 대비해 mock은
-// 두지만, Original.X로 시그니처 align할 대상 자체가 없어 Assert는 생략한다.
+// --- 3.x 도메인 facade와 bridge factory ---
+type _Clipboard = Expect<AssertCompat<typeof Mock.Clipboard, typeof Original.Clipboard>>;
+type _Device = Expect<AssertCompat<typeof Mock.Device, typeof Original.Device>>;
+type _Environment = Expect<AssertCompat<typeof Mock.Environment, typeof Original.Environment>>;
+type _File = Expect<AssertCompat<typeof Mock.File, typeof Original.File>>;
+type _Game = Expect<AssertCompat<typeof Mock.Game, typeof Original.Game>>;
+type _Notification = Expect<AssertCompat<typeof Mock.Notification, typeof Original.Notification>>;
+type _Promotion = Expect<AssertCompat<typeof Mock.Promotion, typeof Original.Promotion>>;
+type _Review = Expect<AssertCompat<typeof Mock.Review, typeof Original.Review>>;
+type _SafeArea = Expect<AssertCompat<typeof Mock.SafeArea, typeof Original.SafeArea>>;
+type _Screen = Expect<AssertCompat<typeof Mock.Screen, typeof Original.Screen>>;
+type _ShareDomain = Expect<AssertCompat<typeof Mock.Share, typeof Original.Share>>;
+type _TossAuth = Expect<AssertCompat<typeof Mock.TossAuth, typeof Original.TossAuth>>;
+type _TossPay = Expect<AssertCompat<typeof Mock.TossPay, typeof Original.TossPay>>;
+type _User = Expect<AssertCompat<typeof Mock.User, typeof Original.User>>;
+type _RequestTossPayPaysBilling = Expect<
+  AssertCompat<typeof Mock.requestTossPayPaysBilling, typeof Original.requestTossPayPaysBilling>
+>;
+type _CreateAsyncBridge = Expect<
+  AssertCompat<typeof Mock.createAsyncBridge, typeof Original.createAsyncBridge>
+>;
+type _CreateConstantBridge = Expect<
+  AssertCompat<typeof Mock.createConstantBridge, typeof Original.createConstantBridge>
+>;
+type _CreateEventBridge = Expect<
+  AssertCompat<typeof Mock.createEventBridge, typeof Original.createEventBridge>
+>;

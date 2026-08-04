@@ -11,11 +11,23 @@
   "exports": {
     ".": {
       "types": "./dist/mock/index.d.ts",
-      "import": "./dist/mock/index.js"
+      "import": "./dist/mock/index.js",
+      "default": "./dist/mock/index.js"
     },
     "./mock": {
       "types": "./dist/mock/index.d.ts",
-      "import": "./dist/mock/index.js"
+      "import": "./dist/mock/index.js",
+      "default": "./dist/mock/index.js"
+    },
+    "./mock/2x": {
+      "types": "./dist/mock/2x.d.ts",
+      "import": "./dist/mock/2x.js",
+      "default": "./dist/mock/2x.js"
+    },
+    "./mock/3x": {
+      "types": "./dist/mock/3x.d.ts",
+      "import": "./dist/mock/3x.js",
+      "default": "./dist/mock/3x.js"
     },
     "./panel": {
       "types": "./dist/panel/index.d.ts",
@@ -58,7 +70,7 @@
     "build": "tsdown",
     "check:footprint-absent": "bash scripts/check-devtools-footprint-absent.sh",
     "dev": "tsdown --watch",
-    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.2x.json && tsc --noEmit -p e2e/fixture/tsconfig.json && tsc --noEmit -p scripts/tsconfig.json",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.2x.json && tsc --noEmit -p e2e/fixture/tsconfig.json && tsc --noEmit -p scripts/tsconfig.json && pnpm check:sdk-exports",
     "test": "vitest run",
     "test:e2e": "playwright test",
     "e2e:build": "pnpm build && vite build --config e2e/fixture/vite.config.ts",
@@ -67,6 +79,7 @@
     "format": "biome format --write .",
     "check-sdk-update": "tsx scripts/check-sdk-update.ts",
     "diff-sdk-exports": "tsx scripts/diff-sdk-exports.ts",
+    "check:sdk-exports": "tsx --tsconfig scripts/tsconfig.json scripts/check-sdk-exports.ts",
     "build:og": "tsx --tsconfig scripts/tsconfig.json scripts/build-og-image.tsx",
     "qa:fidelity": "tsx --tsconfig scripts/tsconfig.json scripts/fidelity-qa/index.ts",
     "prepublishOnly": "pnpm build && pnpm check:footprint-absent && pnpm typecheck && pnpm test && pnpm build:og"
@@ -74,7 +87,7 @@
   "peerDependencies": {
     "@ait-co/debug-console": "^0.1.0",
     "@ait-co/debugger": "^0.1.3",
-    "@apps-in-toss/web-framework": ">=2.6.0 <3.0.0"
+    "@apps-in-toss/web-framework": ">=2.6.0 <3.0.0 || >=3.0.1 <4.0.0"
   },
   "peerDependenciesMeta": {
     "@ait-co/debug-console": {
@@ -96,8 +109,8 @@
     "@ait-co/debug-console": "^0.1.3",
     "@ait-co/debugger": "^0.1.3",
     "@ait-co/polyfill": "^0.1.17",
-    "@apps-in-toss/web-framework": "3.0.0-beta.3051978",
-    "@apps-in-toss/web-framework-2x": "npm:@apps-in-toss/web-framework@2.10.7",
+    "@apps-in-toss/web-framework": "3.0.1",
+    "@apps-in-toss/web-framework-2x": "npm:@apps-in-toss/web-framework@2.10.8",
     "@biomejs/biome": "2.5.1",
     "@changesets/cli": "^2.31.0",
     "@khmyznikov/pwa-install": "^0.6.3",

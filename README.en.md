@@ -127,20 +127,16 @@ npm install -D @ait-co/devtools
 pnpm add -D @ait-co/devtools
 ```
 
-### Two channels — stable and beta
+### Supported SDK versions
 
-devtools runs two npm dist-tags off the same code at once. Pick the channel that matches your web-framework version.
+The stable `latest` channel supports both web-framework 2.x and 3.x.
 
-| Channel | Install | web-framework peer |
-|---|---|---|
-| **stable** (`latest`, default) | `pnpm add -D @ait-co/devtools` | `>=2.6.0 <3.0.0` (2.x) |
-| **beta** | `pnpm add -D @ait-co/devtools@beta` | `>=3.0.0-beta <4.0.0` (3.0 line) |
+| SDK line | Verified version | Automatic facade | Manual alias |
+|---|---|---|---|
+| **2.x** | `2.10.8` | detected by the unplugin | `@ait-co/devtools/mock/2x` |
+| **3.x** | `3.0.1` | detected by the unplugin | `@ait-co/devtools/mock/3x` (`/mock` default) |
 
-- On web-framework **2.x**, the default install (stable) is all you need.
-- On the web-framework **3.0.0-beta** pre-release, install the `@beta` channel. It is a snapshot auto-published on every main push (`0.0.0-beta-<datetime>-<sha>`), so the versions are hard to pin — install with the `@beta` tag.
-- Both channels keep the web-framework peer `optional`, so MCP-only debugging users are never forced to pull the SDK.
-
-When 3.0 ships GA, the stable `latest` peer moves up to the 3.0 line and the beta channel is retired. Calling an API that devtools has not yet mocked will throw a runtime error — please [file an issue](https://github.com/apps-in-toss-community/devtools/issues) for missing APIs.
+The optional peer range is `>=2.6.0 <3.0.0 || >=3.0.1 <4.0.0`, so SDK-free MCP/panel projects do not install it. In monorepos where automatic detection is ambiguous, set `sdkVersion: '2'` or `'3'` explicitly.
 
 ### Debugging packages (environments 2 and 3)
 
@@ -267,6 +263,8 @@ export default defineConfig({
 });
 ```
 
+For a manual web-framework 2.x alias, use `@ait-co/devtools/mock/2x`. 3.x projects may explicitly use `@ait-co/devtools/mock/3x`.
+
 ```js
 // webpack.config.js (Webpack requires absolute paths, web-framework 3.0+)
 module.exports = {
@@ -288,6 +286,7 @@ module.exports = {
 | Option | Type | Default | Description |
 |---|---|---|---|
 | `panel` | `boolean` | `true` | Auto-inject the DevTools Panel |
+| `sdkVersion` | `'auto' \| '2' \| '3'` | `'auto'` | Auto-detect or force the mock facade |
 | `forceEnable` | `boolean` | `false` | Enable devtools even in production |
 | `mock` | `boolean` | `true` (dev) / `false` (prod+forceEnable) | Enable mock alias |
 | `mcp` | `boolean` | `false` | Add an MCP state endpoint to the Vite dev server (Vite only — see [MCP Server](#mcp-server)) |
@@ -723,9 +722,9 @@ unsubscribe(); // unsubscribe
 
 | API | Mock behavior |
 |---|---|
-| `SafeAreaInsets.get` | Returns `{ top, bottom, left: 0, right: 0 }` |
+| `SafeArea.get` / `SafeAreaInsets.get` | Synchronously returns `{ top, bottom, left, right }` (3.x name + 2.x alias) |
 | `SafeAreaInsets.subscribe` | Calls callback on state change, returns unsubscribe function |
-| `getSafeAreaInsets` | Returns the top inset value (deprecated) |
+| `getSafeAreaInsets` | 2.x facade returns the measured Promise; 3.x returns the inset object synchronously (deprecated) |
 
 ### Device features
 
@@ -958,9 +957,9 @@ The relay runner is currently a stub (CDP Runtime.evaluate implementation is a f
 ### Adding a new API mock
 
 1. Implement the function in the appropriate category directory (e.g. `src/mock/device/`)
-2. Add the export to `src/mock/index.ts`
-3. Add a type compatibility assertion to `src/__typecheck.ts`
-4. Run `pnpm typecheck` to verify compatibility with the original
+2. Export shared APIs from `src/mock/index.ts`, and version-specific contracts from `src/mock/index-2x.ts` or `src/mock/index-3x.ts`
+3. Add type compatibility assertions to both `src/__typecheck.ts` and `src/__typecheck-2x.ts`
+4. Run `pnpm typecheck` to verify compatibility with both 2.10.8 and 3.0.1
 5. Write tests in `src/__tests__/`
 
 ```bash

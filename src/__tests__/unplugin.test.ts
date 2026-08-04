@@ -9,7 +9,15 @@ const FRAMEWORK_ID = '@apps-in-toss/web-framework';
 function isMockTarget(value: unknown): value is string {
   return (
     typeof value === 'string' &&
-    (value === '@ait-co/devtools/mock' || /\/mock\/index\.(m?js)$/.test(value))
+    (/^@ait-co\/devtools\/mock\/(2x|3x)$/.test(value) ||
+      /\/mock\/(index|2x|3x)\.(m?js)$/.test(value))
+  );
+}
+
+function isMockLine(value: unknown, line: '2x' | '3x'): boolean {
+  return (
+    typeof value === 'string' &&
+    (value.endsWith(`/mock/${line}`) || value.includes(`/mock/${line}.`))
   );
 }
 
@@ -133,6 +141,18 @@ describe('unplugin: dev mode + mock:true (explicit)', () => {
 });
 
 describe('unplugin: resolveId', () => {
+  it('설치된 3.x SDK를 자동 감지한다', () => {
+    vi.stubEnv('NODE_ENV', 'development');
+    const hooks = getRawHooks();
+    expect(isMockLine(hooks.resolveId(FRAMEWORK_ID), '3x')).toBe(true);
+  });
+
+  it('sdkVersion으로 facade를 명시할 수 있다', () => {
+    vi.stubEnv('NODE_ENV', 'development');
+    expect(isMockLine(getRawHooks({ sdkVersion: '2' }).resolveId(FRAMEWORK_ID), '2x')).toBe(true);
+    expect(isMockLine(getRawHooks({ sdkVersion: '3' }).resolveId(FRAMEWORK_ID), '3x')).toBe(true);
+  });
+
   it('관련 없는 패키지는 null을 반환한다', () => {
     vi.stubEnv('NODE_ENV', 'development');
     const hooks = getRawHooks();
@@ -142,13 +162,13 @@ describe('unplugin: resolveId', () => {
   it('@apps-in-toss/web-bridge도 mock으로 alias된다', () => {
     vi.stubEnv('NODE_ENV', 'development');
     const hooks = getRawHooks();
-    expect(isMockTarget(hooks.resolveId('@apps-in-toss/web-bridge'))).toBe(true);
+    expect(isMockLine(hooks.resolveId('@apps-in-toss/web-bridge'), '2x')).toBe(true);
   });
 
   it('@apps-in-toss/web-analytics도 mock으로 alias된다', () => {
     vi.stubEnv('NODE_ENV', 'development');
     const hooks = getRawHooks();
-    expect(isMockTarget(hooks.resolveId('@apps-in-toss/web-analytics'))).toBe(true);
+    expect(isMockLine(hooks.resolveId('@apps-in-toss/web-analytics'), '2x')).toBe(true);
   });
 });
 

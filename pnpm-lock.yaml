@@ -26,13 +26,13 @@ importers:
         version: 0.1.3(supports-color@8.1.1)(zod@4.3.6)
       '@ait-co/polyfill':
         specifier: ^0.1.17
-        version: 0.1.17(@apps-in-toss/web-framework@3.0.0-beta.3051978(@babel/preset-env@7.28.5(@babel/core@7.29.0(supports-color@8.1.1))(supports-color@8.1.1))(@types/node@25.6.0)(supports-color@8.1.1)(typanion@3.14.0)(typescript@6.0.3))
+        version: 0.1.17(@apps-in-toss/web-framework@3.0.1(@babel/preset-env@7.28.5(@babel/core@7.29.0(supports-color@8.1.1))(supports-color@8.1.1))(supports-color@8.1.1)(typanion@3.14.0)(typescript@6.0.3))
       '@apps-in-toss/web-framework':
-        specifier: 3.0.0-beta.3051978
-        version: 3.0.0-beta.3051978(@babel/preset-env@7.28.5(@babel/core@7.29.0(supports-color@8.1.1))(supports-color@8.1.1))(@types/node@25.6.0)(supports-color@8.1.1)(typanion@3.14.0)(typescript@6.0.3)
+        specifier: 3.0.1
+        version: 3.0.1(@babel/preset-env@7.28.5(@babel/core@7.29.0(supports-color@8.1.1))(supports-color@8.1.1))(supports-color@8.1.1)(typanion@3.14.0)(typescript@6.0.3)
       '@apps-in-toss/web-framework-2x':
-        specifier: npm:@apps-in-toss/web-framework@2.10.7
-        version: '@apps-in-toss/web-framework@2.10.7(36fc0afebd050ea3521b9d53e6af96cf)'
+        specifier: npm:@apps-in-toss/web-framework@2.10.8
+        version: '@apps-in-toss/web-framework@2.10.8(36fc0afebd050ea3521b9d53e6af96cf)'
       '@biomejs/biome':
         specifier: 2.5.1
         version: 2.5.1
@@ -128,8 +128,8 @@ packages:
     resolution: {integrity: sha512-1no0CXOhPEeSCrGduT37KMmCqA6irhowXa0S7AaPHb4RQSHGioR3wvvD7HHBCaUriMYs0EvtqRJfOgYd0ycKlQ==}
     engines: {node: '>=24'}
 
-  '@apps-in-toss/analytics@2.10.7':
-    resolution: {integrity: sha512-rHY77khvcS/+Xv4bS/tVVwqSM4HJ/LKj4QBdGIjQa+NkTX8QO7O1o0Rs0AfKa8Lsp5LsU9uujC8hMIyggZkkKQ==}
+  '@apps-in-toss/analytics@2.10.8':
+    resolution: {integrity: sha512-iw+sbruDhlILsoaZX2vYJm9mFdPLykmCSAzAYxz3/xe8hZXj5epHtlnsc2h1XeupWRrQAr95A93H0ly8nNFNHw==}
     peerDependencies:
       '@granite-js/native': '*'
       '@granite-js/react-native': '*'
@@ -138,14 +138,18 @@ packages:
       react: '*'
       react-native: '*'
 
-  '@apps-in-toss/bridge-core@2.10.7':
-    resolution: {integrity: sha512-c6H7EZ8Ux4LtaPrm/EkNTWRVjegkbRiuQZIQsknOuh+h0k7vlzB10armjbG5DYTeAn+geChi5qEZCGZ6BZD9sg==}
+  '@apps-in-toss/bridge-core@2.10.8':
+    resolution: {integrity: sha512-mZPLdxMo2eEG3NGRwrjZwzXwqms20UJxdi/6d7Rfvjw2GBvfdBvZbupVCp9kxROYYxfXsbCI2vmuCgZDG8/XAQ==}
 
-  '@apps-in-toss/cli@2.10.7':
-    resolution: {integrity: sha512-+iF1Mc7l7w2yQODCEde6VCegynU9Py+U9uCqsFBTaRrGxsSl/tzpQR2jswgApY68dyAcSymxSm3TZ+5CVqsTBA==}
+  '@apps-in-toss/cli@2.10.8':
+    resolution: {integrity: sha512-IUOUjixsL+pvGiMC6VPycAoJ/pKwymHLwowjFfoznY03EyYocrbou2h4ND2Foh3g9xtjSPAKRnfFWj+cy3CJ5g==}
 
-  '@apps-in-toss/framework@2.10.7':
-    resolution: {integrity: sha512-Jke0MHUdqYAtVkZaHeiSAfvYEq3kMFqB5BguI/PWbRVN9dZhgSclgsSx7GhFzF+BNAcaagHEv+HsLOi/PgDZ9Q==}
+  '@apps-in-toss/cli@3.0.1':
+    resolution: {integrity: sha512-qDq5+PigZfIRmds4TUXG8yikA/eNXvdCkAE4+8bpXcQlMYz2WQQjlejVseNC8/y1dVUB4JsoPDXO+ysa5RsPYg==}
+    hasBin: true
+
+  '@apps-in-toss/framework@2.10.8':
+    resolution: {integrity: sha512-g87p+yjrU9puLJ+IKqzEUpqjoa18wuCT+8z/IjTC9/ue65lVEpSZbAfK0HZ8HBWk7D0DwpXQIAEHaP1tpOLVYg==}
     hasBin: true
     peerDependencies:
       '@granite-js/native': '*'
@@ -156,47 +160,44 @@ packages:
       react: '*'
       react-native: '*'
 
-  '@apps-in-toss/native-modules@2.10.7':
-    resolution: {integrity: sha512-RjH2AkPUbM/FDFI+Faa3rHo2NixFqZVbOLgv+ijCPob2cLY9kFUpErLWagVeupwQDI9Yz9WkcI8jiy629wlxQw==}
+  '@apps-in-toss/native-modules@2.10.8':
+    resolution: {integrity: sha512-9lHpbGLZgkiJAFGN2Jl82MUl1AfDoKCxl0Aluu5Pm9n/LilnkXVX+ptQB83LvQ3uN1q3duiOKX8SFhmsDiz+cA==}
     peerDependencies:
       '@granite-js/native': '*'
       '@granite-js/react-native': '*'
       react: '*'
       react-native: '*'
 
-  '@apps-in-toss/plugin-compat@2.10.7':
-    resolution: {integrity: sha512-XDEux+hLXdiJmqX/szd+021Ve1THqhiSlc6yUW/sk4SujM9GGuKBK+neQ+YeiTeBXgl5Rvz+vv1EXwZMrjltQA==}
+  '@apps-in-toss/plugin-compat@2.10.8':
+    resolution: {integrity: sha512-np+yJn7HhNSlqHJ8VjbTyM3D6o+fSsF4f9QV53tK+NgxxtVwKwuC1WQ0tXr9wBQyC/3GxlmIJTfBKl7fI06nGg==}
 
-  '@apps-in-toss/plugins@2.10.7':
-    resolution: {integrity: sha512-hrld+yTcDNDZP63aUZhGnyd4ILkbCXDVLVhg7C/hwM8mZRLJ89gKoGBVE1Jb5z8bBvPGfVj5uiNzbAm7hqVJZA==}
+  '@apps-in-toss/plugins@2.10.8':
+    resolution: {integrity: sha512-bbanH9U8hrMNVzca1awdQOjr0RG6Ql/8UgnqDw9mltDyRHI9FzPcjZwqrkKZlkz5JCTNb1hTR9pqxqpTrZohyA==}
 
-  '@apps-in-toss/types@2.10.7':
-    resolution: {integrity: sha512-NhOyuEXdkPvHeIxAKEVwSBLXtNmgI2OII/5oSfgQZ9RgVhh7EWxZgRLBjgXVKcyXdwPsYFe/rqbiZdNaZpI+IQ==}
+  '@apps-in-toss/types@2.10.8':
+    resolution: {integrity: sha512-TLpKTXqDwDPBQH4qDX8Yj8OCL0aPZCxNMcF98JGnjObx33nvzrrQA22Xfbho8tFVsZhlLvji4k0RtvECyfHjsg==}
 
-  '@apps-in-toss/user-scripts@2.10.7':
-    resolution: {integrity: sha512-5unL3I92TMQinQ0/PflDFuzA/X7Qop5cOXwhdc3d0N4pFFQYfBPRUGcKWL/FOkHc6kH0I7tBcno8SD/ZaJxLPg==}
+  '@apps-in-toss/user-scripts@2.10.8':
+    resolution: {integrity: sha512-a4Ea37kKeq/QkOWELgoUGHrTbrFSrGVkfpqGQqBO5vjH+j6rSBH+LzYf9kzSTOO43QZIMZMUQelXlMe0pDjVww==}
 
-  '@apps-in-toss/web-analytics@2.10.7':
-    resolution: {integrity: sha512-8UJwUOVqH2VmTEf7/FXXTFaUbICnTC/0mzj+lQNeYfoDKLAUsbEyE1Sdy6MAgL3QlutB3NAAS3VboWVrXDCJGw==}
+  '@apps-in-toss/web-analytics@2.10.8':
+    resolution: {integrity: sha512-rnvrIScbTqYGudlkPFtPwnF/+kaIwlPwaRdRLQvZFApDo01tQBGcg7pF1j+GR21dx8wyfYYOl6AMb8fPuODMEg==}
     peerDependencies:
       '@apps-in-toss/web-bridge': '*'
 
-  '@apps-in-toss/web-bridge@2.10.7':
-    resolution: {integrity: sha512-Mq1yWlJ3WP1DdMgsyiEIg1wCBZo3EsVxTzD4IrTMk3sSNpwCIF2m+/6AUJ8j24U8+P0Bkj4XqErzs0y1khADag==}
+  '@apps-in-toss/web-bridge@2.10.8':
+    resolution: {integrity: sha512-P9AMSvBblL6YochydWfFdhP/OuOFTZFpIVt8wMpm7EUKJ60u+eQZTsiaXubrXWeL7SRDLrYXTz+MMmuTk5A7WQ==}
 
-  '@apps-in-toss/web-config@2.10.7':
-    resolution: {integrity: sha512-POoiNICPy9dSKFaZYR7lhSjPIOGQYX6LGjPo94Jv52AKoptgpYUg9Lt4o837lHWxZqrDcO4vKpkx+j4xbmlu+w==}
+  '@apps-in-toss/web-config@2.10.8':
+    resolution: {integrity: sha512-jONapZ9TKRPbYMc30EGHIfR8iLl8BR7wbhJi5FOyZgEnOIdnVSuyF7wv5nPz1oQ6+XOElU5Uzl3Rq8MJ/HRM5g==}
 
-  '@apps-in-toss/web-framework@2.10.7':
-    resolution: {integrity: sha512-kj8z+8TmNHRZij9mB5JidqCZLjQnNdsDNZpE+wRz+BEeRRY8K2ZlVmm9Gk8+Uq9Zcj42pznwE+UWf9fszQ874g==}
+  '@apps-in-toss/web-framework@2.10.8':
+    resolution: {integrity: sha512-LRNmTkJJnQDVeriGejocaPT3DDtopSoa38D/xDeQhDbLlS4Iz3HVMRIMYhyVSHA6+9ALodJxHyMazMkytb5RQQ==}
     hasBin: true
 
-  '@apps-in-toss/web-framework@3.0.0-beta.3051978':
-    resolution: {integrity: sha512-gczIHBK1LF1TlWK7S53zb3EDa7Vlob2wnacq5alSN70o5bFlWTDvDbHRtTaKza6rSKeXEl7vUhN0CFZ2fIcqeQ==}
+  '@apps-in-toss/web-framework@3.0.1':
+    resolution: {integrity: sha512-cSLQ3GgOih6FLzCa24+hWZp1FuRwlwghrJRqoBHF9iAUtninkHy777uACBYzxmCgZ1+bDbhHgIlRYBqk43eJmQ==}
     hasBin: true
-
-  '@apps-in-toss/webview-bridge@3.0.0-beta.9d42c0b':
-    resolution: {integrity: sha512-wC/uVgSzIaEzC6NtjwQ3enPxdqTttrEthAfkijHAjdG2M3t3Ew8nWztuFZW1HdNvExFSFZeR2+5/IG290epdOg==}
 
   '@asamuzakjp/css-color@5.1.11':
     resolution: {integrity: sha512-KVw6qIiCTUQhByfTd78h2yD1/00waTmm9uy/R7Ck/ctUyAPj+AEDLkQIdJW0T8+qGgj3j5bpNKK7Q3G+LedJWg==}
@@ -253,10 +254,6 @@ packages:
     resolution: {integrity: sha512-em37/13/nR320G4jab/nIIHZgc2Wz2y/D39lxnTyxB4/D/omPQncl/lSdlnJY1OhQcRGugTSIF2l/69o31C9dA==}
     engines: {node: ^20.19.0 || >=22.12.0}
 
-  '@babel/helper-annotate-as-pure@7.27.3':
-    resolution: {integrity: sha512-fXSwMQqitTGeHLBC08Eq5yXz2m37E4pJX1qAU1+2cNedz/ifv/bVXft90VeSav5nFO61EcNgwr0aJxbyPaWBPg==}
-    engines: {node: '>=6.9.0'}
-
   '@babel/helper-annotate-as-pure@7.29.7':
     resolution: {integrity: sha512-OoK6239jHPuSQOoS0kfTVKn0b/rVTk0seKq4Gd2UMLtmOVLjDC0ki3e+c90Trqv2gMfvJFqkiljrr568+qddiw==}
     engines: {node: '>=6.9.0'}
@@ -306,10 +303,6 @@ packages:
 
   '@babel/helper-optimise-call-expression@7.27.1':
     resolution: {integrity: sha512-URMGH08NzYFhubNSGJrpUEphGKQwMQYBySzat5cAByY1/YgIRkULnIy3tAMeszlL/so2HbeilYloUmSpd7GdVw==}
-    engines: {node: '>=6.9.0'}
-
-  '@babel/helper-plugin-utils@7.28.6':
-    resolution: {integrity: sha512-S9gzZ/bz83GRysI7gAD4wPT/AI3uCnY+9xn+Mx/KPs2JwHJIz1W8PZkg2cqyt3RNOBM8ejcXhV6y8Og7ly/Dug==}
     engines: {node: '>=6.9.0'}
 
   '@babel/helper-plugin-utils@7.29.7':
@@ -370,11 +363,6 @@ packages:
 
   '@babel/parser@7.28.5':
     resolution: {integrity: sha512-KKBU1VGYR7ORr3At5HAtUQ+TV3SzRCXmA/8OdDZiLDBIZxVyzXuztPjfLd3BV1PRAQGCMWWSHYhL0F8d5uHBDQ==}
-    engines: {node: '>=6.0.0'}
-    hasBin: true
-
-  '@babel/parser@7.29.2':
-    resolution: {integrity: sha512-4GgRzy/+fsBa72/RZVJmGKPmZu9Byn8o4MoLpmNe1m8ZfYnz5emHLQz3U4gLud6Zwl0RZIcgiLD7Uq7ySFuDLA==}
     engines: {node: '>=6.0.0'}
     hasBin: true
 
@@ -555,12 +543,6 @@ packages:
 
   '@babel/plugin-syntax-json-strings@7.8.3':
     resolution: {integrity: sha512-lY6kdGpWHvjoe2vk4WrAapEuBR69EMxZl+RoGRhrFGNYVK8mOPAW8VfbT/ZgrFbXlDNiiaxQnAtgVCZ6jv30EA==}
-    peerDependencies:
-      '@babel/core': ^7.0.0-0
-
-  '@babel/plugin-syntax-jsx@7.28.6':
-    resolution: {integrity: sha512-wgEmr06G6sIpqr8YDwA2dSRTE3bJ+V0IfpzfSY3Lfgd7YWOaAdlykvJi13ZKBt8cZHfgH1IXN+CL656W3uUa4w==}
-    engines: {node: '>=6.9.0'}
     peerDependencies:
       '@babel/core': ^7.0.0-0
 
@@ -3707,6 +3689,15 @@ packages:
   '@vitest/utils@4.1.9':
     resolution: {integrity: sha512-A51o8ymO5PpqlWNnBP9ZHPXDIpuMtTLlGSjN7la4US+LJzoUMyhwjA5QXlm39JexgwHKW4Xjs8Z2d3dLCXOeuA==}
 
+  '@webview-bridge/types@1.7.9':
+    resolution: {integrity: sha512-Xqi6opGJB+LVpyb+2ZxqpKv2ox2/cnkbp0G2OMCnSNi/D6U5HkMsSbaW8GrXGEVwbybltK7uLKN+el1CqEGiRg==}
+
+  '@webview-bridge/utils@1.7.9':
+    resolution: {integrity: sha512-qTgppsE7ydroMJTeIpLiS7TIdKmdw2z6CtakPDutivkG2pztKa8CCB8ap1UkUoaE6RHQS1XeEBEII3HasW/WRw==}
+
+  '@webview-bridge/web@1.7.9':
+    resolution: {integrity: sha512-CxOOGpE4yOwdpm15S6i/KagwYXX5W6CedPRKor+ublk8sDkbotWImSdO99L7Z1wEoSic0EF3fN3MeU7dObBG3w==}
+
   abort-controller@3.0.0:
     resolution: {integrity: sha512-h8lQ8tacZYnR3vNQTgibj+tODHI5/+l06Au2Pcriv/Gmet0eaj4TwWH41sO9wnHDiQsEj19q0drzdWdeAHtweg==}
     engines: {node: '>=6.5'}
@@ -4110,6 +4101,14 @@ packages:
     resolution: {integrity: sha512-/Nf7TyzTx6S3yRJObOAV7956r8cr2+Oj8AC5dt8wSP3BQAoeX58NoHyCU8P8zGkNXStjTSi6fzO6F0pBdcYbEg==}
     engines: {node: '>= 0.8'}
 
+  c12@3.3.4:
+    resolution: {integrity: sha512-cM0ApFQSBXuourJejzwv/AuPRvAxordTyParRVcHjjtXirtkzM0uK2L9TTn9s0cXZbG7E55jCivRQzoxYmRAlA==}
+    peerDependencies:
+      magicast: '*'
+    peerDependenciesMeta:
+      magicast:
+        optional: true
+
   cac@6.7.14:
     resolution: {integrity: sha512-b6Ilus+c3RrdDk+JhLKUAQfzzgLEPy6wcXqS7f/xe1EETvsDP6GORG7SFuOs6cID5YkqchW/LXZbX5bc8j7ZcQ==}
     engines: {node: '>=8'}
@@ -4193,6 +4192,10 @@ packages:
   chokidar@4.0.3:
     resolution: {integrity: sha512-Qgzu8kfBvo+cA4962jnP1KkS6Dop5NS6g7R5LFYJr4b8Ub94PPQXUksCw9PvXoeXPRRddRNC5C1JQUR2SMGtnA==}
     engines: {node: '>= 14.16.0'}
+
+  chokidar@5.0.0:
+    resolution: {integrity: sha512-TQMmc3w+5AxjpL8iIiwebF73dRDF4fBIieAqGn9RGCWaEVwQ6Fb2cGe31Yns0RRIzii5goJ1Y7xbMwo1TxMplw==}
+    engines: {node: '>= 20.19.0'}
 
   chrome-launcher@0.15.2:
     resolution: {integrity: sha512-zdLEwNo3aUVzIhKhTtXfxhdvZhUghrnmkvcAq2NoDd+LeOHKf03H5jwZ8T/STsAlzyALkBVK552iaG1fGf1xVQ==}
@@ -4331,6 +4334,9 @@ packages:
   confbox@0.1.8:
     resolution: {integrity: sha512-RMtmw0iFkeR4YV+fUOSucriAQNb9g8zFR52MWCtl+cCZOFRNL6zeB395vPzFhEjjn4fMxXudmELnl/KF/WrK6w==}
 
+  confbox@0.2.4:
+    resolution: {integrity: sha512-ysOGlgTFbN2/Y6Cg3Iye8YKulHw+R2fNXHrgSmXISQdMnomY6eNDprVdW9R5xBguEqI954+S6709UyiO7B+6OQ==}
+
   connect@3.7.0:
     resolution: {integrity: sha512-ZqRXc+tZukToSNmh5C2iWMSoV3X1YUcPbqEM4DkEG5tNQXrQUZCNVGGv3IuicnkMtPfGf3Xtp8WCXs295iQ1pQ==}
     engines: {node: '>= 0.10.0'}
@@ -4383,14 +4389,6 @@ packages:
       '@types/node': '*'
       cosmiconfig: '>=8.2'
       typescript: '>=4'
-
-  cosmiconfig-typescript-loader@6.3.0:
-    resolution: {integrity: sha512-Akr82WH1Wfqatyiqpj8HDkO2o2KmJRu1FhKfSNJP3K4IdXwHfEyL7MOb62i1AGQVLtIQM+iCE9CGOtrfhR+mmA==}
-    engines: {node: '>=v18'}
-    peerDependencies:
-      '@types/node': '*'
-      cosmiconfig: '>=9'
-      typescript: '>=5'
 
   cosmiconfig@5.2.1:
     resolution: {integrity: sha512-H65gsXo1SKjf8zmrJ67eJk8aIRKV5ff2D4uKZIBZShbhGSpEmsQOPW/SKMKYhSTrqR7ufy6RP69rPogdaPh/kA==}
@@ -4566,6 +4564,9 @@ packages:
     resolution: {integrity: sha512-0je+qPKHEMohvfRTCEo3CrPG6cAzAYgmzKyxRiYSSDkS6eGJdyVJm7WaYA5ECaAD9wLB2T4EEeymA5aFVcYXCA==}
     engines: {node: '>=6'}
 
+  destr@2.0.5:
+    resolution: {integrity: sha512-ugFTXCtDZunbzasqBxrK93Ik/DRYsO6S/fedkWEMKqt04xZ4csmnmwGDBAb07QWNaGMAmnTIemsYZCksjATwsA==}
+
   destroy@1.2.0:
     resolution: {integrity: sha512-2sJGJTaXIIaR1w4iJSNoN0hnMY7Gpc/n8D4qSCJw8QqFWXf7cuAgnEHxBpweaVcPevC2l3KpjYCx3NypQQgaJg==}
     engines: {node: '>= 0.8', npm: 1.2.8000 || >= 1.4.16}
@@ -4611,6 +4612,10 @@ packages:
 
   dot-case@3.0.4:
     resolution: {integrity: sha512-Kv5nKlh6yRrdrGvxeJ2e5y2eRUpkUosIW4A2AS38zwSz27zu7ufDwQPi5Jhs3XAlGNetl3bmnGhQsMtkKJnj3w==}
+
+  dotenv@17.4.2:
+    resolution: {integrity: sha512-nI4U3TottKAcAD9LLud4Cb7b2QztQMUEfHbvhTH09bqXTxnSie8WnjPALV/WMCrJZ6UV/qHJ6L03OqO3LcdYZw==}
+    engines: {node: '>=12'}
 
   dts-resolver@2.1.3:
     resolution: {integrity: sha512-bihc7jPC90VrosXNzK0LTE2cuLP6jr0Ro8jk+kMugHReJVLIpHz/xadeq3MhuwyO4TD4OA3L1Q8pBBFRc08Tsw==}
@@ -4837,6 +4842,9 @@ packages:
   express@5.2.1:
     resolution: {integrity: sha512-hIS4idWWai69NezIdRt2xFVofaF4j+6INOpJlVOLDO8zXGpUVEVzIYk12UUi2JzjEzWL3IOAxcTubgz9Po0yXw==}
     engines: {node: '>= 18'}
+
+  exsolve@1.1.1:
+    resolution: {integrity: sha512-9U/jZUgjnSGyntRr6y5Muu1MJcwFl6kPu7k8qLF0IMNfLqvw0NZ4nnVDq0RVoZ0RvCyumib4Ez3KYrVfilrw+g==}
 
   extend@3.0.2:
     resolution: {integrity: sha512-fjquC59cD7CyW6urNXK0FBufkZcoiGG80wTuPujX590cB5Ttln20E2UB4S/WARVqhXffZl2LNgS+gQdPIIim/g==}
@@ -5085,6 +5093,10 @@ packages:
 
   getpass@0.1.7:
     resolution: {integrity: sha512-0fzj9JxOLfJ+XGLhR8ze3unN0KZCgZwiSSDz168VERjK8Wl8kVSdcu2kspd4s4wtAa1y/qrVRiAA0WclVsu0ng==}
+
+  giget@3.3.1:
+    resolution: {integrity: sha512-r+mvuDjrjMpsdw46Kmeydb8bdHm7wOKw8wNBtTndkjbPjgAp5oUJUxRE76wZFknxIPokfWvep2qSXK37aXE6zg==}
+    hasBin: true
 
   glob-parent@5.1.2:
     resolution: {integrity: sha512-AOIgSQCepiJYwP3ARnGx+5VnTu2HBYdzbGP45eLw1vr3zB3vZLeyed1sC9hnbcOc9/SrMyM5RPQrkGz4aS9Zow==}
@@ -6351,6 +6363,9 @@ packages:
     resolution: {integrity: sha512-9miFgM2OFba7hB+pRgvtV84pYTBaoTHohvmIgiRt6dRIzbwEOIaNaP+dIlGs2fNFoB0SeISs0Jz5WFVRid6Xyg==}
     engines: {node: '>=12.20.0'}
 
+  ohash@2.0.11:
+    resolution: {integrity: sha512-RdR9FQrFwNBNXAr4GixM8YaRZRJ5PUWbKYbE5eOsrwAjJW0q2REGcf79oYPsLyskQCZG1PLN+S/K1V00joZAoQ==}
+
   on-exit-leak-free@2.1.2:
     resolution: {integrity: sha512-0eJJY6hXLGf1udHwfNftBqH+g73EU4B504nZeKpz1sYRKafAghwxEJunB2O7rDZkL4PGfsMVnTXZ2EjibbqcsA==}
     engines: {node: '>=14.0.0'}
@@ -6523,6 +6538,9 @@ packages:
   pend@1.2.0:
     resolution: {integrity: sha512-F3asv42UuXchdzt+xXqfW1OGlVBe+mxa2mqI0pg5yAHZPvFmY3Y6drSf/GQ1A86WgWEN9Kzh/WrgKa6iGcHXLg==}
 
+  perfect-debounce@2.1.0:
+    resolution: {integrity: sha512-LjgdTytVFXeUgtHZr9WYViYSM/g8MkcTPYDlPa3cDqMirHjKiSZPYd6DoL7pK8AJQr+uWkQvCjHNdiMqsrJs+g==}
+
   performance-now@2.1.0:
     resolution: {integrity: sha512-7EAHlyLHI56VEIdK57uwHdHKIaAGbnXPiw0yWbarQZOKaKpvUIgW0jWRVLiatnM+XXlSwsanIBH/hzGMJulMow==}
 
@@ -6573,6 +6591,9 @@ packages:
 
   pkg-types@1.3.1:
     resolution: {integrity: sha512-/Jm5M4RvtBFVkKWRu2BLUTNP8/M2a+UwuAX+ae4770q1qVGtfjG+WTCupoZixokjmHiry8uI+dlY8KXYV5HVVQ==}
+
+  pkg-types@2.3.1:
+    resolution: {integrity: sha512-y+ichcgc2LrADuhLNAx8DFjVfgz91pRxfZdI3UDhxHvcVEZsenLO+7XaU5vOp0u/7V/wZ+plyuQxtrDlZJ+yeg==}
 
   playwright-core@1.61.1:
     resolution: {integrity: sha512-h7Qlt6m4REp25qvIdvbDtVmD4LqVXfpRxhORv9L0jzETM05p4fuPJ3dKyuSXQxDSbXnmS79HAgi9589lGSpLkg==}
@@ -6737,6 +6758,9 @@ packages:
   raw-body@3.0.2:
     resolution: {integrity: sha512-K5zQjDllxWkf7Z5xJdV0/B0WTNqx6vxG70zJE4N0kBs4LovmEYWJzQGxC9bS9RAKu3bgM40lrd5zoLJ12MQ5BA==}
     engines: {node: '>= 0.10'}
+
+  rc9@3.0.1:
+    resolution: {integrity: sha512-gMDyleLWVE+i6Sgtc0QbbY6pEKqYs97NGi6isHQPqYlLemPoO8dxQ3uGi0f4NiP98c+jMW6cG1Kx9dDwfvqARQ==}
 
   react-devtools-core@4.28.5:
     resolution: {integrity: sha512-cq/o30z9W2Wb4rzBefjv5fBalHU0rJGZCHAkf/RHSBWSSYwh8PlQTqqOJmgIIbBtpj27T6FIPXeomIjZtCNVqA==}
@@ -6914,6 +6938,10 @@ packages:
   readdirp@4.1.2:
     resolution: {integrity: sha512-GDhwkLfywWL2s6vEjyhri+eXmfH6j1L7JE27WhqLeYzoh/A3DBaYGEj2H/HFZCn/kMfim73FXxEJTw06WtxQwg==}
     engines: {node: '>= 14.18.0'}
+
+  readdirp@5.0.0:
+    resolution: {integrity: sha512-9u/XQ1pvrQtYyMpZe7DXKv2p5CNvyVwzUB6uhLAnQwHMSgKMBR62lc7AHljaeteeHXn11XTAaLLUVZYVZyuRBQ==}
+    engines: {node: '>= 20.19.0'}
 
   readline@1.3.0:
     resolution: {integrity: sha512-k2d6ACCkiNYz222Fs/iNze30rRJ1iIicW7JuX/7/cozvih6YCkFZH+J6mAFDVgv0dRBaAyr4jDqC95R2y4IADg==}
@@ -7803,6 +7831,14 @@ packages:
     resolution: {integrity: sha512-kiGUalWN+rgBJ/1OHZsBtU4rXZOfj/7rKQxULKlIzwzQSvMJUUNgPwJEEh7gU6xEVxC0ahoOBvN2YI8GH6FNgA==}
     engines: {node: '>=10.12.0'}
 
+  valibot@1.4.2:
+    resolution: {integrity: sha512-gjdCvJ6d3RyHAneqxMYMW9QMCwYMb3jpOO0IyHZV1bnRHFBHrX3VkIILt5XYR0WhwHiH7Mty8ovuPZ/O3gamrg==}
+    peerDependencies:
+      typescript: '>=5'
+    peerDependenciesMeta:
+      typescript:
+        optional: true
+
   vary@1.1.2:
     resolution: {integrity: sha512-BNGbWLfd0eUPabhkXUVm0j8uuvREyTh5ovRa/dyow/BqAbZJyC+5fU+IzQOzmAKzYqYRAISoRhdQr3eIZ/PXqg==}
     engines: {node: '>= 0.8'}
@@ -8139,9 +8175,9 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@ait-co/polyfill@0.1.17(@apps-in-toss/web-framework@3.0.0-beta.3051978(@babel/preset-env@7.28.5(@babel/core@7.29.0(supports-color@8.1.1))(supports-color@8.1.1))(@types/node@25.6.0)(supports-color@8.1.1)(typanion@3.14.0)(typescript@6.0.3))':
+  '@ait-co/polyfill@0.1.17(@apps-in-toss/web-framework@3.0.1(@babel/preset-env@7.28.5(@babel/core@7.29.0(supports-color@8.1.1))(supports-color@8.1.1))(supports-color@8.1.1)(typanion@3.14.0)(typescript@6.0.3))':
     optionalDependencies:
-      '@apps-in-toss/web-framework': 3.0.0-beta.3051978(@babel/preset-env@7.28.5(@babel/core@7.29.0(supports-color@8.1.1))(supports-color@8.1.1))(@types/node@25.6.0)(supports-color@8.1.1)(typanion@3.14.0)(typescript@6.0.3)
+      '@apps-in-toss/web-framework': 3.0.1(@babel/preset-env@7.28.5(@babel/core@7.29.0(supports-color@8.1.1))(supports-color@8.1.1))(supports-color@8.1.1)(typanion@3.14.0)(typescript@6.0.3)
 
   '@ampproject/remapping@2.3.0':
     dependencies:
@@ -8158,7 +8194,7 @@ snapshots:
       '@apps-in-toss/ait-format-proto': 1.0.0
       fflate: 0.8.2
 
-  '@apps-in-toss/analytics@2.10.7(65648fae8e55e579d715147195e9b4f4)':
+  '@apps-in-toss/analytics@2.10.8(65648fae8e55e579d715147195e9b4f4)':
     dependencies:
       '@granite-js/native': 1.0.20(@babel/runtime@7.29.2)(react-native@0.72.6(@babel/core@7.29.0(supports-color@8.1.1))(@babel/preset-env@7.28.5(@babel/core@7.29.0(supports-color@8.1.1))(supports-color@8.1.1))(react@19.2.7)(supports-color@8.1.1))(react@19.2.7)
       '@granite-js/react-native': 1.0.20(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)(@granite-js/native@1.0.20(@babel/runtime@7.29.2)(react-native@0.72.6(@babel/core@7.29.0(supports-color@8.1.1))(@babel/preset-env@7.28.5(@babel/core@7.29.0(supports-color@8.1.1))(supports-color@8.1.1))(react@19.2.7)(supports-color@8.1.1))(react@19.2.7))(@swc/helpers@0.5.17)(@types/node@25.6.0)(@types/react@19.2.17)(brick-module@0.5.2(react-native@0.72.6(@babel/core@7.29.0(supports-color@8.1.1))(@babel/preset-env@7.28.5(@babel/core@7.29.0(supports-color@8.1.1))(supports-color@8.1.1))(react@19.2.7)(supports-color@8.1.1))(react@19.2.7))(jiti@2.6.1)(postcss@8.5.15)(react-native@0.72.6(@babel/core@7.29.0(supports-color@8.1.1))(@babel/preset-env@7.28.5(@babel/core@7.29.0(supports-color@8.1.1))(supports-color@8.1.1))(react@19.2.7)(supports-color@8.1.1))(react@19.2.7)(supports-color@8.1.1)(tsx@4.22.4)(typescript@6.0.3)(yaml@2.8.3)
@@ -8167,13 +8203,13 @@ snapshots:
       react: 19.2.7
       react-native: 0.72.6(@babel/core@7.29.0(supports-color@8.1.1))(@babel/preset-env@7.28.5(@babel/core@7.29.0(supports-color@8.1.1))(supports-color@8.1.1))(react@19.2.7)(supports-color@8.1.1)
 
-  '@apps-in-toss/bridge-core@2.10.7': {}
+  '@apps-in-toss/bridge-core@2.10.8': {}
 
-  '@apps-in-toss/cli@2.10.7(98254a5e7a0b7d34595d504112831d76)':
+  '@apps-in-toss/cli@2.10.8(98254a5e7a0b7d34595d504112831d76)':
     dependencies:
       '@apps-in-toss/ait-format': 1.0.0
-      '@apps-in-toss/plugins': 2.10.7(8d7aa61336a1d970e04a93baf2c30e60)
-      '@apps-in-toss/web-config': 2.10.7(@types/node@25.6.0)(supports-color@8.1.1)(typescript@6.0.3)
+      '@apps-in-toss/plugins': 2.10.8(8d7aa61336a1d970e04a93baf2c30e60)
+      '@apps-in-toss/web-config': 2.10.8(@types/node@25.6.0)(supports-color@8.1.1)(typescript@6.0.3)
       '@clack/prompts': 0.10.1
       '@granite-js/utils': 1.0.20
       '@sentry/cli': 2.58.6(supports-color@8.1.1)
@@ -8209,14 +8245,28 @@ snapshots:
       - typescript
       - utf-8-validate
 
-  '@apps-in-toss/framework@2.10.7(70d986bad956c8671ededdf2566bfe29)':
+  '@apps-in-toss/cli@3.0.1(@babel/preset-env@7.28.5(@babel/core@7.29.0(supports-color@8.1.1))(supports-color@8.1.1))(supports-color@8.1.1)(typanion@3.14.0)':
     dependencies:
-      '@apps-in-toss/analytics': 2.10.7(65648fae8e55e579d715147195e9b4f4)
-      '@apps-in-toss/cli': 2.10.7(98254a5e7a0b7d34595d504112831d76)
-      '@apps-in-toss/native-modules': 2.10.7(e7108b7beff8a0c2a1074e336ed68a0b)
-      '@apps-in-toss/plugins': 2.10.7(8d7aa61336a1d970e04a93baf2c30e60)
-      '@apps-in-toss/types': 2.10.7
-      '@apps-in-toss/user-scripts': 2.10.7
+      '@apps-in-toss/ait-format': 1.0.0
+      '@clack/prompts': 1.5.0
+      c12: 3.3.4
+      clipanion: 4.0.0-rc.4(typanion@3.14.0)
+      jscodeshift: 17.3.0(@babel/preset-env@7.28.5(@babel/core@7.29.0(supports-color@8.1.1))(supports-color@8.1.1))(supports-color@8.1.1)
+      uuidv7: 1.2.1
+    transitivePeerDependencies:
+      - '@babel/preset-env'
+      - magicast
+      - supports-color
+      - typanion
+
+  '@apps-in-toss/framework@2.10.8(70d986bad956c8671ededdf2566bfe29)':
+    dependencies:
+      '@apps-in-toss/analytics': 2.10.8(65648fae8e55e579d715147195e9b4f4)
+      '@apps-in-toss/cli': 2.10.8(98254a5e7a0b7d34595d504112831d76)
+      '@apps-in-toss/native-modules': 2.10.8(e7108b7beff8a0c2a1074e336ed68a0b)
+      '@apps-in-toss/plugins': 2.10.8(8d7aa61336a1d970e04a93baf2c30e60)
+      '@apps-in-toss/types': 2.10.8
+      '@apps-in-toss/user-scripts': 2.10.8
       '@granite-js/native': 1.0.20(@babel/runtime@7.29.2)(react-native@0.72.6(@babel/core@7.29.0(supports-color@8.1.1))(@babel/preset-env@7.28.5(@babel/core@7.29.0(supports-color@8.1.1))(supports-color@8.1.1))(react@19.2.7)(supports-color@8.1.1))(react@19.2.7)
       '@granite-js/react-native': 1.0.20(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)(@granite-js/native@1.0.20(@babel/runtime@7.29.2)(react-native@0.72.6(@babel/core@7.29.0(supports-color@8.1.1))(@babel/preset-env@7.28.5(@babel/core@7.29.0(supports-color@8.1.1))(supports-color@8.1.1))(react@19.2.7)(supports-color@8.1.1))(react@19.2.7))(@swc/helpers@0.5.17)(@types/node@25.6.0)(@types/react@19.2.17)(brick-module@0.5.2(react-native@0.72.6(@babel/core@7.29.0(supports-color@8.1.1))(@babel/preset-env@7.28.5(@babel/core@7.29.0(supports-color@8.1.1))(supports-color@8.1.1))(react@19.2.7)(supports-color@8.1.1))(react@19.2.7))(jiti@2.6.1)(postcss@8.5.15)(react-native@0.72.6(@babel/core@7.29.0(supports-color@8.1.1))(@babel/preset-env@7.28.5(@babel/core@7.29.0(supports-color@8.1.1))(supports-color@8.1.1))(react@19.2.7)(supports-color@8.1.1))(react@19.2.7)(supports-color@8.1.1)(tsx@4.22.4)(typescript@6.0.3)(yaml@2.8.3)
       '@toss/tds-react-native': 2.0.3(a380888278537f9ffd9a51b41a9e43e8)
@@ -8247,9 +8297,9 @@ snapshots:
       - typescript
       - utf-8-validate
 
-  '@apps-in-toss/native-modules@2.10.7(e7108b7beff8a0c2a1074e336ed68a0b)':
+  '@apps-in-toss/native-modules@2.10.8(e7108b7beff8a0c2a1074e336ed68a0b)':
     dependencies:
-      '@apps-in-toss/types': 2.10.7
+      '@apps-in-toss/types': 2.10.8
       '@granite-js/native': 1.0.20(@babel/runtime@7.29.2)(react-native@0.72.6(@babel/core@7.29.0(supports-color@8.1.1))(@babel/preset-env@7.28.5(@babel/core@7.29.0(supports-color@8.1.1))(supports-color@8.1.1))(react@19.2.7)(supports-color@8.1.1))(react@19.2.7)
       '@granite-js/react-native': 1.0.20(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)(@granite-js/native@1.0.20(@babel/runtime@7.29.2)(react-native@0.72.6(@babel/core@7.29.0(supports-color@8.1.1))(@babel/preset-env@7.28.5(@babel/core@7.29.0(supports-color@8.1.1))(supports-color@8.1.1))(react@19.2.7)(supports-color@8.1.1))(react@19.2.7))(@swc/helpers@0.5.17)(@types/node@25.6.0)(@types/react@19.2.17)(brick-module@0.5.2(react-native@0.72.6(@babel/core@7.29.0(supports-color@8.1.1))(@babel/preset-env@7.28.5(@babel/core@7.29.0(supports-color@8.1.1))(supports-color@8.1.1))(react@19.2.7)(supports-color@8.1.1))(react@19.2.7))(jiti@2.6.1)(postcss@8.5.15)(react-native@0.72.6(@babel/core@7.29.0(supports-color@8.1.1))(@babel/preset-env@7.28.5(@babel/core@7.29.0(supports-color@8.1.1))(supports-color@8.1.1))(react@19.2.7)(supports-color@8.1.1))(react@19.2.7)(supports-color@8.1.1)(tsx@4.22.4)(typescript@6.0.3)(yaml@2.8.3)
       brick-module: 0.5.2(react-native@0.72.6(@babel/core@7.29.0(supports-color@8.1.1))(@babel/preset-env@7.28.5(@babel/core@7.29.0(supports-color@8.1.1))(supports-color@8.1.1))(react@19.2.7)(supports-color@8.1.1))(react@19.2.7)
@@ -8257,7 +8307,7 @@ snapshots:
       react: 19.2.7
       react-native: 0.72.6(@babel/core@7.29.0(supports-color@8.1.1))(@babel/preset-env@7.28.5(@babel/core@7.29.0(supports-color@8.1.1))(supports-color@8.1.1))(react@19.2.7)(supports-color@8.1.1)
 
-  '@apps-in-toss/plugin-compat@2.10.7(8d7aa61336a1d970e04a93baf2c30e60)':
+  '@apps-in-toss/plugin-compat@2.10.8(8d7aa61336a1d970e04a93baf2c30e60)':
     dependencies:
       '@babel/runtime': 7.29.2
       '@granite-js/plugin-core': 1.0.20(@swc/helpers@0.5.17)(@types/node@25.6.0)(typescript@6.0.3)
@@ -8316,10 +8366,10 @@ snapshots:
       - typescript
       - utf-8-validate
 
-  '@apps-in-toss/plugins@2.10.7(8d7aa61336a1d970e04a93baf2c30e60)':
+  '@apps-in-toss/plugins@2.10.8(8d7aa61336a1d970e04a93baf2c30e60)':
     dependencies:
       '@apps-in-toss/ait-format': 1.0.0
-      '@apps-in-toss/plugin-compat': 2.10.7(8d7aa61336a1d970e04a93baf2c30e60)
+      '@apps-in-toss/plugin-compat': 2.10.8(8d7aa61336a1d970e04a93baf2c30e60)
       '@granite-js/plugin-core': 1.0.20(@swc/helpers@0.5.17)(@types/node@25.6.0)(typescript@6.0.3)
       '@granite-js/plugin-micro-frontend': 1.0.20(@swc/helpers@0.5.17)(@types/node@25.6.0)(typescript@6.0.3)
       '@granite-js/plugin-sentry': 1.0.20(@swc/helpers@0.5.17)(@types/node@25.6.0)(supports-color@8.1.1)(typescript@6.0.3)
@@ -8352,19 +8402,19 @@ snapshots:
       - typescript
       - utf-8-validate
 
-  '@apps-in-toss/types@2.10.7': {}
+  '@apps-in-toss/types@2.10.8': {}
 
-  '@apps-in-toss/user-scripts@2.10.7': {}
+  '@apps-in-toss/user-scripts@2.10.8': {}
 
-  '@apps-in-toss/web-analytics@2.10.7(@apps-in-toss/web-bridge@2.10.7)':
+  '@apps-in-toss/web-analytics@2.10.8(@apps-in-toss/web-bridge@2.10.8)':
     dependencies:
-      '@apps-in-toss/web-bridge': 2.10.7
+      '@apps-in-toss/web-bridge': 2.10.8
 
-  '@apps-in-toss/web-bridge@2.10.7':
+  '@apps-in-toss/web-bridge@2.10.8':
     dependencies:
-      '@apps-in-toss/types': 2.10.7
+      '@apps-in-toss/types': 2.10.8
 
-  '@apps-in-toss/web-config@2.10.7(@types/node@25.6.0)(supports-color@8.1.1)(typescript@6.0.3)':
+  '@apps-in-toss/web-config@2.10.8(@types/node@25.6.0)(supports-color@8.1.1)(typescript@6.0.3)':
     dependencies:
       '@babel/core': 7.23.9(supports-color@8.1.1)
       '@babel/traverse': 7.29.7(supports-color@8.1.1)
@@ -8377,15 +8427,15 @@ snapshots:
       - supports-color
       - typescript
 
-  '@apps-in-toss/web-framework@2.10.7(36fc0afebd050ea3521b9d53e6af96cf)':
+  '@apps-in-toss/web-framework@2.10.8(36fc0afebd050ea3521b9d53e6af96cf)':
     dependencies:
-      '@apps-in-toss/bridge-core': 2.10.7
-      '@apps-in-toss/cli': 2.10.7(98254a5e7a0b7d34595d504112831d76)
-      '@apps-in-toss/framework': 2.10.7(70d986bad956c8671ededdf2566bfe29)
-      '@apps-in-toss/plugins': 2.10.7(8d7aa61336a1d970e04a93baf2c30e60)
-      '@apps-in-toss/web-analytics': 2.10.7(@apps-in-toss/web-bridge@2.10.7)
-      '@apps-in-toss/web-bridge': 2.10.7
-      '@apps-in-toss/web-config': 2.10.7(@types/node@25.6.0)(supports-color@8.1.1)(typescript@6.0.3)
+      '@apps-in-toss/bridge-core': 2.10.8
+      '@apps-in-toss/cli': 2.10.8(98254a5e7a0b7d34595d504112831d76)
+      '@apps-in-toss/framework': 2.10.8(70d986bad956c8671ededdf2566bfe29)
+      '@apps-in-toss/plugins': 2.10.8(8d7aa61336a1d970e04a93baf2c30e60)
+      '@apps-in-toss/web-analytics': 2.10.8(@apps-in-toss/web-bridge@2.10.8)
+      '@apps-in-toss/web-bridge': 2.10.8
+      '@apps-in-toss/web-config': 2.10.8(@types/node@25.6.0)(supports-color@8.1.1)(typescript@6.0.3)
       '@babel/core': 7.23.9(supports-color@8.1.1)
       '@granite-js/cli': 1.0.20(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)(@swc/helpers@0.5.17)(@types/node@25.6.0)(jiti@2.6.1)(postcss@8.5.15)(supports-color@8.1.1)(tsx@4.22.4)(typescript@6.0.3)(yaml@2.8.3)
       '@granite-js/mpack': 1.0.20(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)(@types/node@25.6.0)(jiti@2.6.1)(postcss@8.5.15)(supports-color@8.1.1)(tsx@4.22.4)(typescript@6.0.3)(yaml@2.8.3)
@@ -8430,24 +8480,18 @@ snapshots:
       - utf-8-validate
       - yaml
 
-  '@apps-in-toss/web-framework@3.0.0-beta.3051978(@babel/preset-env@7.28.5(@babel/core@7.29.0(supports-color@8.1.1))(supports-color@8.1.1))(@types/node@25.6.0)(supports-color@8.1.1)(typanion@3.14.0)(typescript@6.0.3)':
+  '@apps-in-toss/web-framework@3.0.1(@babel/preset-env@7.28.5(@babel/core@7.29.0(supports-color@8.1.1))(supports-color@8.1.1))(supports-color@8.1.1)(typanion@3.14.0)(typescript@6.0.3)':
     dependencies:
-      '@apps-in-toss/ait-format': 1.0.0
-      '@apps-in-toss/webview-bridge': 3.0.0-beta.9d42c0b
-      '@clack/prompts': 1.5.0
-      clipanion: 4.0.0-rc.4(typanion@3.14.0)
-      cosmiconfig: 9.0.1(typescript@6.0.3)
-      cosmiconfig-typescript-loader: 6.3.0(@types/node@25.6.0)(cosmiconfig@9.0.1(typescript@6.0.3))(typescript@6.0.3)
-      jscodeshift: 17.3.0(@babel/preset-env@7.28.5(@babel/core@7.29.0(supports-color@8.1.1))(supports-color@8.1.1))(supports-color@8.1.1)
-      uuidv7: 1.2.1
+      '@apps-in-toss/cli': 3.0.1(@babel/preset-env@7.28.5(@babel/core@7.29.0(supports-color@8.1.1))(supports-color@8.1.1))(supports-color@8.1.1)(typanion@3.14.0)
+      '@webview-bridge/web': 1.7.9
+      semver: 7.8.5
+      valibot: 1.4.2(typescript@6.0.3)
     transitivePeerDependencies:
       - '@babel/preset-env'
-      - '@types/node'
+      - magicast
       - supports-color
       - typanion
       - typescript
-
-  '@apps-in-toss/webview-bridge@3.0.0-beta.9d42c0b': {}
 
   '@asamuzakjp/css-color@5.1.11':
     dependencies:
@@ -8573,10 +8617,6 @@ snapshots:
       '@jridgewell/trace-mapping': 0.3.31
       '@types/jsesc': 2.5.1
       jsesc: 3.1.0
-
-  '@babel/helper-annotate-as-pure@7.27.3':
-    dependencies:
-      '@babel/types': 7.29.7
 
   '@babel/helper-annotate-as-pure@7.29.7':
     dependencies:
@@ -8734,8 +8774,6 @@ snapshots:
     dependencies:
       '@babel/types': 7.29.7
 
-  '@babel/helper-plugin-utils@7.28.6': {}
-
   '@babel/helper-plugin-utils@7.29.7': {}
 
   '@babel/helper-remap-async-to-generator@7.27.1(@babel/core@7.23.9(supports-color@8.1.1))(supports-color@8.1.1)':
@@ -8827,10 +8865,6 @@ snapshots:
       '@babel/types': 7.29.7
 
   '@babel/parser@7.28.5':
-    dependencies:
-      '@babel/types': 7.29.7
-
-  '@babel/parser@7.29.2':
     dependencies:
       '@babel/types': 7.29.7
 
@@ -9233,16 +9267,6 @@ snapshots:
     dependencies:
       '@babel/core': 7.29.0(supports-color@8.1.1)
       '@babel/helper-plugin-utils': 7.29.7
-
-  '@babel/plugin-syntax-jsx@7.28.6(@babel/core@7.28.5(supports-color@8.1.1))':
-    dependencies:
-      '@babel/core': 7.28.5(supports-color@8.1.1)
-      '@babel/helper-plugin-utils': 7.28.6
-
-  '@babel/plugin-syntax-jsx@7.28.6(@babel/core@7.29.0(supports-color@8.1.1))':
-    dependencies:
-      '@babel/core': 7.29.0(supports-color@8.1.1)
-      '@babel/helper-plugin-utils': 7.28.6
 
   '@babel/plugin-syntax-jsx@7.29.7(@babel/core@7.23.9(supports-color@8.1.1))':
     dependencies:
@@ -10281,9 +10305,9 @@ snapshots:
   '@babel/plugin-transform-typescript@7.28.6(@babel/core@7.23.9(supports-color@8.1.1))(supports-color@8.1.1)':
     dependencies:
       '@babel/core': 7.23.9(supports-color@8.1.1)
-      '@babel/helper-annotate-as-pure': 7.27.3
+      '@babel/helper-annotate-as-pure': 7.29.7
       '@babel/helper-create-class-features-plugin': 7.28.6(@babel/core@7.23.9(supports-color@8.1.1))(supports-color@8.1.1)
-      '@babel/helper-plugin-utils': 7.28.6
+      '@babel/helper-plugin-utils': 7.29.7
       '@babel/helper-skip-transparent-expression-wrappers': 7.27.1(supports-color@8.1.1)
       '@babel/plugin-syntax-typescript': 7.28.6(@babel/core@7.23.9(supports-color@8.1.1))
     transitivePeerDependencies:
@@ -10292,9 +10316,9 @@ snapshots:
   '@babel/plugin-transform-typescript@7.28.6(@babel/core@7.28.5(supports-color@8.1.1))(supports-color@8.1.1)':
     dependencies:
       '@babel/core': 7.28.5(supports-color@8.1.1)
-      '@babel/helper-annotate-as-pure': 7.27.3
+      '@babel/helper-annotate-as-pure': 7.29.7
       '@babel/helper-create-class-features-plugin': 7.28.6(@babel/core@7.28.5(supports-color@8.1.1))(supports-color@8.1.1)
-      '@babel/helper-plugin-utils': 7.28.6
+      '@babel/helper-plugin-utils': 7.29.7
       '@babel/helper-skip-transparent-expression-wrappers': 7.27.1(supports-color@8.1.1)
       '@babel/plugin-syntax-typescript': 7.28.6(@babel/core@7.28.5(supports-color@8.1.1))
     transitivePeerDependencies:
@@ -10303,9 +10327,9 @@ snapshots:
   '@babel/plugin-transform-typescript@7.28.6(@babel/core@7.29.0(supports-color@8.1.1))(supports-color@8.1.1)':
     dependencies:
       '@babel/core': 7.29.0(supports-color@8.1.1)
-      '@babel/helper-annotate-as-pure': 7.27.3
+      '@babel/helper-annotate-as-pure': 7.29.7
       '@babel/helper-create-class-features-plugin': 7.28.6(@babel/core@7.29.0(supports-color@8.1.1))(supports-color@8.1.1)
-      '@babel/helper-plugin-utils': 7.28.6
+      '@babel/helper-plugin-utils': 7.29.7
       '@babel/helper-skip-transparent-expression-wrappers': 7.27.1(supports-color@8.1.1)
       '@babel/plugin-syntax-typescript': 7.28.6(@babel/core@7.29.0(supports-color@8.1.1))
     transitivePeerDependencies:
@@ -10518,7 +10542,7 @@ snapshots:
   '@babel/preset-flow@7.27.1(@babel/core@7.29.0(supports-color@8.1.1))':
     dependencies:
       '@babel/core': 7.29.0(supports-color@8.1.1)
-      '@babel/helper-plugin-utils': 7.28.6
+      '@babel/helper-plugin-utils': 7.29.7
       '@babel/helper-validator-option': 7.27.1
       '@babel/plugin-transform-flow-strip-types': 7.27.1(@babel/core@7.29.0(supports-color@8.1.1))
 
@@ -10551,9 +10575,9 @@ snapshots:
   '@babel/preset-typescript@7.28.5(@babel/core@7.28.5(supports-color@8.1.1))(supports-color@8.1.1)':
     dependencies:
       '@babel/core': 7.28.5(supports-color@8.1.1)
-      '@babel/helper-plugin-utils': 7.28.6
+      '@babel/helper-plugin-utils': 7.29.7
       '@babel/helper-validator-option': 7.27.1
-      '@babel/plugin-syntax-jsx': 7.28.6(@babel/core@7.28.5(supports-color@8.1.1))
+      '@babel/plugin-syntax-jsx': 7.29.7(@babel/core@7.28.5(supports-color@8.1.1))
       '@babel/plugin-transform-modules-commonjs': 7.28.6(@babel/core@7.28.5(supports-color@8.1.1))(supports-color@8.1.1)
       '@babel/plugin-transform-typescript': 7.28.6(@babel/core@7.28.5(supports-color@8.1.1))(supports-color@8.1.1)
     transitivePeerDependencies:
@@ -10562,9 +10586,9 @@ snapshots:
   '@babel/preset-typescript@7.28.5(@babel/core@7.29.0(supports-color@8.1.1))(supports-color@8.1.1)':
     dependencies:
       '@babel/core': 7.29.0(supports-color@8.1.1)
-      '@babel/helper-plugin-utils': 7.28.6
+      '@babel/helper-plugin-utils': 7.29.7
       '@babel/helper-validator-option': 7.27.1
-      '@babel/plugin-syntax-jsx': 7.28.6(@babel/core@7.29.0(supports-color@8.1.1))
+      '@babel/plugin-syntax-jsx': 7.29.7(@babel/core@7.29.0(supports-color@8.1.1))
       '@babel/plugin-transform-modules-commonjs': 7.28.6(@babel/core@7.29.0(supports-color@8.1.1))(supports-color@8.1.1)
       '@babel/plugin-transform-typescript': 7.28.6(@babel/core@7.29.0(supports-color@8.1.1))(supports-color@8.1.1)
     transitivePeerDependencies:
@@ -10694,7 +10718,7 @@ snapshots:
       outdent: 0.5.0
       prettier: 2.8.8
       resolve-from: 5.0.0
-      semver: 7.7.4
+      semver: 7.8.5
 
   '@changesets/assemble-release-plan@6.0.10':
     dependencies:
@@ -10703,7 +10727,7 @@ snapshots:
       '@changesets/should-skip-package': 0.1.2
       '@changesets/types': 6.1.0
       '@manypkg/get-packages': 1.1.3
-      semver: 7.7.4
+      semver: 7.8.5
 
   '@changesets/changelog-git@0.2.1':
     dependencies:
@@ -10760,7 +10784,7 @@ snapshots:
       '@changesets/types': 6.1.0
       '@manypkg/get-packages': 1.1.3
       picocolors: 1.1.1
-      semver: 7.7.4
+      semver: 7.8.5
 
   '@changesets/get-release-plan@4.0.16':
     dependencies:
@@ -13349,6 +13373,15 @@ snapshots:
       convert-source-map: 2.0.0
       tinyrainbow: 3.1.0
 
+  '@webview-bridge/types@1.7.9': {}
+
+  '@webview-bridge/utils@1.7.9': {}
+
+  '@webview-bridge/web@1.7.9':
+    dependencies:
+      '@webview-bridge/types': 1.7.9
+      '@webview-bridge/utils': 1.7.9
+
   abort-controller@3.0.0:
     dependencies:
       event-target-shim: 5.0.1
@@ -13944,6 +13977,21 @@ snapshots:
 
   bytes@3.1.2: {}
 
+  c12@3.3.4:
+    dependencies:
+      chokidar: 5.0.0
+      confbox: 0.2.4
+      defu: 6.1.7
+      dotenv: 17.4.2
+      exsolve: 1.1.1
+      giget: 3.3.1
+      jiti: 2.6.1
+      ohash: 2.0.11
+      pathe: 2.0.3
+      perfect-debounce: 2.1.0
+      pkg-types: 2.3.1
+      rc9: 3.0.1
+
   cac@6.7.14: {}
 
   cac@7.0.0: {}
@@ -14024,6 +14072,10 @@ snapshots:
   chokidar@4.0.3:
     dependencies:
       readdirp: 4.1.2
+
+  chokidar@5.0.0:
+    dependencies:
+      readdirp: 5.0.0
 
   chrome-launcher@0.15.2(supports-color@8.1.1):
     dependencies:
@@ -14163,6 +14215,8 @@ snapshots:
 
   confbox@0.1.8: {}
 
+  confbox@0.2.4: {}
+
   connect@3.7.0(supports-color@8.1.1):
     dependencies:
       debug: 2.6.9(supports-color@8.1.1)
@@ -14209,13 +14263,6 @@ snapshots:
       '@types/node': 25.6.0
       cosmiconfig: 9.0.1(typescript@6.0.3)
       jiti: 1.21.7
-      typescript: 6.0.3
-
-  cosmiconfig-typescript-loader@6.3.0(@types/node@25.6.0)(cosmiconfig@9.0.1(typescript@6.0.3))(typescript@6.0.3):
-    dependencies:
-      '@types/node': 25.6.0
-      cosmiconfig: 9.0.1(typescript@6.0.3)
-      jiti: 2.6.1
       typescript: 6.0.3
 
   cosmiconfig@5.2.1:
@@ -14391,6 +14438,8 @@ snapshots:
 
   dequal@2.0.3: {}
 
+  destr@2.0.5: {}
+
   destroy@1.2.0: {}
 
   detect-indent@6.1.0: {}
@@ -14431,6 +14480,8 @@ snapshots:
     dependencies:
       no-case: 3.0.4
       tslib: 2.8.1
+
+  dotenv@17.4.2: {}
 
   dts-resolver@2.1.3: {}
 
@@ -14793,6 +14844,8 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  exsolve@1.1.1: {}
+
   extend@3.0.2: {}
 
   extendable-error@0.1.7: {}
@@ -15067,6 +15120,8 @@ snapshots:
   getpass@0.1.7:
     dependencies:
       assert-plus: 1.0.0
+
+  giget@3.3.1: {}
 
   glob-parent@5.1.2:
     dependencies:
@@ -15848,7 +15903,7 @@ snapshots:
   jscodeshift@17.3.0(@babel/preset-env@7.28.5(@babel/core@7.29.0(supports-color@8.1.1))(supports-color@8.1.1))(supports-color@8.1.1):
     dependencies:
       '@babel/core': 7.29.0(supports-color@8.1.1)
-      '@babel/parser': 7.29.2
+      '@babel/parser': 7.29.7
       '@babel/plugin-transform-class-properties': 7.28.6(@babel/core@7.29.0(supports-color@8.1.1))(supports-color@8.1.1)
       '@babel/plugin-transform-modules-commonjs': 7.28.6(@babel/core@7.29.0(supports-color@8.1.1))(supports-color@8.1.1)
       '@babel/plugin-transform-nullish-coalescing-operator': 7.28.6(@babel/core@7.29.0(supports-color@8.1.1))
@@ -16864,6 +16919,8 @@ snapshots:
 
   obug@2.1.3: {}
 
+  ohash@2.0.11: {}
+
   on-exit-leak-free@2.1.2: {}
 
   on-finished@2.3.0:
@@ -16991,7 +17048,7 @@ snapshots:
 
   parse-json@5.2.0:
     dependencies:
-      '@babel/code-frame': 7.29.0
+      '@babel/code-frame': 7.29.7
       error-ex: 1.3.4
       json-parse-even-better-errors: 2.3.1
       lines-and-columns: 1.2.4
@@ -17037,6 +17094,8 @@ snapshots:
   pathe@2.0.3: {}
 
   pend@1.2.0: {}
+
+  perfect-debounce@2.1.0: {}
 
   performance-now@2.1.0: {}
 
@@ -17089,6 +17148,12 @@ snapshots:
     dependencies:
       confbox: 0.1.8
       mlly: 1.8.2
+      pathe: 2.0.3
+
+  pkg-types@2.3.1:
+    dependencies:
+      confbox: 0.2.4
+      exsolve: 1.1.1
       pathe: 2.0.3
 
   playwright-core@1.61.1: {}
@@ -17247,6 +17312,11 @@ snapshots:
       http-errors: 2.0.1
       iconv-lite: 0.7.2
       unpipe: 1.0.0
+
+  rc9@3.0.1:
+    dependencies:
+      defu: 6.1.7
+      destr: 2.0.5
 
   react-devtools-core@4.28.5:
     dependencies:
@@ -17546,6 +17616,8 @@ snapshots:
       minimatch: 5.1.9
 
   readdirp@4.1.2: {}
+
+  readdirp@5.0.0: {}
 
   readline@1.3.0: {}
 
@@ -18516,6 +18588,10 @@ snapshots:
       '@jridgewell/trace-mapping': 0.3.31
       '@types/istanbul-lib-coverage': 2.0.6
       convert-source-map: 2.0.0
+
+  valibot@1.4.2(typescript@6.0.3):
+    optionalDependencies:
+      typescript: 6.0.3
 
   vary@1.1.2: {}
 

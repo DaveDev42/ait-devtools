@@ -23,7 +23,9 @@
  *   { plugins: [aitDevtools.rollup()] }
  */
 
-import { fileURLToPath } from 'node:url';
+import { readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
+import { resolve } from 'node:path';
 import { createUnplugin } from 'unplugin';
 import { startParentWatcher } from '../shared/parent-watcher.js';
 import {
@@ -71,14 +73,33 @@ interface DevServerCdpRelayLike {
  * because we don't provide a `load` hook. Resolving to an absolute path here
  * lets every supported bundler load the file the normal way.
  */
-const MOCK_PATH = (() => {
+function resolveMockPath(specifier: '@ait-co/devtools/mock/2x' | '@ait-co/devtools/mock/3x') {
   try {
-    return fileURLToPath(import.meta.resolve('@ait-co/devtools/mock'));
+    return createRequire(resolve(process.cwd(), 'package.json')).resolve(specifier);
   } catch {
-    // Fallback for runtimes where `import.meta.resolve` is unavailable.
-    return '@ait-co/devtools/mock';
+    // Source checkouts may not have dist yet; the built package resolves this.
+    return specifier;
   }
-})();
+}
+
+const MOCK_PATH_2X = resolveMockPath('@ait-co/devtools/mock/2x');
+const MOCK_PATH_3X = resolveMockPath('@ait-co/devtools/mock/3x');
+
+export type SdkVersionSelection = 'auto' | '2' | '3';
+
+/** Resolve the consumer project's installed SDK major without importing it. */
+export function detectInstalledSdkMajor(cwd = process.cwd()): '2' | '3' | null {
+  try {
+    const consumerRequire = createRequire(resolve(cwd, 'package.json'));
+    const packageJsonPath = consumerRequire.resolve(`${FRAMEWORK_ID}/package.json`);
+    const version = JSON.parse(readFileSync(packageJsonPath, 'utf8')).version as string | undefined;
+    if (version?.startsWith('2.')) return '2';
+    if (version?.startsWith('3.')) return '3';
+  } catch {
+    // The SDK peer is optional. MCP/panel-only projects legitimately omit it.
+  }
+  return null;
+}
 
 export interface AitDevtoolsOptions {
   /**
@@ -86,6 +107,8 @@ export interface AitDevtoolsOptions {
    * true이면 진입점에 floating panel import를 자동 추가한다.
    */
   panel?: boolean;
+  /** web-framework facade selection. Auto-detects the consumer SDK by default. */
+  sdkVersion?: SdkVersionSelection;
   /**
    * In-app debug attach 자동 주입 여부 (default: true).
    *
@@ -221,6 +244,10 @@ const aitDevtoolsPlugin = createUnplugin((options?: AitDevtoolsOptions) => {
   const isDev = process.env.NODE_ENV !== 'production';
   const shouldEnable = isDev;
   const shouldMock = shouldEnable && (options?.mock ?? isDev);
+  const sdkMajor =
+    options?.sdkVersion === '2' || options?.sdkVersion === '3'
+      ? options.sdkVersion
+      : (detectInstalledSdkMajor() ?? '3');
   const shouldPanel = shouldEnable && (options?.panel ?? true);
   // in-app attach 주입: shouldEnable과 동일하게 dev에서 자동.
   // maybeAttach()가 런타임 gate(Layer B·C)를 자체 검증하므로 dev 항상 주입이 안전하다.
@@ -278,7 +305,9 @@ const aitDevtoolsPlugin = createUnplugin((options?: AitDevtoolsOptions) => {
         id === BRIDGE_ID ||
         id === ANALYTICS_ID
       ) {
-        return MOCK_PATH;
+        if (id === BRIDGE_ID || id === ANALYTICS_ID) return MOCK_PATH_2X;
+        if (id === WEBVIEW_BRIDGE_ID) return MOCK_PATH_3X;
+        return sdkMajor === '2' ? MOCK_PATH_2X : MOCK_PATH_3X;
       }
       return null;
     },

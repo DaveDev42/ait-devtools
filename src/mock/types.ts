@@ -96,6 +96,22 @@ export type ConsentedUserDataKey =
 /** `getConsentedUserData`의 반환 shape. SDK 선언과 동일한 `Partial<Record<..., string>>`. */
 export type ConsentedUserData = Partial<Record<ConsentedUserDataKey, string>>;
 
+export interface DeclaredAgeRange {
+  status:
+    | 'SHARING'
+    | 'DECLINED_SHARING'
+    | 'UNSUPPORTED_OS'
+    | 'NOT_AVAILABLE'
+    | 'INVALID_REQUEST'
+    | 'FAILED';
+  lowerBound?: number;
+  upperBound?: number;
+  ageRangeDeclaration?: string;
+  activeParentalControls: string[];
+  isEligibleForAgeFeatures?: boolean;
+  errorCode?: string;
+}
+
 export interface AnalyticsLogEntry {
   timestamp: number;
   type: string;

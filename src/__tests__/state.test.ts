@@ -22,6 +22,7 @@ describe('AitStateManager', () => {
         userKeyHash: '',
         anonymousKeyHash: '',
         consentedUserData: {},
+        declaredAgeRange: { status: 'NOT_AVAILABLE', activeParentalControls: [] },
       },
     });
     expect(aitState.state.auth.isLoggedIn).toBe(false);

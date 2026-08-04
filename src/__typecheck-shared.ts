@@ -1,7 +1,7 @@
 /**
  * 듀얼라인 타입 호환성 검증의 공용 유틸리티 타입
  *
- * `__typecheck.ts`(3.0-beta 라인)와 `__typecheck-2x.ts`(2.x stable 라인)가
+ * `__typecheck.ts`(3.x GA 라인)와 `__typecheck-2x.ts`(2.x stable 라인)가
  * 같은 assert 본체를 공유하되, 라인별로 존재 유무가 갈리는 심볼만
  * `AssertIfPresent`로 capability-gate한다.
  */

@@ -38,7 +38,17 @@ const common = {
 export default defineConfig([
   {
     ...common,
-    entry: { 'mock/index': 'src/mock/index.ts' },
+    entry: { 'mock/index': 'src/mock/index-3x.ts' },
+    format: ['esm'],
+  },
+  {
+    ...common,
+    entry: { 'mock/2x': 'src/mock/index-2x.ts' },
+    format: ['esm'],
+  },
+  {
+    ...common,
+    entry: { 'mock/3x': 'src/mock/index-3x.ts' },
     format: ['esm'],
   },
   {

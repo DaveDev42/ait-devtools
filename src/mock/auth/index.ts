@@ -4,7 +4,7 @@
 
 import { buildNativeError } from '../native-error.js';
 import { aitState } from '../state.js';
-import type { ConsentedUserData } from '../types.js';
+import type { ConsentedUserData, DeclaredAgeRange } from '../types.js';
 
 export async function appLogin(): Promise<{
   authorizationCode: string;
@@ -70,10 +70,8 @@ export interface GetConsentedUserDataOptions {
 /**
  * 사용자 동의 기반 데이터 mock (devtools#798 — env1에 배선 부재였던 실 export).
  *
- * SDK는 이 API를 web-framework 2.x 라인에서만 노출한다(`@apps-in-toss/web-bridge`
- * 경유) — 3.0-beta 라인엔 대응 export가 없다(`__typecheck.ts`/`__typecheck-2x.ts`
- * 양쪽 모두 `AssertIfPresent`로 capability-gate: PermissionError의 반대 방향
- * 비대칭). 선언 시그니처는 `Promise<Partial<Record<ConsentedUserDataKey, string>>
+ * SDK는 이 API를 `@apps-in-toss/web-bridge` 호환 export로 노출하며 2.x와 3.x GA
+ * 양쪽 facade에서 제공한다. 선언 시그니처는 `Promise<Partial<Record<ConsentedUserDataKey, string>>
  * | undefined>` — appLogin과 같은 async bridge 모양이라 항상 resolve하는 낙관적
  * 패턴을 따른다.
  *
@@ -86,4 +84,10 @@ export async function getConsentedUserData(
   _options: GetConsentedUserDataOptions,
 ): Promise<ConsentedUserData | undefined> {
   return aitState.state.auth.consentedUserData;
+}
+
+export async function getDeclaredAgeRange(_params: {
+  ageGates: number[];
+}): Promise<DeclaredAgeRange> {
+  return { ...aitState.state.auth.declaredAgeRange };
 }

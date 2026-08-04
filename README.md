@@ -127,20 +127,16 @@ npm install -D @ait-co/devtools
 pnpm add -D @ait-co/devtools
 ```
 
-### 두 채널 — stable과 beta
+### 지원 SDK 버전
 
-devtools는 같은 코드에서 두 개의 npm dist-tag를 동시에 운영합니다. 쓰는 web-framework 버전에 맞는 채널을 고르세요.
+stable `latest` 하나가 web-framework 2.x와 3.x를 함께 지원합니다.
 
-| 채널 | 설치 | web-framework peer |
-|---|---|---|
-| **stable** (`latest`, 기본) | `pnpm add -D @ait-co/devtools` | `>=2.6.0 <3.0.0` (2.x) |
-| **beta** | `pnpm add -D @ait-co/devtools@beta` | `>=3.0.0-beta <4.0.0` (3.0 라인) |
+| SDK 라인 | 검증 버전 | 자동 facade | 수동 alias |
+|---|---|---|---|
+| **2.x** | `2.10.8` | unplugin이 설치 버전을 감지 | `@ait-co/devtools/mock/2x` |
+| **3.x** | `3.0.1` | unplugin이 설치 버전을 감지 | `@ait-co/devtools/mock/3x` (`/mock` 기본값) |
 
-- web-framework **2.x**를 쓰면 위 기본 설치(stable)면 됩니다.
-- web-framework **3.0.0-beta** 프리릴리즈를 쓰면 `@beta` 채널을 설치하세요. 이 채널은 main push마다 자동 publish되는 스냅샷(`0.0.0-beta-<datetime>-<sha>`)이라 버전을 핀하기 어려우니 `@beta` 태그로 설치하는 걸 권장합니다.
-- 두 채널 모두 web-framework peer는 `optional`이라 MCP 디버깅만 쓰는 경우 SDK를 강제로 끌어오지 않습니다.
-
-3.0이 정식(GA) 출시되면 stable `latest` peer가 3.0 라인으로 올라가고 beta 채널은 정리됩니다. devtools가 아직 mock하지 않은 API를 호출하면 런타임에 에러가 발생합니다 — 누락된 API는 [이슈](https://github.com/apps-in-toss-community/devtools/issues)로 알려주세요.
+peer 범위는 `>=2.6.0 <3.0.0 || >=3.0.1 <4.0.0`이며 optional입니다. MCP/패널만 쓰는 프로젝트에는 SDK를 강제로 설치하지 않습니다. 자동 감지가 어려운 monorepo에서는 `aitDevtools.vite({ sdkVersion: '2' })` 또는 `'3'`으로 명시하세요.
 
 ### 디버깅 패키지 (환경 2·3)
 
@@ -267,6 +263,8 @@ export default defineConfig({
 });
 ```
 
+web-framework 2.x에서 수동 alias를 쓰면 위 값을 `@ait-co/devtools/mock/2x`로 바꾸세요. 3.x는 명시적으로 `@ait-co/devtools/mock/3x`를 써도 됩니다.
+
 ```js
 // webpack.config.js (Webpack은 절대 경로 필요, web-framework 3.0+)
 module.exports = {
@@ -288,6 +286,7 @@ module.exports = {
 | 옵션 | 타입 | 기본값 | 설명 |
 |---|---|---|---|
 | `panel` | `boolean` | `true` | DevTools Panel 자동 주입 여부 |
+| `sdkVersion` | `'auto' \| '2' \| '3'` | `'auto'` | mock facade 자동 감지 또는 강제 선택 |
 | `forceEnable` | `boolean` | `false` | production에서도 devtools 활성화 |
 | `mock` | `boolean` | `true` (dev) / `false` (prod+forceEnable) | mock alias 활성화 여부 |
 | `mcp` | `boolean` | `false` | Vite dev server에 MCP state endpoint 추가 (Vite 전용, [MCP 섹션](#mcp-server) 참조) |
@@ -724,9 +723,9 @@ unsubscribe(); // 구독 해제
 
 | API | Mock 동작 |
 |---|---|
-| `SafeAreaInsets.get` | `{ top, bottom, left: 0, right: 0 }` 반환 |
+| `SafeArea.get` / `SafeAreaInsets.get` | `{ top, bottom, left, right }` 동기 반환 (3.x 이름 + 2.x alias) |
 | `SafeAreaInsets.subscribe` | 상태 변경 시 콜백 호출, unsubscribe 함수 반환 |
-| `getSafeAreaInsets` | top inset 값 반환 (deprecated) |
+| `getSafeAreaInsets` | 2.x facade는 실측대로 Promise, 3.x facade는 inset 객체 동기 반환 (deprecated) |
 
 ### 디바이스 기능
 
@@ -959,9 +958,9 @@ relay runner는 현재 stub (devtools#261 follow-up에서 CDP Runtime.evaluate �
 ### 새 API mock 추가 절차
 
 1. 해당 카테고리 디렉토리에 함수 구현 (예: `src/mock/device/`)
-2. `src/mock/index.ts`에 export 추가
-3. `src/__typecheck.ts`에 타입 호환성 assertion 추가
-4. `pnpm typecheck`로 원본과 호환되는지 검증
+2. 공통 API는 `src/mock/index.ts`, SDK별 계약은 `src/mock/index-2x.ts` 또는 `src/mock/index-3x.ts`에 export 추가
+3. `src/__typecheck.ts`와 `src/__typecheck-2x.ts`에 타입 호환성 assertion 추가
+4. `pnpm typecheck`로 2.10.8·3.0.1 모두와 호환되는지 검증
 5. `src/__tests/`에 테스트 작성
 
 ```bash

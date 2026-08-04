@@ -83,7 +83,15 @@ export const GoogleAdMob = createMockProxy('GoogleAdMob', {
           aitState.patch('ads', { isLoaded: true });
           args.onEvent({
             type: 'loaded',
-            data: { responseInfo: { responseId: `mock-response-${args.options.adGroupId}` } },
+            data: {
+              adGroupId: args.options.adGroupId,
+              adUnitId: `mock-unit-${args.options.adGroupId}`,
+              responseInfo: {
+                responseId: `mock-response-${args.options.adGroupId}`,
+                adNetworkInfoArray: [],
+                loadedAdNetworkInfo: null,
+              },
+            },
           });
         }, 200);
         return () => {};

@@ -1,9 +1,9 @@
 /**
  * 타입 호환성 검증 파일 — 2.x stable 라인 (web-framework-2x alias)
  *
- * `__typecheck.ts`(3.0-beta 라인)와 같은 본체를, devDep alias
- * `@apps-in-toss/web-framework-2x`(= `npm:@apps-in-toss/web-framework@2.10.7`)
- * 대상으로 한 번 더 컴파일한다 — mock이 2.x stable·3.0-beta 두 라인 모두와
+ * `__typecheck.ts`(3.x GA 라인)와 같은 본체를, devDep alias
+ * `@apps-in-toss/web-framework-2x`(= `npm:@apps-in-toss/web-framework@2.10.8`)
+ * 대상으로 한 번 더 컴파일한다 — mock이 2.x stable·3.x GA 두 라인 모두와
  * 호환됨을 CI에서 증명한다(`tsconfig.2x.json`이 이 파일만 include).
  *
  * 두 라인의 유일한 표면 차이는 base `PermissionError`다(2.x public surface 부재,
@@ -14,7 +14,7 @@
 
 import type * as Original from '@apps-in-toss/web-framework-2x';
 import type { AssertCompat, AssertIfPresent, Expect } from './__typecheck-shared.js';
-import type * as Mock from './mock/index.js';
+import type * as Mock from './mock/index-2x.js';
 
 // 제네릭 인자에 `typeof Mock`/`typeof Original`을 직접 쓰면 TS2709가 나므로
 // 먼저 명명형 타입으로 고정한다.
@@ -51,9 +51,8 @@ type _AppsInTossSignTossCert = Expect<
 >;
 
 // getConsentedUserData는 이 2.x stable 라인에만 존재한다(devtools#798,
-// `@apps-in-toss/web-bridge` 경유) — 3.0-beta 표면엔 대응 export가 없다
-// (`__typecheck.ts`에서 skip). PermissionError(3.0 신규, 2.x 부재)의 반대 방향
-// 비대칭이라 여기서는 AssertIfPresent가 엄격 검증으로 동작한다.
+// `@apps-in-toss/web-bridge` 경유). 3.x GA도 이 호환 export를 유지하므로
+// 양쪽 typecheck에서 엄격 검증한다.
 type _GetConsentedUserData = Expect<AssertIfPresent<MockNS, OrigNS, 'getConsentedUserData'>>;
 
 // --- 화면/네비게이션 ---

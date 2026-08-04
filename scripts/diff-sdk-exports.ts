@@ -55,16 +55,6 @@ function getInstalledVersion(): string {
 }
 
 function resolveLatestVersion(): string {
-  // TODO: revert to `version` (latest dist-tag) at GA when web-framework 3.0.0 stable ships.
-  // During the prerelease window we track the `beta` dist-tag instead.
-  try {
-    const betaResult = execSync(`npm view ${PACKAGE} dist-tags.beta`, {
-      encoding: 'utf-8',
-    }).trim();
-    if (betaResult && betaResult !== 'undefined') return betaResult;
-  } catch {
-    // fall through to latest
-  }
   return execSync(`npm view ${PACKAGE} version`, { encoding: 'utf-8' }).trim();
 }
 

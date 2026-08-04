@@ -25,32 +25,14 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useT } from '../i18n/react.js';
-import { type AitDevtoolsState, aitState } from '../mock/state.js';
+import { aitState } from '../mock/state.js';
+import { pushStateToMcpEndpoint } from './mcp-state.js';
 import { TabErrorBoundary } from './tab-error-boundary.js';
 import { TabHost } from './tab-host.js';
 import { setDeviceRefreshPanel } from './tabs/device.js';
 import { createTabRenderers, getTabs, type TabId } from './tabs/index.js';
 import { updatePanelPosition, useDraggable } from './use-draggable.js';
 import { disposeViewport, initViewport } from './viewport.js';
-
-/** MCP endpoint registered by the unplugin when `mcp: true` is set */
-const MCP_STATE_PATH = '/api/ait-devtools/state';
-
-/**
- * Push a state snapshot to the Vite dev-server MCP endpoint.
- * No-ops silently when the endpoint is not available (e.g., mcp option not set,
- * or running in production). Fire-and-forget — never throws.
- */
-function pushStateToMcpEndpoint(state: AitDevtoolsState): void {
-  if (typeof fetch === 'undefined') return;
-  fetch(MCP_STATE_PATH, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(state),
-  }).catch(() => {
-    /* Silently ignore — endpoint is not available when mcp option is not set */
-  });
-}
 
 // Tabs whose body must re-render on a mock-state change (mirrors the old
 // `aitState.subscribe` allow-list in index.ts).
@@ -123,7 +105,7 @@ export function Panel(): React.ReactElement {
       } catch (err) {
         console.error('[@ait-co/devtools] Error in subscribe callback:', err);
       }
-      // MCP state push (unplugin `mcp: true`). Fire-and-forget.
+      // No-op unless the unplugin explicitly enabled `mcp: true`.
       pushStateToMcpEndpoint(aitState.state);
     });
 

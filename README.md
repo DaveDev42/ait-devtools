@@ -289,7 +289,7 @@ module.exports = {
 | `sdkVersion` | `'auto' \| '2' \| '3'` | `'auto'` | mock facade 자동 감지 또는 강제 선택 |
 | `forceEnable` | `boolean` | `false` | production에서도 devtools 활성화 |
 | `mock` | `boolean` | `true` (dev) / `false` (prod+forceEnable) | mock alias 활성화 여부 |
-| `mcp` | `boolean` | `false` | Vite dev server에 MCP state endpoint 추가 (Vite 전용, [MCP 섹션](#mcp-server) 참조) |
+| `mcp` | `boolean` | `false` | MCP state sync opt-in. `true`일 때만 Vite endpoint와 Panel의 상태 POST를 함께 활성화 ([MCP 섹션](#mcp-server) 참조) |
 | `tunnel` | `boolean \| { port?: number; qr?: boolean; cdp?: boolean }` | `false` | Vite dev 서버를 Cloudflare quick tunnel로 노출 (실기기 미리보기, [아래](#run-on-a-real-phone-실기기-미리보기) 참고). `cdp: true`면 환경 2 PWA에 on-device CDP 디버깅도 배선. **Vite dev 모드 전용** |
 
 ```ts
@@ -300,6 +300,8 @@ aitDevtools.vite({ mcp: true }); // AI 에이전트용 MCP endpoint 활성화
 aitDevtools.vite({ tunnel: true }); // dev 서버를 *.trycloudflare.com으로 노출
 aitDevtools.vite({ tunnel: { cdp: true } }); // 실기기 미리보기 + on-device CDP 디버깅
 ```
+
+`mcp` 기본값은 `false`입니다. 옵션을 생략하면 endpoint를 등록하지 않고 Panel도 상태를 직렬화하거나 네트워크 요청을 보내지 않습니다.
 
 ## Production 빌드
 

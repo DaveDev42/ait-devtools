@@ -214,6 +214,8 @@ const WEBVIEW_BRIDGE_ID = '@apps-in-toss/webview-bridge'; // 3.0+
 
 /** MCP state endpoint path — browser panel POSTs here, MCP server GETs here */
 const MCP_STATE_PATH = '/api/ait-devtools/state';
+/** Browser runtime opt-in consumed by the panel's state-sync helper. */
+const MCP_ENABLE_SNIPPET = 'globalThis.__AIT_DEVTOOLS_MCP_ENABLED__ = true;';
 
 /**
  * Resolves the effective tunnel option (#425).
@@ -313,8 +315,8 @@ const aitDevtoolsPlugin = createUnplugin((options?: AitDevtoolsOptions) => {
     },
 
     transformInclude(id: string) {
-      // panel 또는 inApp 주입 중 하나라도 필요하면 진입점 파일을 transform 대상으로 포함
-      if (!shouldPanel && !shouldInApp) return false;
+      // panel, inApp, MCP opt-in 중 하나라도 필요하면 진입점 파일을 transform 대상으로 포함
+      if (!shouldPanel && !shouldInApp && !shouldMcp) return false;
       // 진입점 파일에만 주입
       return (
         /\.(tsx?|jsx?)$/.test(id) &&
@@ -326,6 +328,13 @@ const aitDevtoolsPlugin = createUnplugin((options?: AitDevtoolsOptions) => {
     transform(code: string) {
       let result = code;
       let changed = false;
+
+      // MCP is entirely opt-in. Without `mcp: true` this marker is absent and
+      // the panel returns before serializing state or issuing a fetch.
+      if (shouldMcp && !code.includes('__AIT_DEVTOOLS_MCP_ENABLED__')) {
+        result = `${MCP_ENABLE_SNIPPET}\n${result}`;
+        changed = true;
+      }
 
       // 패널 주입: shouldPanel이 활성화되어 있고 아직 import가 없으면 prepend
       if (shouldPanel && !code.includes('@ait-co/devtools/panel')) {

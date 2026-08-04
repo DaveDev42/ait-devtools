@@ -29,6 +29,7 @@ type RawHooks = {
     config: () =>
       | { define?: Record<string, string>; server?: { allowedHosts?: string[] } }
       | undefined;
+    configureServer: (server: unknown) => void;
   };
 };
 
@@ -55,6 +56,44 @@ describe('unplugin: dev mode (default)', () => {
     vi.stubEnv('NODE_ENV', 'development');
     const hooks = getRawHooks();
     expect(hooks.transformInclude('src/main.tsx')).toBeTruthy();
+  });
+
+  it('MCP runtime flag를 주입하지 않는다', () => {
+    vi.stubEnv('NODE_ENV', 'development');
+    const result = getRawHooks().transform('console.log("hello");');
+    expect(result).not.toContain('__AIT_DEVTOOLS_MCP_ENABLED__');
+  });
+
+  it('MCP endpoint를 등록하지 않는다', () => {
+    vi.stubEnv('NODE_ENV', 'development');
+    const use = vi.fn();
+    getRawHooks().vite.configureServer({ middlewares: { use } });
+    expect(use).not.toHaveBeenCalled();
+  });
+});
+
+describe('unplugin: dev mode + mcp:true', () => {
+  it('Panel state sync runtime flag를 명시적으로 주입한다', () => {
+    vi.stubEnv('NODE_ENV', 'development');
+    const result = getRawHooks({ mcp: true }).transform('console.log("hello");');
+    expect(result).toContain('globalThis.__AIT_DEVTOOLS_MCP_ENABLED__ = true;');
+  });
+
+  it('MCP endpoint를 등록한다', () => {
+    vi.stubEnv('NODE_ENV', 'development');
+    const use = vi.fn();
+    getRawHooks({ mcp: true }).vite.configureServer({ middlewares: { use } });
+    expect(use).toHaveBeenCalledOnce();
+    expect(use.mock.calls[0]?.[0]).toBe('/api/ait-devtools/state');
+  });
+
+  it('panel과 inApp 자동 주입을 꺼도 수동 Panel용 runtime flag를 주입한다', () => {
+    vi.stubEnv('NODE_ENV', 'development');
+    const hooks = getRawHooks({ mcp: true, panel: false, inApp: false });
+    expect(hooks.transformInclude('src/main.tsx')).toBeTruthy();
+    expect(hooks.transform('console.log("hello");')).toContain(
+      'globalThis.__AIT_DEVTOOLS_MCP_ENABLED__ = true;',
+    );
   });
 });
 
@@ -129,6 +168,13 @@ describe('unplugin: production — 항상 비활성화 (불변식)', () => {
     vi.stubEnv('NODE_ENV', 'production');
     const hooks = getRawHooks();
     expect(hooks.transformInclude('src/main.tsx')).toBeFalsy();
+  });
+
+  it('production에서 mcp:true를 명시해도 runtime flag를 주입하지 않는다', () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    const hooks = getRawHooks({ mcp: true });
+    expect(hooks.transformInclude('src/main.tsx')).toBeFalsy();
+    expect(hooks.transform('console.log("hello");')).toBeNull();
   });
 });
 

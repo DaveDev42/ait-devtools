@@ -289,7 +289,7 @@ module.exports = {
 | `sdkVersion` | `'auto' \| '2' \| '3'` | `'auto'` | Auto-detect or force the mock facade |
 | `forceEnable` | `boolean` | `false` | Enable devtools even in production |
 | `mock` | `boolean` | `true` (dev) / `false` (prod+forceEnable) | Enable mock alias |
-| `mcp` | `boolean` | `false` | Add an MCP state endpoint to the Vite dev server (Vite only — see [MCP Server](#mcp-server)) |
+| `mcp` | `boolean` | `false` | Opt in to MCP state sync. Only `true` enables both the Vite endpoint and Panel state POSTs (see [MCP Server](#mcp-server)) |
 | `tunnel` | `boolean \| { port?: number; qr?: boolean; cdp?: boolean }` | `false` | Expose the Vite dev server via a Cloudflare quick tunnel for real-device preview (see [below](#run-on-a-real-phone)). `cdp: true` also wires on-device CDP debugging for environment 2 (PWA). **Vite dev mode only** |
 
 ```ts
@@ -300,6 +300,8 @@ aitDevtools.vite({ mcp: true }); // enable MCP endpoint for AI agents
 aitDevtools.vite({ tunnel: true }); // expose dev server at *.trycloudflare.com
 aitDevtools.vite({ tunnel: { cdp: true } }); // real-device preview + on-device CDP debugging
 ```
+
+`mcp` defaults to `false`. When omitted, no endpoint is registered and the Panel does not serialize state or make MCP network requests.
 
 ## Production builds
 
